@@ -75,20 +75,29 @@ CREATE TABLE Book (
     publisher_id INTEGER REFERENCES Publisher(publisher_id)
 );
 
+CREATE INDEX idx_book_title_fulltext ON Book USING GIN (to_tsvector('french', title));
+CREATE INDEX idx_book_description_fulltext ON Book USING GIN (to_tsvector('french', description));
+CREATE INDEX idx_book_fulltext ON Book USING GIN (
+    to_tsvector('french', title || ' ' || description)
+);
+
 -- Table Author
 CREATE TABLE Author (
     author_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    gender VARCHAR(255),
+    gender VARCHAR(255) CHECK (gender IN ('male', 'female', 'other')),
     birthplace VARCHAR(255)
 );
+
+CREATE INDEX idx_author_name_fulltext ON Author USING GIN (to_tsvector('simple', lower(name)));
+
 
 -- Table User
 CREATE TABLE "user" (
     user_id SERIAL PRIMARY KEY,
     name VARCHAR(255),
     birth_date DATE,
-    gender VARCHAR(255),
+    gender VARCHAR(255) CHECK (gender IN ('male', 'female', 'other')),
     favorite_book_id INTEGER REFERENCES Book(book_id),
     favorite_author_id INTEGER REFERENCES Author(author_id)
 );
@@ -96,23 +105,36 @@ CREATE TABLE "user" (
 -- Table Questionary
 CREATE TABLE Questionary (
     questionary_id SERIAL PRIMARY KEY,
-    question TEXT NOT NULL
+    age INTEGER,
+    child BOOLEAN,
+    familial_situation varchar,
+    gender CHECK (gender IN ('male', 'female', 'other')),
+    socio_pro_cat varchar,
+    habitation varchar,
+    frequency varchar,
+    book_size varchar
 );
 
 -- Table Rating_book
 CREATE TABLE Rating_book (
     rating_id SERIAL PRIMARY KEY,
     book_id INTEGER REFERENCES Book(book_id),
-    rating INTEGER,
-    comment TEXT
+    rating_count INTEGER,
+    average_rating FLOAT,
+    five_star_rating INTEGER,
+    four_star_rating INTEGER,
+    three_star_rating INTEGER,
+    two_star_rating INTEGER,
+    one_star_rating INTEGER,
 );
 
 -- Table Rating_author
 CREATE TABLE Rating_author (
     rating_id SERIAL PRIMARY KEY,
     author_id INTEGER REFERENCES Author(author_id),
-    rating INTEGER,
-    comment TEXT
+    average_author_rating FLOAT,
+    author_rating_count INTEGER,
+    author_review_count INTEGER,
 );
 
 -- Table Book_similarity
@@ -136,7 +158,10 @@ CREATE TABLE User_Book_Interaction (
 CREATE TABLE User_Book_Preference (
     preference_id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES "user"(user_id),
-    genre_id INTEGER REFERENCES Genre(genre_id)
+    genre_id INTEGER REFERENCES Genre(genre_id),
+    preference_name VARCHAR(255),
+    preference_date TIMESTAMP,
+    preference_rating INTEGER
 );
 
 -- Table User_Book_History
@@ -144,7 +169,7 @@ CREATE TABLE User_Book_History (
     history_id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES "user"(user_id),
     book_id INTEGER REFERENCES Book(book_id),
-    reading_date DATE
+    reading_date TIMESTAMP
 );
 
 -- Table Genre_and_vote
@@ -170,25 +195,11 @@ CREATE TABLE Liked (
     PRIMARY KEY (user_id, genre_id)
 );
 
--- Table Publisher_of_book
-CREATE TABLE Publisher_of_book (
-    book_id INTEGER REFERENCES Book(book_id),
-    publisher_id INTEGER REFERENCES Publisher(publisher_id),
-    PRIMARY KEY (book_id, publisher_id)
-);
-
 -- Table Serie_of_book
 CREATE TABLE Serie_of_book (
     book_id INTEGER REFERENCES Book(book_id),
     serie_id INTEGER REFERENCES Serie(serie_id),
     PRIMARY KEY (book_id, serie_id)
-);
-
--- Table Format_of_book
-CREATE TABLE Format_of_book (
-    book_id INTEGER REFERENCES Book(book_id),
-    format_id INTEGER REFERENCES Format_of_reading(format_reading_id),
-    PRIMARY KEY (book_id, format_id)
 );
 
 -- Table Award_of_book
@@ -212,8 +223,8 @@ CREATE TABLE Characters_of_book (
     PRIMARY KEY (book_id, character_id)
 );
 
--- Table Favorite_author (User's favorite author)
-CREATE TABLE Favorite_author (
+-- Table Liked_author (User's liked author)
+CREATE TABLE Liked_author (
     user_id INTEGER REFERENCES "user"(user_id),
     author_id INTEGER REFERENCES Author(author_id),
     PRIMARY KEY (user_id, author_id)
@@ -232,3 +243,57 @@ CREATE TABLE User_field_of_reading (
     field_id INTEGER REFERENCES Field_of_reading(field_id),
     PRIMARY KEY (user_id, field_id)
 );
+
+
+--Questionary relation
+
+-- Table Favorite_book (favorite book of questionary)
+CREATE TABLE Favorite_book (
+    questionary_id INTEGER REFERENCES Questionary(questionary_id),
+    book_id INTEGER REFERENCES Book(book_id),
+    PRIMARY KEY (questionary_id, book_id)
+);
+
+-- Table Likes_genre
+CREATE TABLE Likes_genre (
+    questionary_id INTEGER REFERENCES Questionary(questionary_id),
+    genre_id INTEGER REFERENCES Genre(genre_id),
+    PRIMARY KEY (questionary_id, genre_id)
+);
+
+-- Table Favorite_author
+CREATE TABLE Favorite_author (
+    questionary_id INTEGER REFERENCES Questionary(questionary_id),
+    author_id INTEGER REFERENCES Author(author_id),
+    PRIMARY KEY (questionary_id, author_id)
+);
+
+-- Table Preferred_type_of_book
+CREATE TABLE Preferred_type_of_book (
+    questionary_id INTEGER REFERENCES Questionary(questionary_id),
+    type_id INTEGER REFERENCES Type_book(type_id),
+    PRIMARY KEY (questionary_id, type_id)
+);
+
+-- Table Preferred_interest
+CREATE TABLE Preferred_interest (
+    questionary_id INTEGER REFERENCES Questionary(questionary_id),
+    interest_id INTEGER REFERENCES Interest(interest_id),
+    PRIMARY KEY (questionary_id, interest_id)
+);
+
+-- Table Preferred_format_of_reading (questionary's preferred format of reading)
+CREATE TABLE Preferred_format_of_reading_questionary (
+    questionary_id INTEGER REFERENCES Questionary(questionary_id),
+    format_id INTEGER REFERENCES Format_of_reading(format_reading_id),
+    PRIMARY KEY (questionary_id, format_id)
+);
+
+-- Table User_field_of_reading (questionary's field of reading)
+CREATE TABLE User_field_of_reading_questionary (
+    questionary_id INTEGER REFERENCES Questionary(questionary_id),
+    field_id INTEGER REFERENCES Field_of_reading(field_id),
+    PRIMARY KEY (questionary_id, field_id)
+);
+
+--End questionary relations
