@@ -79,7 +79,7 @@ CREATE TABLE Book (
 CREATE TABLE Author (
     author_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    gender VARCHAR(255) CHECK (gender IN ('male', 'female', 'other')),
+    gender VARCHAR(255),
     birthplace VARCHAR(255)
 );
 
@@ -88,7 +88,7 @@ CREATE TABLE "user" (
     user_id SERIAL PRIMARY KEY,
     name VARCHAR(255),
     birth_date DATE,
-    gender VARCHAR(255) CHECK (gender IN ('male', 'female', 'other')),
+    gender VARCHAR(255),
     favorite_book_id INTEGER REFERENCES Book(book_id),
     favorite_author_id INTEGER REFERENCES Author(author_id)
 );
