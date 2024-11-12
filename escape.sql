@@ -22,8 +22,7 @@ CREATE TABLE Book (
     isbn VARCHAR(10),
     isbn13 VARCHAR(13),
     description TEXT,
-    publisher_id INTEGER REFERENCES Publisher(publisher_id),
-    serie_id INTEGER REFERENCES Serie(serie_id),
+    publisher_id INTEGER REFERENCES Publisher(publisher_id)
     
 );
 
