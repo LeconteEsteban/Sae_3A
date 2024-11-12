@@ -7,6 +7,7 @@ CREATE TABLE User (
     user_id SERIAL PRIMARY KEY,
     name VARCHAR(255),
     birth_date DATE,
+    gender VARCHAR(255) CHECK (gender IN (male,female, other)), 
     favorite_book_id INTEGER REFERENCES Book(book_id),
     favorite_author_id INTEGER REFERENCES Author(author_id)
 );
@@ -16,16 +17,22 @@ CREATE TABLE Book (
     book_id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     publication_date DATE,
+    original_title VARCHAR(255),
+    number_of_pages INTEGER,
+    isbn VARCHAR(10),
+    isbn13 VARCHAR(13),
+    description TEXT,
     publisher_id INTEGER REFERENCES Publisher(publisher_id),
     serie_id INTEGER REFERENCES Serie(serie_id),
-    format_id INTEGER REFERENCES Book_format(format_id)
+    
 );
 
 -- Table Author
 CREATE TABLE Author (
     author_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    birth_place_id INTEGER REFERENCES Birth_place(place_id)
+    gender VARCHAR(255) CHECK (gender IN (male,female, other)), 
+    birthplace VARCHAR(255)
 );
 
 -- Table Genre
@@ -46,11 +53,6 @@ CREATE TABLE Serie (
     name VARCHAR(255)
 );
 
--- Table Book_format
-CREATE TABLE Book_format (
-    format_id SERIAL PRIMARY KEY,
-    format_name VARCHAR(255) NOT NULL
-);
 
 -- Table Award
 CREATE TABLE Award (
@@ -70,11 +72,6 @@ CREATE TABLE Characters (
     name VARCHAR(255)
 );
 
--- Table Birth_place
-CREATE TABLE Birth_place (
-    place_id SERIAL PRIMARY KEY,
-    name VARCHAR(255)
-);
 
 -- Table Type_book
 CREATE TABLE Type_book (
@@ -170,8 +167,8 @@ CREATE TABLE Friends (
     PRIMARY KEY (user_id1, user_id2)
 );
 
--- Table aime (User's liked genres)
-CREATE TABLE Aime (
+-- Table liked (User's liked genres)
+CREATE TABLE Liked (
     user_id INTEGER REFERENCES User(user_id),
     genre_id INTEGER REFERENCES Genre(genre_id),
     PRIMARY KEY (user_id, genre_id)
