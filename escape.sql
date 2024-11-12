@@ -1,6 +1,6 @@
-DROP SCHEMA IF EXISTS biblio CASCADE;
-CREATE SCHEMA biblio;
-SET SCHEMA 'biblio';
+DROP SCHEMA IF EXISTS library CASCADE;
+CREATE SCHEMA library;
+SET SCHEMA 'library';
 
 -- Table Genre
 CREATE TABLE Genre (
@@ -66,7 +66,7 @@ CREATE TABLE Interest (
 CREATE TABLE Book (
     book_id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    publication_date DATE,
+    publibrarycation_date DATE,
     original_title VARCHAR(255),
     number_of_pages INTEGER,
     isbn VARCHAR(10),
