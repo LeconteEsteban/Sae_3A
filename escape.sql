@@ -315,7 +315,7 @@ left join rating_author ra on a.author_id = ra.author_id;
 
 --View book
 create view book_view as
-select b.book_id, b.title, b.publibrarycation_date, b.original_title,
+select b.book_id, b.title, b.publication_date, b.original_title,
        b.number_of_pages, b.isbn, b.isbn13, b.description,
        p.name as publisher_name,
        g.name as genre_name,
