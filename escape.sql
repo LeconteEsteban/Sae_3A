@@ -368,7 +368,7 @@ EXECUTE FUNCTION update_book_rating_count();
 --update book review count
 CREATE OR REPLACE FUNCTION update_book_review_count() RETURNS TRIGGER AS $$
 BEGIN
-    NEW.book_review_count := (SELECT COUNT(*) FROM Reviews WHERE book_id = NEW.book_id);
+    NEW.book_review_count := (SELECT COUNT(*) FROM Rating_book WHERE book_id = NEW.book_id);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -437,10 +437,10 @@ EXECUTE FUNCTION update_author_rating_count();
 
 
 
---update author review count
-CREATE OR REPLACE FUNCTION update_author_review_count() RETURNS TRIGGER AS $$
+--update author  count
+CREATE OR REPLACE FUNCTION update_author__count() RETURNS TRIGGER AS $$
 BEGIN
-    NEW.author_review_count := (SELECT COUNT(*) FROM Reviews WHERE author_id = NEW.author_id);
+    NEW.author__count := (SELECT COUNT(*) FROM Rating_author WHERE author_id = NEW.author_id);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
