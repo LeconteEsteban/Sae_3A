@@ -448,3 +448,6 @@ CREATE TRIGGER update_author_review_count
 AFTER INSERT OR DELETE ON Rating_author
 FOR EACH ROW
 EXECUTE FUNCTION update_author_review_count();
+
+
+--End Triggers
