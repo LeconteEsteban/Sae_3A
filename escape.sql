@@ -66,7 +66,7 @@ CREATE TABLE Interest (
 CREATE TABLE Book (
                       book_id SERIAL PRIMARY KEY,
                       title VARCHAR(255) NOT NULL,
-                      publibrarycation_date DATE,
+                      publication_date DATE,
                       original_title VARCHAR(255),
                       number_of_pages INTEGER,
                       isbn VARCHAR(10),
@@ -339,8 +339,8 @@ left join Serie_of_book Sob on b.book_id = Sob.book_id
 left join Serie s on s.serie_id = Sob.serie_id
 left join Award_of_book Aob on b.book_id = Aob.book_id
 left join Award a on a.award_id = Aob.award_id
-left join Setting_of_book Sob on b.book_id = Sob.book_id
-left join Settings sett on sett.setting_id = Sob.setting_id
+left join Setting_of_book Setob on b.book_id = Setob.book_id
+left join Settings sett on sett.setting_id = Setob.setting_id
 left join Characters_of_book Cob on b.book_id = Cob.book_id
 left join Characters c on c.character_id = Cob.character_id
 left join rating_book rb on b.book_id = rb.book_id
