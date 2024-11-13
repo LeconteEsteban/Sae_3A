@@ -66,7 +66,7 @@ CREATE TABLE Interest (
 CREATE TABLE Book (
                       book_id SERIAL PRIMARY KEY,
                       title VARCHAR(255) NOT NULL,
-                      publibrarycation_date DATE,
+                      publication_date DATE,
                       original_title VARCHAR(255),
                       number_of_pages INTEGER,
                       isbn VARCHAR(10),
@@ -299,6 +299,7 @@ CREATE TABLE User_field_of_reading_questionary (
 
 --End questionary relations
 
+
 --TRIGGERS
 
 --triggers book rating
@@ -451,3 +452,53 @@ EXECUTE FUNCTION update_author_review_count();
 
 
 --End Triggers
+
+---Views
+
+--Author
+create view author_view as
+select a.author_id,
+       a.name,
+       a.gender,
+       a.birthplace,
+       ra.average_author_rating,
+       ra.author_rating_count,
+       ra.author_review_count
+from author a
+left join rating_author ra on a.author_id = ra.author_id;
+
+
+--View book
+create view book_view as
+select b.book_id, b.title, b.publication_date, b.original_title,
+       b.number_of_pages, b.isbn, b.isbn13, b.description,
+       p.name as publisher_name,
+       g.name as genre_name,
+       a.name as award_name,
+       s.name as serie_name,
+       sett.description as setting_description,
+       c.name as character_name,
+       rb.rating_count ,
+       rb.average_rating,
+       rb.five_star_rating ,
+       rb.four_star_rating,
+       rb.three_star_rating,
+       rb.two_star_rating,
+       rb.one_star_rating,
+       av.name as author_name
+from book b
+left join Genre_and_vote Gav on b.book_id = Gav.book_id
+left join Genre g on g.genre_id = Gav.genre_id
+left join Publisher p on b.publisher_id = p.publisher_id
+left join Serie_of_book Sob on b.book_id = Sob.book_id
+left join Serie s on s.serie_id = Sob.serie_id
+left join Award_of_book Aob on b.book_id = Aob.book_id
+left join Award a on a.award_id = Aob.award_id
+left join Setting_of_book Setob on b.book_id = Setob.book_id
+left join Settings sett on sett.setting_id = Setob.setting_id
+left join Characters_of_book Cob on b.book_id = Cob.book_id
+left join Characters c on c.character_id = Cob.character_id
+left join rating_book rb on b.book_id = rb.book_id
+left join author_view av on a.name = av.name;
+
+---End Views
