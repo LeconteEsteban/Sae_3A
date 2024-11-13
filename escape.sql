@@ -120,6 +120,7 @@ CREATE TABLE Rating_book (
                              rating_id SERIAL PRIMARY KEY,
                              book_id INTEGER REFERENCES Book(book_id),
                              rating_count INTEGER,
+                             review_count INTEGER,
                              average_rating FLOAT,
                              five_star_rating INTEGER,
                              four_star_rating INTEGER,
@@ -297,6 +298,160 @@ CREATE TABLE User_field_of_reading_questionary (
 );
 
 --End questionary relations
+
+
+--TRIGGERS
+
+--triggers book rating
+
+--to calculate book average rating
+CREATE OR REPLACE FUNCTION calculate_book_average_rating() RETURNS TRIGGER AS $$
+BEGIN
+    NEW.rating_count := NEW.five_star_rating + NEW.four_star_rating + NEW.three_star_rating + NEW.two_star_rating + NEW.one_star_rating;
+
+    IF NEW.rating_count > 0 THEN
+        NEW.average_rating := (
+            5 * NEW.five_star_rating +
+            4 * NEW.four_star_rating +
+            3 * NEW.three_star_rating +
+            2 * NEW.two_star_rating +
+            1 * NEW.one_star_rating
+        ) / NEW.rating_count;
+    ELSE
+        NEW.average_rating := 0;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_book_average_rating
+BEFORE INSERT OR UPDATE ON Rating_book
+FOR EACH ROW
+EXECUTE FUNCTION calculate_book_average_rating();
+
+
+--validate book rating values
+CREATE OR REPLACE FUNCTION validate_book_rating_values() RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.five_star_rating < 0 OR
+       NEW.four_star_rating < 0 OR
+       NEW.three_star_rating < 0 OR
+       NEW.two_star_rating < 0 OR
+       NEW.one_star_rating < 0 THEN
+        RAISE EXCEPTION 'Rating values cannot be negative';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_book_rating_values
+BEFORE INSERT OR UPDATE ON Rating_book
+FOR EACH ROW
+EXECUTE FUNCTION validate_book_rating_values();
+
+
+--update book rating count
+CREATE OR REPLACE FUNCTION update_book_rating_count() RETURNS TRIGGER AS $$
+BEGIN
+    NEW.rating_count := NEW.five_star_rating + NEW.four_star_rating + NEW.three_star_rating + NEW.two_star_rating + NEW.one_star_rating;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_book_rating_count
+BEFORE INSERT OR UPDATE ON Rating_book
+FOR EACH ROW
+EXECUTE FUNCTION update_book_rating_count();
+
+--update book review count
+CREATE OR REPLACE FUNCTION update_book_review_count() RETURNS TRIGGER AS $$
+BEGIN
+    NEW.book_review_count := (SELECT COUNT(*) FROM Reviews WHERE book_id = NEW.book_id);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_book_review_count
+AFTER INSERT OR DELETE ON Rating_book
+FOR EACH ROW
+EXECUTE FUNCTION update_book_review_count();
+
+
+
+
+
+
+
+
+--triggers author rating
+
+--to calculate average rating
+CREATE OR REPLACE FUNCTION calculate_author_average_rating() RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.author_rating_count > 0 THEN
+        NEW.average_author_rating := NEW.average_author_rating / NEW.author_rating_count;
+    ELSE
+        NEW.average_author_rating := 0;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_author_average_rating
+BEFORE INSERT OR UPDATE ON Rating_author
+FOR EACH ROW
+EXECUTE FUNCTION calculate_author_average_rating();
+
+--validate author rating values
+CREATE OR REPLACE FUNCTION check_author_rating_count() RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.author_rating_count < 0 THEN
+        RAISE EXCEPTION 'Author rating count cannot be negative';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER validate_author_rating_count
+BEFORE INSERT OR UPDATE ON Rating_author
+FOR EACH ROW
+EXECUTE FUNCTION check_author_rating_count();
+
+--update author rating count
+CREATE OR REPLACE FUNCTION update_author_rating_count() RETURNS TRIGGER AS $$
+BEGIN
+    NEW.author_rating_count := (SELECT COUNT(*) FROM Rating_author WHERE author_id = NEW.author_id);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER increment_author_rating_count
+AFTER INSERT OR DELETE ON Rating_author
+FOR EACH ROW
+EXECUTE FUNCTION update_author_rating_count();
+
+
+
+--update author review count
+CREATE OR REPLACE FUNCTION update_author_review_count() RETURNS TRIGGER AS $$
+BEGIN
+    NEW.author_review_count := (SELECT COUNT(*) FROM Reviews WHERE author_id = NEW.author_id);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_author_review_count
+AFTER INSERT OR DELETE ON Rating_author
+FOR EACH ROW
+EXECUTE FUNCTION update_author_review_count();
+
+
+--End Triggers
 
 ---Views
 
