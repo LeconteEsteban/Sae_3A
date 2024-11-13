@@ -364,6 +364,19 @@ BEFORE INSERT OR UPDATE ON Rating_book
 FOR EACH ROW
 EXECUTE FUNCTION update_book_rating_count();
 
+--update book review count
+CREATE OR REPLACE FUNCTION update_book_review_count() RETURNS TRIGGER AS $$
+BEGIN
+    NEW.book_review_count := (SELECT COUNT(*) FROM Reviews WHERE book_id = NEW.book_id);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_book_review_count
+AFTER INSERT OR DELETE ON Rating_book
+FOR EACH ROW
+EXECUTE FUNCTION update_book_review_count();
+
 
 
 
@@ -432,6 +445,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER update_author_review_count
-AFTER INSERT OR DELETE ON Reviews
+AFTER INSERT OR DELETE ON Rating_author
 FOR EACH ROW
 EXECUTE FUNCTION update_author_review_count();
