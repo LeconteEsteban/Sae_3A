@@ -25,7 +25,7 @@ CREATE TABLE Serie (
 -- Table Award
 CREATE TABLE Award (
                        award_id SERIAL PRIMARY KEY,
-                       name VARCHAR(255) NOT NULL
+                       name TEXT NOT NULL
 );
 
 -- Table Settings
@@ -37,7 +37,7 @@ CREATE TABLE Settings (
 -- Table Characters
 CREATE TABLE Characters (
                             character_id SERIAL PRIMARY KEY,
-                            name VARCHAR(255)
+                            name TEXT
 );
 
 ---End book
@@ -74,10 +74,10 @@ CREATE TABLE Book (
                       book_id SERIAL PRIMARY KEY,
                       title VARCHAR(255) NOT NULL,
                       publication_date DATE,
-                      original_title VARCHAR(255),
+                      original_title TEXT,
                       number_of_pages INTEGER,
-                      isbn VARCHAR(10),
-                      isbn13 VARCHAR(13),
+                      isbn VARCHAR(255),
+                      isbn13 VARCHAR(255),
                       description TEXT,
                       publisher_id INTEGER REFERENCES Publisher(publisher_id)
 );
@@ -87,6 +87,8 @@ CREATE INDEX idx_book_description_fulltext ON Book USING GIN (to_tsvector('frenc
 CREATE INDEX idx_book_fulltext ON Book USING GIN (
                                                   to_tsvector('french', title || ' ' || description)
     );
+CREATE INDEX idx_book_publication_date ON Book (publication_date);
+
 
 -- Table Author
 CREATE TABLE Author (
@@ -201,10 +203,11 @@ CREATE TABLE Friends (
                          PRIMARY KEY (user_id1, user_id2)
 );
 
--- Table Liked (User's liked genres)
-CREATE TABLE Liked (
+-- Table genre affinity (User's liked genres)
+CREATE TABLE Genre_affinity (
                        user_id INTEGER REFERENCES "user"(user_id),
                        genre_id INTEGER REFERENCES Genre(genre_id),
+                       count int,
                        PRIMARY KEY (user_id, genre_id)
 );
 
