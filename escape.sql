@@ -8,6 +8,8 @@ CREATE TABLE Genre (
                        name VARCHAR(255) NOT NULL
 );
 
+-- Book
+
 -- Table Publisher
 CREATE TABLE Publisher (
                            publisher_id SERIAL PRIMARY KEY,
@@ -38,6 +40,9 @@ CREATE TABLE Characters (
                             name VARCHAR(255)
 );
 
+---End book
+--- Questionnary
+
 -- Table Type_book
 CREATE TABLE Type_book (
                            type_id SERIAL PRIMARY KEY,
@@ -61,6 +66,8 @@ CREATE TABLE Interest (
                           interest_id SERIAL PRIMARY KEY,
                           description VARCHAR(255)
 );
+
+-- End questionnary
 
 -- Table Book
 CREATE TABLE Book (
@@ -145,6 +152,8 @@ CREATE TABLE Book_similarity (
                                  similarity_score NUMERIC,
                                  PRIMARY KEY (book_id1, book_id2)
 );
+CREATE INDEX idx_book_similarity_book_id1 ON Book_similarity (book_id1);
+
 
 -- Table User_Book_Interaction
 CREATE TABLE User_Book_Interaction (
@@ -180,6 +189,9 @@ CREATE TABLE Genre_and_vote (
                                 vote_count INTEGER,
                                 PRIMARY KEY (book_id, genre_id)
 );
+
+CREATE INDEX idx_genre_and_vote_genre_id ON Genre_and_vote (genre_id);
+CREATE INDEX idx_genre_and_vote_book_id ON Genre_and_vote (book_id);
 
 -- Table Friends
 CREATE TABLE Friends (
@@ -304,33 +316,6 @@ CREATE TABLE User_field_of_reading_questionary (
 
 --triggers book rating
 
---to calculate book average rating
-CREATE OR REPLACE FUNCTION calculate_book_average_rating() RETURNS TRIGGER AS $$
-BEGIN
-    NEW.rating_count := NEW.five_star_rating + NEW.four_star_rating + NEW.three_star_rating + NEW.two_star_rating + NEW.one_star_rating;
-
-    IF NEW.rating_count > 0 THEN
-        NEW.average_rating := (
-            5 * NEW.five_star_rating +
-            4 * NEW.four_star_rating +
-            3 * NEW.three_star_rating +
-            2 * NEW.two_star_rating +
-            1 * NEW.one_star_rating
-        ) / NEW.rating_count;
-    ELSE
-        NEW.average_rating := 0;
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER update_book_average_rating
-BEFORE INSERT OR UPDATE ON Rating_book
-FOR EACH ROW
-EXECUTE FUNCTION calculate_book_average_rating();
-
-
 --validate book rating values
 CREATE OR REPLACE FUNCTION validate_book_rating_values() RETURNS TRIGGER AS $$
 BEGIN
@@ -352,58 +337,7 @@ FOR EACH ROW
 EXECUTE FUNCTION validate_book_rating_values();
 
 
---update book rating count
-CREATE OR REPLACE FUNCTION update_book_rating_count() RETURNS TRIGGER AS $$
-BEGIN
-    NEW.rating_count := NEW.five_star_rating + NEW.four_star_rating + NEW.three_star_rating + NEW.two_star_rating + NEW.one_star_rating;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER update_book_rating_count
-BEFORE INSERT OR UPDATE ON Rating_book
-FOR EACH ROW
-EXECUTE FUNCTION update_book_rating_count();
-
---update book review count
-CREATE OR REPLACE FUNCTION update_book_review_count() RETURNS TRIGGER AS $$
-BEGIN
-    NEW.book_review_count := (SELECT COUNT(*) FROM Rating_book WHERE book_id = NEW.book_id);
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER update_book_review_count
-AFTER INSERT OR DELETE ON Rating_book
-FOR EACH ROW
-EXECUTE FUNCTION update_book_review_count();
-
-
-
-
-
-
-
-
 --triggers author rating
-
---to calculate average rating
-CREATE OR REPLACE FUNCTION calculate_author_average_rating() RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.author_rating_count > 0 THEN
-        NEW.average_author_rating := NEW.average_author_rating / NEW.author_rating_count;
-    ELSE
-        NEW.average_author_rating := 0;
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER update_author_average_rating
-BEFORE INSERT OR UPDATE ON Rating_author
-FOR EACH ROW
-EXECUTE FUNCTION calculate_author_average_rating();
 
 --validate author rating values
 CREATE OR REPLACE FUNCTION check_author_rating_count() RETURNS TRIGGER AS $$
@@ -421,34 +355,6 @@ CREATE TRIGGER validate_author_rating_count
 BEFORE INSERT OR UPDATE ON Rating_author
 FOR EACH ROW
 EXECUTE FUNCTION check_author_rating_count();
-
---update author rating count
-CREATE OR REPLACE FUNCTION update_author_rating_count() RETURNS TRIGGER AS $$
-BEGIN
-    NEW.author_rating_count := (SELECT COUNT(*) FROM Rating_author WHERE author_id = NEW.author_id);
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER increment_author_rating_count
-AFTER INSERT OR DELETE ON Rating_author
-FOR EACH ROW
-EXECUTE FUNCTION update_author_rating_count();
-
-
-
---update author  count
-CREATE OR REPLACE FUNCTION update_author__count() RETURNS TRIGGER AS $$
-BEGIN
-    NEW.author__count := (SELECT COUNT(*) FROM Rating_author WHERE author_id = NEW.author_id);
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER update_author_review_count
-AFTER INSERT OR DELETE ON Rating_author
-FOR EACH ROW
-EXECUTE FUNCTION update_author_review_count();
 
 
 --End Triggers
