@@ -144,6 +144,22 @@ CREATE TABLE Rating_book (
                              one_star_rating INTEGER
 );
 
+CREATE MATERIALIZED VIEW Top_books AS
+SELECT 
+    B.book_id,
+    B.title,
+    RB.average_rating,
+    RB.rating_count,
+    RB.review_count,
+    (RB.average_rating * 1000000 + RB.rating_count + RB.review_count * 0.1) AS score
+FROM 
+    Book B
+JOIN 
+    Rating_book RB ON B.book_id = RB.book_id
+ORDER BY 
+    score DESC;
+
+
 -- Table Rating_author
 CREATE TABLE Rating_author (
                                rating_id SERIAL PRIMARY KEY,
@@ -172,15 +188,99 @@ CREATE TABLE User_Book_Interaction (
                                        interaction_date TIMESTAMP
 );
 
--- Table User_Book_Preference
+-- Table User_Book_Preference user liked those book
 CREATE TABLE User_Book_Preference (
                                       preference_id SERIAL PRIMARY KEY,
                                       user_id INTEGER REFERENCES "user"(user_id),
-                                      genre_id INTEGER REFERENCES Genre(genre_id),
+                                      book_id INTEGER REFERENCES Book(book_id),
+                                      history_id INTEGER REFERENCES User_Book_History(history_id),
                                       preference_name VARCHAR(255),
                                       preference_date TIMESTAMP,
                                       preference_rating INTEGER
 );
+
+CREATE MATERIALIZED VIEW VM_Genre_Affinity AS
+SELECT
+    u.user_id,
+    g.genre_id,
+    g.name AS genre_name,
+    COUNT(*) AS genre_count  -- Ajout du compteur
+FROM
+    "user" u
+JOIN
+    User_Book_Preference ubp ON u.user_id = ubp.user_id
+JOIN
+    Book b ON ubp.book_id = b.book_id
+JOIN
+    Book_Genre bg ON b.book_id = bg.book_id
+JOIN
+    Genre g ON bg.genre_id = g.genre_id
+GROUP BY
+    u.user_id, g.genre_id, g.name;
+
+
+
+CREATE OR REPLACE FUNCTION update_vm_genre_affinity_incremental()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Gestion de l'insertion dans la vue matérialisée pour un nouvel enregistrement
+    IF (TG_OP = 'INSERT') THEN
+        -- Si le genre n'existe pas encore pour l'utilisateur, on l'ajoute
+        INSERT INTO VM_Genre_Affinity (user_id, genre_id, genre_name, genre_count)
+        SELECT 
+            NEW.user_id,
+            g.genre_id,
+            g.name,
+            1  -- Incrémenter le compteur à 1 pour une nouvelle insertion
+        FROM
+            Book b
+        JOIN
+            Book_Genre bg ON b.book_id = bg.book_id
+        JOIN
+            Genre g ON bg.genre_id = g.genre_id
+        WHERE
+            b.book_id = NEW.book_id
+        ON CONFLICT (user_id, genre_id) DO UPDATE
+        SET genre_count = VM_Genre_Affinity.genre_count + 1;  -- Si genre existe, incrémenter le compteur
+
+    END IF;
+
+    -- Gestion de la suppression dans la vue matérialisée si un livre préféré est supprimé
+    IF (TG_OP = 'DELETE') THEN
+        -- Supprimer le genre du livre qui a été retiré
+        DELETE FROM VM_Genre_Affinity
+        WHERE user_id = OLD.user_id
+          AND genre_id IN (
+              SELECT genre_id
+              FROM Book_Genre bg
+              JOIN Book b ON bg.book_id = b.book_id
+              WHERE b.book_id = OLD.book_id
+          );
+
+        -- Si le genre est toujours utilisé par un autre livre de l'utilisateur, on décrémente le compteur
+        UPDATE VM_Genre_Affinity
+        SET genre_count = genre_count - 1
+        WHERE user_id = OLD.user_id
+          AND genre_id IN (
+              SELECT genre_id
+              FROM Book_Genre bg
+              JOIN Book b ON bg.book_id = b.book_id
+              WHERE b.book_id = OLD.book_id
+          )
+        AND genre_count > 0;
+    END IF;
+
+    RETURN NULL;  -- Pas de retour nécessaire car nous n'avons pas de ligne à renvoyer
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER trigger_update_vm_genre_affinity
+AFTER INSERT OR DELETE
+ON User_Book_Preference
+FOR EACH ROW
+EXECUTE FUNCTION update_vm_genre_affinity_incremental();
+
 
 -- Table User_Book_History
 CREATE TABLE User_Book_History (
