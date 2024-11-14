@@ -31,7 +31,7 @@ CREATE TABLE Award (
 -- Table Settings
 CREATE TABLE Settings (
                           setting_id SERIAL PRIMARY KEY,
-                          description VARCHAR(255)
+                          description TEXT
 );
 
 -- Table Characters
