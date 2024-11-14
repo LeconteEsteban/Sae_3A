@@ -100,6 +100,12 @@ CREATE TABLE Author (
 
 CREATE INDEX idx_author_name_fulltext ON Author USING GIN (to_tsvector('simple', lower(name)));
 
+-- Table wrote
+CREATE TABLE Wrote (
+                                 book_id INTEGER REFERENCES Book(book_id),
+                                 author_id INTEGER REFERENCES Author(author_id),
+                                 PRIMARY KEY (book_id, author_id)
+);
 
 -- Table User
 CREATE TABLE "user" (
