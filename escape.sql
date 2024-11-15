@@ -207,6 +207,14 @@ CREATE TABLE User_Book_Preference (
                                       preference_rating INTEGER
 );
 
+-- Table Genre_and_vote
+CREATE TABLE Genre_and_vote (
+                                book_id INTEGER REFERENCES Book(book_id),
+                                genre_id INTEGER REFERENCES Genre(genre_id),
+                                vote_count INTEGER,
+                                PRIMARY KEY (book_id, genre_id)
+);
+
 CREATE MATERIALIZED VIEW VM_Genre_Affinity AS
 SELECT
     u.user_id,
@@ -220,9 +228,9 @@ JOIN
 JOIN
     Book b ON ubp.book_id = b.book_id
 JOIN
-    Book_Genre bg ON b.book_id = bg.book_id
+    Genre_and_vote Gav ON b.book_id = Gav.book_id
 JOIN
-    Genre g ON bg.genre_id = g.genre_id
+    Genre g ON GAV.genre_id = g.genre_id
 GROUP BY
     u.user_id, g.genre_id, g.name;
 
@@ -289,16 +297,6 @@ ON User_Book_Preference
 FOR EACH ROW
 EXECUTE FUNCTION update_vm_genre_affinity_incremental();
 
-
-
-
--- Table Genre_and_vote
-CREATE TABLE Genre_and_vote (
-                                book_id INTEGER REFERENCES Book(book_id),
-                                genre_id INTEGER REFERENCES Genre(genre_id),
-                                vote_count INTEGER,
-                                PRIMARY KEY (book_id, genre_id)
-);
 
 CREATE INDEX idx_genre_and_vote_genre_id ON Genre_and_vote (genre_id);
 CREATE INDEX idx_genre_and_vote_book_id ON Genre_and_vote (book_id);
