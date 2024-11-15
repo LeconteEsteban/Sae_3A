@@ -341,7 +341,7 @@ CREATE TABLE Settings_of_book (
 -- Table Characters_of_book
 CREATE TABLE Characters_of_book (
                                     book_id INTEGER REFERENCES Book(book_id),
-                                    characterss_id INTEGER REFERENCES characterss(characters_id),
+                                    characters_id INTEGER REFERENCES characters(characters_id),
                                     PRIMARY KEY (book_id, characters_id)
 );
 
