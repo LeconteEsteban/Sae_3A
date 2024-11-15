@@ -251,6 +251,8 @@ class peuplement:
             peuplement1.table_rating_author()
             print("Table Rating_author remplie avec succès. ")
 
+
+            
             print("Toutes les données ont été insérées avec succès.")
 
         except Exception as e:

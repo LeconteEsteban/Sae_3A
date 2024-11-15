@@ -334,14 +334,14 @@ CREATE TABLE Award_of_book (
 -- Table Setting_of_book
 CREATE TABLE Setting_of_book (
                                  book_id INTEGER REFERENCES Book(book_id),
-                                 setting_id INTEGER REFERENCES Settings(setting_id),
+                                 settings_id INTEGER REFERENCES Settings(setting_id),
                                  PRIMARY KEY (book_id, setting_id)
 );
 
 -- Table Characters_of_book
 CREATE TABLE Characters_of_book (
                                     book_id INTEGER REFERENCES Book(book_id),
-                                    character_id INTEGER REFERENCES Characters(character_id),
+                                    characters_id INTEGER REFERENCES Characters(character_id),
                                     PRIMARY KEY (book_id, character_id)
 );
 
