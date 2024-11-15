@@ -188,6 +188,14 @@ CREATE TABLE User_Book_Interaction (
                                        interaction_date TIMESTAMP
 );
 
+-- Table User_Book_History
+CREATE TABLE User_Book_History (
+                                   history_id SERIAL PRIMARY KEY,
+                                   user_id INTEGER REFERENCES "user"(user_id),
+                                   book_id INTEGER REFERENCES Book(book_id),
+                                   reading_date TIMESTAMP
+);
+
 -- Table User_Book_Preference user liked those book
 CREATE TABLE User_Book_Preference (
                                       preference_id SERIAL PRIMARY KEY,
@@ -282,13 +290,7 @@ FOR EACH ROW
 EXECUTE FUNCTION update_vm_genre_affinity_incremental();
 
 
--- Table User_Book_History
-CREATE TABLE User_Book_History (
-                                   history_id SERIAL PRIMARY KEY,
-                                   user_id INTEGER REFERENCES "user"(user_id),
-                                   book_id INTEGER REFERENCES Book(book_id),
-                                   reading_date TIMESTAMP
-);
+
 
 -- Table Genre_and_vote
 CREATE TABLE Genre_and_vote (
