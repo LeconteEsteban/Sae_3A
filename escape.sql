@@ -30,13 +30,13 @@ CREATE TABLE Award (
 
 -- Table Settings
 CREATE TABLE Settings (
-                          setting_id SERIAL PRIMARY KEY,
+                          settings_id SERIAL PRIMARY KEY,
                           description TEXT
 );
 
 -- Table Characters
 CREATE TABLE Characters (
-                            character_id SERIAL PRIMARY KEY,
+                            characters_id SERIAL PRIMARY KEY,
                             name TEXT
 );
 
@@ -331,17 +331,17 @@ CREATE TABLE Award_of_book (
                                PRIMARY KEY (book_id, award_id)
 );
 
--- Table Setting_of_book
-CREATE TABLE Setting_of_book (
+-- Table settings_of_book
+CREATE TABLE Settings_of_book (
                                  book_id INTEGER REFERENCES Book(book_id),
-                                 settings_id INTEGER REFERENCES Settings(setting_id),
+                                 settings_id INTEGER REFERENCES Settings(settings_id),
                                  PRIMARY KEY (book_id, settings_id)
 );
 
 -- Table Characters_of_book
 CREATE TABLE Characters_of_book (
                                     book_id INTEGER REFERENCES Book(book_id),
-                                    characters_id INTEGER REFERENCES Characters(character_id),
+                                    characterss_id INTEGER REFERENCES characterss(characters_id),
                                     PRIMARY KEY (book_id, characters_id)
 );
 
@@ -491,8 +491,8 @@ select b.book_id, b.title, b.publication_date, b.original_title,
        g.name as genre_name,
        a.name as award_name,
        s.name as serie_name,
-       sett.description as setting_description,
-       c.name as character_name,
+       sett.description as settings_description,
+       c.name as characters_name,
        rb.rating_count ,
        rb.average_rating,
        rb.five_star_rating ,
@@ -509,10 +509,10 @@ left join Serie_of_book Sob on b.book_id = Sob.book_id
 left join Serie s on s.serie_id = Sob.serie_id
 left join Award_of_book Aob on b.book_id = Aob.book_id
 left join Award a on a.award_id = Aob.award_id
-left join Setting_of_book Setob on b.book_id = Setob.book_id
-left join Settings sett on sett.setting_id = Setob.settings_id
+left join Settings_of_book Setob on b.book_id = Setob.book_id
+left join Settings sett on sett.settings_id = Setob.settings_id
 left join Characters_of_book Cob on b.book_id = Cob.book_id
-left join Characters c on c.character_id = Cob.characters_id
+left join Characters c on c.characters_id = Cob.characters_id
 left join rating_book rb on b.book_id = rb.book_id
 left join author_view av on a.name = av.name;
 
