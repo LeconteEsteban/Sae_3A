@@ -34,13 +34,16 @@ class peuplement:
         print("Insertion des genres...")
         insert_sql("Genre", genres_data)
 
+    def Table_publisher(self):
+        insert_sql("Publisher", publishers_data)
 
 # Exemple d'utilisation
 if __name__ == "__main__":
     peuplement1 = peuplement()
 
     try:
-        
+        peuplement1.Table_genre()
+        peuplement1.Table_publisher()
 
     finally:
         
