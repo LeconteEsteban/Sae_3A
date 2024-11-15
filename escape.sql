@@ -335,14 +335,14 @@ CREATE TABLE Award_of_book (
 CREATE TABLE Setting_of_book (
                                  book_id INTEGER REFERENCES Book(book_id),
                                  settings_id INTEGER REFERENCES Settings(setting_id),
-                                 PRIMARY KEY (book_id, setting_id)
+                                 PRIMARY KEY (book_id, settings_id)
 );
 
 -- Table Characters_of_book
 CREATE TABLE Characters_of_book (
                                     book_id INTEGER REFERENCES Book(book_id),
                                     characters_id INTEGER REFERENCES Characters(character_id),
-                                    PRIMARY KEY (book_id, character_id)
+                                    PRIMARY KEY (book_id, characters_id)
 );
 
 -- Table Liked_author (User's liked author)
