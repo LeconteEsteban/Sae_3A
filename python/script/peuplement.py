@@ -196,4 +196,7 @@ if __name__ == "__main__":
         print(f"Une erreur s'est produite : {e}")
 
     finally:
-        
+
+"""
+faite gaffe genre and votes peut etre pas fait
+"""
