@@ -207,14 +207,6 @@ CREATE TABLE User_Book_Preference (
                                       preference_rating INTEGER
 );
 
--- Table Genre_and_vote
-CREATE TABLE Genre_and_vote (
-                                book_id INTEGER REFERENCES Book(book_id),
-                                genre_id INTEGER REFERENCES Genre(genre_id),
-                                vote_count INTEGER,
-                                PRIMARY KEY (book_id, genre_id)
-);
-
 CREATE MATERIALIZED VIEW VM_Genre_Affinity AS
 SELECT
     u.user_id,
@@ -228,9 +220,9 @@ JOIN
 JOIN
     Book b ON ubp.book_id = b.book_id
 JOIN
-    Genre_and_vote Gav ON b.book_id = Gav.book_id
+    Book_Genre bg ON b.book_id = bg.book_id
 JOIN
-    Genre g ON GAV.genre_id = g.genre_id
+    Genre g ON bg.genre_id = g.genre_id
 GROUP BY
     u.user_id, g.genre_id, g.name;
 
@@ -239,7 +231,7 @@ GROUP BY
 CREATE OR REPLACE FUNCTION update_vm_genre_affinity_incremental()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Gestion de l'insertion dans la vue matÃ©rialisÃ©e pour un nouvel enregistrement
+    -- Gestion de l'insertion dans la vue matérialisée pour un nouvel enregistrement
     IF (TG_OP = 'INSERT') THEN
         -- Si le genre n'existe pas encore pour l'utilisateur, on l'ajoute
         INSERT INTO VM_Genre_Affinity (user_id, genre_id, genre_name, genre_count)
@@ -247,7 +239,7 @@ BEGIN
             NEW.user_id,
             g.genre_id,
             g.name,
-            1  -- IncrÃ©menter le compteur Ã  1 pour une nouvelle insertion
+            1  -- Incrémenter le compteur à 1 pour une nouvelle insertion
         FROM
             Book b
         JOIN
@@ -257,13 +249,13 @@ BEGIN
         WHERE
             b.book_id = NEW.book_id
         ON CONFLICT (user_id, genre_id) DO UPDATE
-        SET genre_count = VM_Genre_Affinity.genre_count + 1;  -- Si genre existe, incrÃ©menter le compteur
+        SET genre_count = VM_Genre_Affinity.genre_count + 1;  -- Si genre existe, incrémenter le compteur
 
     END IF;
 
-    -- Gestion de la suppression dans la vue matÃ©rialisÃ©e si un livre prÃ©fÃ©rÃ© est supprimÃ©
+    -- Gestion de la suppression dans la vue matérialisée si un livre préféré est supprimé
     IF (TG_OP = 'DELETE') THEN
-        -- Supprimer le genre du livre qui a Ã©tÃ© retirÃ©
+        -- Supprimer le genre du livre qui a été retiré
         DELETE FROM VM_Genre_Affinity
         WHERE user_id = OLD.user_id
           AND genre_id IN (
@@ -273,7 +265,7 @@ BEGIN
               WHERE b.book_id = OLD.book_id
           );
 
-        -- Si le genre est toujours utilisÃ© par un autre livre de l'utilisateur, on dÃ©crÃ©mente le compteur
+        -- Si le genre est toujours utilisé par un autre livre de l'utilisateur, on décrémente le compteur
         UPDATE VM_Genre_Affinity
         SET genre_count = genre_count - 1
         WHERE user_id = OLD.user_id
@@ -286,7 +278,7 @@ BEGIN
         AND genre_count > 0;
     END IF;
 
-    RETURN NULL;  -- Pas de retour nÃ©cessaire car nous n'avons pas de ligne Ã  renvoyer
+    RETURN NULL;  -- Pas de retour nécessaire car nous n'avons pas de ligne à renvoyer
 END;
 $$ LANGUAGE plpgsql;
 
@@ -300,7 +292,13 @@ EXECUTE FUNCTION update_vm_genre_affinity_incremental();
 
 
 
-
+-- Table Genre_and_vote
+CREATE TABLE Genre_and_vote (
+                                book_id INTEGER REFERENCES Book(book_id),
+                                genre_id INTEGER REFERENCES Genre(genre_id),
+                                vote_count INTEGER,
+                                PRIMARY KEY (book_id, genre_id)
+);
 
 CREATE INDEX idx_genre_and_vote_genre_id ON Genre_and_vote (genre_id);
 CREATE INDEX idx_genre_and_vote_book_id ON Genre_and_vote (book_id);
