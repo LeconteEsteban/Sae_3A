@@ -33,23 +33,24 @@ class DatabaseService:
             print(f"Erreur lors de la fermeture de la connexion : {e}")
             raise
     
-    def get_escape_sql():
-        #import de github
+    def get_escape_sql(self):
         # URL brute du fichier SQL sur GitHub
         url = "https://raw.githubusercontent.com/LeconteEsteban/Sae_3A/refs/heads/main/escape.sql"
 
         # Télécharger le fichier SQL
         try:
             response = requests.get(url)
-            with open("create_table.sql", "w") as file:
-                file.write(response.text)
+            if response.status_code == 200:
+                with open("create_table.sql", "w") as file:
+                    file.write(response.text)
 
-            print("Le script SQL a été téléchargé et enregistré localement.")
+                print("Le script SQL a été téléchargé et enregistré localement.")
+            else:
+                print(f"Erreur lors du téléchargement : {response.status_code}")
         except Exception as e:
             print(f"Erreur lors de l'exécution : {e}")
-
         finally:
-            print("fin")
+            print("Fin du téléchargement du script SQL.")
 
     def create_database(self):
         """
@@ -139,15 +140,15 @@ if __name__ == "__main__":
 
         # Insérer des données
         table_name = "Award"
-        user_data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
+        user_data = [{"name": "Alice"}, {"name": "Bob"}]
         db_service.insert_sql(table_name, user_data)
 
         # Récupérer les données
-        users = db_service.select_sql(table_name)
-        print(users)
+        award = db_service.select_sql(table_name)
+        print(award)
 
         # Exécuter une commande personnalisée
-        cmd = "SELECT name FROM library.users WHERE age > 20;"
+        cmd = "SELECT name FROM library.Award;"
         result = db_service.cmd_sql(cmd)
         print(result)
 
