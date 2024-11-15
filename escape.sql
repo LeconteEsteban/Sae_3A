@@ -510,9 +510,9 @@ left join Serie s on s.serie_id = Sob.serie_id
 left join Award_of_book Aob on b.book_id = Aob.book_id
 left join Award a on a.award_id = Aob.award_id
 left join Setting_of_book Setob on b.book_id = Setob.book_id
-left join Settings sett on sett.setting_id = Setob.setting_id
+left join Settings sett on sett.setting_id = Setob.settings_id
 left join Characters_of_book Cob on b.book_id = Cob.book_id
-left join Characters c on c.character_id = Cob.character_id
+left join Characters c on c.character_id = Cob.characters_id
 left join rating_book rb on b.book_id = rb.book_id
 left join author_view av on a.name = av.name;
 
