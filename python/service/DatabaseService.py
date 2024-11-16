@@ -82,6 +82,7 @@ class DatabaseService:
         insert dans table de data : une liste de dictionaire de donnée ex: [{name:x},{},{},{}]
         """
         try:
+            print(f"Peuplement de {table} en cours ... ", end="\r")
             # Récupérer les noms de colonnes
             columns = data[0].keys()
             columns_str = ", ".join(columns)
@@ -91,8 +92,9 @@ class DatabaseService:
             sql_script = f"INSERT INTO library.{table} ({columns_str}) VALUES ({values_placeholders})"
             self.cursor.executemany(sql_script, data)
             self.connection.commit()
-            print("Les données ont été insérées avec succès dans:", table ,".", len(data), "row")
+            print(f"Les données ont été insérées avec succès dans: {table}. {len(data)} rows.")
         except Exception as e:
+            print(f"Peuplement de {table} échec")
             print(f"Erreur lors de l'insertion dans la table {table} : {e}")
             raise
 

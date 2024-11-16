@@ -103,7 +103,12 @@ class CSVService:
         """
         try:
             books_url = "https://docs.google.com/spreadsheets/d/1cWkVcuw_wTQxqTgJcRfCZTweSb06tzfHVbuAd73owNw/export?format=csv&gid=1613894920"
-            return self.dataframes.get("books") or self.get_csv(books_url, key="books", max_columns=25)
+            df = self.dataframes.get("books")
+            if df is not None:
+                return df
+            else:
+                return self.get_csv(books_url, key="books", max_columns=25)
+        
         except Exception as e:
                 print(f"Erreur get_csv_book : {e}")
                 raise
@@ -116,8 +121,17 @@ class CSVService:
         Returns:
             pd.DataFrame: DataFrame des auteurs.
         """
-        authors_url = "https://docs.google.com/spreadsheets/d/1cWkVcuw_wTQxqTgJcRfCZTweSb06tzfHVbuAd73owNw/export?format=csv&gid=818727220"
-        return self.dataframes.get("authors") or self.get_csv(authors_url, key="authors", usecols=range(18))
+        try:
+            authors_url = "https://docs.google.com/spreadsheets/d/1cWkVcuw_wTQxqTgJcRfCZTweSb06tzfHVbuAd73owNw/export?format=csv&gid=818727220"
+            df = self.dataframes.get("authors")
+            if df is not None:
+                return df
+            else:
+                return self.get_csv(authors_url, key="authors", usecols=range(18))
+        except Exception as e:
+                print(f"Erreur get_csv_author : {e}")
+                raise
+
 
 
     def get_csv_questionary(self):
@@ -128,7 +142,15 @@ class CSVService:
             pd.DataFrame: DataFrame du questionnaire.
         """
         questionary_url = "https://docs.google.com/spreadsheets/d/1dqgFu3AlBIqRN6ZS95s2WKxgi5oCoqF9XRZ_M1XSueY/export?format=csv"
-        return self.dataframes.get("questionary") or self.get_csv(questionary_url, key="questionary", usecols=range(17))
+        try:
+            df = self.dataframes.get("questionary")
+            if df is not None:
+                return df
+            else:
+                return self.get_csv(questionary_url, key="questionary", usecols=range(17))
+        except Exception as e:
+                print(f"Erreur get_csv_questionary : {e}")
+                raise
 
 
     def list_dataframes(self):

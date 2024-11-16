@@ -1,25 +1,56 @@
 import sys
 import os
 import re
+import pandas as pd
 
 # Ajoute le dossier parent au chemin pour les imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from service.DatabaseService import *
-from service.CSVService import *
 
 class peuplement:
     """
     Class pour le peuplement
     """
 
-    def __init__(self, bdd):
+    def __init__(self, bdd, csvservice):
         self.bddservice = bdd
-        self.csvservice = CSVService()
+        self.csvservice = csvservice
         self.csvservice.get_csv_author()
         self.csvservice.get_csv_book()
         self.csvservice.get_csv_questionary()
         return
+
+    def peuplementTotal(self):
+        """
+        Fonction opérationnel pour faire tout le peuplement
+        """
+        try:
+            print("Insertion des données dans les tables principales...")
+            
+            # Création des tables
+            self.table_genre()
+            self.table_publisher()
+            self.table_award()
+            self.table_settings()
+            self.table_characters()
+            self.table_series()
+
+            self.table_author()
+            self.table_book()
+
+            self.table_rating_book()
+            self.table_rating_author()
+
+            self.table_characters_of_book()
+            self.table_award_of_book()
+            self.table_serie_of_book()
+            self.table_setting_of_book()
+
+            self.table_genre_and_vote()
+            self.table_wrote()
+            print("Toutes les données ont été insérées avec succès.")
+
+        except Exception as e:
+            print(f"Une erreur s'est produite : {e}")
 
     def table_test(self):
         """
@@ -31,6 +62,7 @@ class peuplement:
         """
         Crée la table Genre à partir des données du DataFrame.
         """
+        print(f"Traitement pour peuplement de la table_genre en cours ... ", end="\r")
         df_clust = self.csvservice.dataframes["books"].dropna()
         df_genre = df_clust[['genre_and_votes']].copy()
 
@@ -67,6 +99,7 @@ class peuplement:
         Crée la table Publisher à partir des données du DataFrame.
         """
         try:
+            print(f"Traitement pour peuplement de la table_publisher en cours ... ", end="\r")
             # Utiliser la fonction générique pour parser la colonne 'publisher'
             unique_publishers = self.parse_and_split_column(
                 self.csvservice.dataframes["books"], "publisher", delimiter="/"
@@ -85,6 +118,7 @@ class peuplement:
         Crée la table Award à partir des données du DataFrame.
         """
         try:
+            print(f"Traitement pour peuplement de la table_award en cours ... ", end="\r")
             # Utiliser la fonction générique pour parser la colonne 'publisher'
             unique_awards = self.parse_and_split_column(
                 self.csvservice.dataframes["books"], "awards", delimiter="/"
@@ -103,6 +137,7 @@ class peuplement:
         Crée la table Settings à partir des données du DataFrame.
         """
         try:
+            print(f"Traitement pour peuplement de la table_settings en cours ... ", end="\r")
             # Utiliser la fonction générique pour parser la colonne 'publisher'
             unique_settings = self.parse_and_split_column(
                 self.csvservice.dataframes["books"], "settings", delimiter="/"
@@ -121,6 +156,7 @@ class peuplement:
         Crée la table Characters à partir des données du DataFrame.
         """
         try:
+            print(f"Traitement pour peuplement de la table_characters en cours ... ", end="\r")
             # Utiliser la fonction générique pour parser la colonne 'characters'
             unique_characters = self.parse_and_split_column(
                 self.csvservice.dataframes["books"], "characters", delimiter="/"
@@ -149,16 +185,20 @@ class peuplement:
         """
         Crée la table Series à partir des données du DataFrame, en nettoyant les noms sans regex.
         """
-        # Extraire et nettoyer les séries
-        series_cleaned = self.csvservice.dataframes["books"]["series"].dropna()
-        series_cleaned = [self.clean_series_name(series) for series in series_cleaned]
-        series_cleaned = list(set(series_cleaned))  # Éliminer les doublons
+        try:
+            print(f"Traitement pour peuplement de la table_series en cours ... ", end="\r")
+            # Extraire et nettoyer les séries
+            series_cleaned = self.csvservice.dataframes["books"]["series"].dropna()
+            series_cleaned = [self.clean_series_name(series) for series in series_cleaned]
+            series_cleaned = list(set(series_cleaned))  # Éliminer les doublons
 
-        # Préparer les données pour insertion
-        series_data = [{'name': series} for series in series_cleaned]
+            # Préparer les données pour insertion
+            series_data = [{'name': series} for series in series_cleaned]
 
-        # Insérer dans la base de données
-        self.bddservice.insert_sql("Serie", series_data)
+            # Insérer dans la base de données
+            self.bddservice.insert_sql("Serie", series_data)
+        except Exception as e:
+            print(f"Erreur lors de la création de la table series : {e}")
         
     def process_author_data(self, authors_data):
         """
@@ -183,6 +223,7 @@ class peuplement:
         Crée la table Author à partir des données du DataFrame des auteurs.
         """
         try:
+            print(f"Traitement pour peuplement de la table_author en cours ... ", end="\r")
             # Charger les données nécessaires
             authors_data = self.csvservice.dataframes["authors"][['author_name', 'author_gender', 'birthplace']]
 
@@ -204,75 +245,87 @@ class peuplement:
         """
         Crée la table Book à partir des données du DataFrame.
         """
-        # Récupérer uniquement les noms et IDs des éditeurs
-        df_publishers_id = self.bddservice.select_sql("publisher")[['name', 'publisher_id']]
-        publisher_ids = dict(zip(df_publishers_id['name'], df_publishers_id['publisher_id']))
-        books_data_dict = self.csvservice.dataframes["books"].apply(lambda row: {
-            "title": row["title"],
-            "number_of_pages": row["number_of_pages"] if pd.notna(row["number_of_pages"]) else None,
-            "publication_date": pd.to_datetime(row["year_published"], format='%Y', errors='coerce').date() if pd.notna(row["year_published"]) else None,
-            "isbn": row["isbn"] if pd.notnull(row["isbn"]) else None,
-            "isbn13": row["isbn13"] if pd.notnull(row["isbn13"]) else None,
-            "description": row["description"] if pd.notnull(row["description"]) else None,
-            "original_title": row["original_title"] if pd.notnull(row["original_title"]) else None,
-            "publisher_id": publisher_ids.get(row['publisher'])
-        }, axis=1)
+        try:
+            print(f"Traitement pour peuplement de la table_book en cours ... ", end="\r")
+            # Récupérer uniquement les noms et IDs des éditeurs
+            df_publishers_id = self.bddservice.select_sql("publisher")[['name', 'publisher_id']]
+            publisher_ids = dict(zip(df_publishers_id['name'], df_publishers_id['publisher_id']))
+            books_data_dict = self.csvservice.dataframes["books"].apply(lambda row: {
+                "title": row["title"],
+                "number_of_pages": row["number_of_pages"] if pd.notna(row["number_of_pages"]) else None,
+                "publication_date": pd.to_datetime(row["year_published"], format='%Y', errors='coerce').date() if pd.notna(row["year_published"]) else None,
+                "isbn": row["isbn"] if pd.notnull(row["isbn"]) else None,
+                "isbn13": row["isbn13"] if pd.notnull(row["isbn13"]) else None,
+                "description": row["description"] if pd.notnull(row["description"]) else None,
+                "original_title": row["original_title"] if pd.notnull(row["original_title"]) else None,
+                "publisher_id": publisher_ids.get(row['publisher'])
+            }, axis=1)
 
-        # Convertir en liste de dictionnaires et filtrer les enregistrements valides
-        books_data_dict = [
-            {key: (value if not pd.isna(value) else None) for key, value in book.items()}
-            for book in books_data_dict if book["publisher_id"] is not None
-        ]
+            # Convertir en liste de dictionnaires et filtrer les enregistrements valides
+            books_data_dict = [
+                {key: (value if not pd.isna(value) else None) for key, value in book.items()}
+                for book in books_data_dict if book["publisher_id"] is not None
+            ]
 
-        # Insertion dans la base de données
-        self.bddservice.insert_sql("Book", books_data_dict)
+            # Insertion dans la base de données
+            self.bddservice.insert_sql("Book", books_data_dict)
+        except Exception as e:
+            print(f"Erreur lors de la création de la table Book : {e}")
         
     def table_rating_book(self):
         """
         Crée la table Rating_book à partir des données du DataFrame.
         """
-        # Récupérer les IDs des livres
-        df_books_id = self.bddservice.select_sql("Book")[['title', 'book_id']]
-        book_ids = dict(zip(df_books_id['title'], df_books_id['book_id']))
-        rating_book_data = self.csvservice.dataframes["books"].apply(lambda row: {
-            "book_id": book_ids.get(row["title"]),
-            "rating_count": row["rating_count"] if pd.notna(row["rating_count"]) else None,
-            "review_count": row["review_count"] if pd.notna(row["review_count"]) else None,
-            "average_rating": row["average_rating"] if pd.notna(row["average_rating"]) else None,
-            "five_star_rating": row["five_star_ratings"] if pd.notna(row["five_star_ratings"]) else None,
-            "four_star_rating": row["four_star_ratings"] if pd.notna(row["four_star_ratings"]) else None,
-            "three_star_rating": row["three_star_ratings"] if pd.notna(row["three_star_ratings"]) else None,
-            "two_star_rating": row["two_star_ratings"] if pd.notna(row["two_star_ratings"]) else None,
-            "one_star_rating": row["one_star_ratings"] if pd.notna(row["one_star_ratings"]) else None
-        }, axis=1)
+        try:
+            print(f"Traitement pour peuplement de la table_rating_book en cours ... ", end="\r")
+            # Récupérer les IDs des livres
+            df_books_id = self.bddservice.select_sql("Book")[['title', 'book_id']]
+            book_ids = dict(zip(df_books_id['title'], df_books_id['book_id']))
+            rating_book_data = self.csvservice.dataframes["books"].apply(lambda row: {
+                "book_id": book_ids.get(row["title"]),
+                "rating_count": row["rating_count"] if pd.notna(row["rating_count"]) else None,
+                "review_count": row["review_count"] if pd.notna(row["review_count"]) else None,
+                "average_rating": row["average_rating"] if pd.notna(row["average_rating"]) else None,
+                "five_star_rating": row["five_star_ratings"] if pd.notna(row["five_star_ratings"]) else None,
+                "four_star_rating": row["four_star_ratings"] if pd.notna(row["four_star_ratings"]) else None,
+                "three_star_rating": row["three_star_ratings"] if pd.notna(row["three_star_ratings"]) else None,
+                "two_star_rating": row["two_star_ratings"] if pd.notna(row["two_star_ratings"]) else None,
+                "one_star_rating": row["one_star_ratings"] if pd.notna(row["one_star_ratings"]) else None
+            }, axis=1)
 
-        # Filtrer les enregistrements valides
-        rating_book_data = [rating for rating in rating_book_data if rating["book_id"] is not None]
+            # Filtrer les enregistrements valides
+            rating_book_data = [rating for rating in rating_book_data if rating["book_id"] is not None]
 
-        # Insertion dans la base de données
-        self.bddservice.insert_sql("Rating_book", rating_book_data)
+            # Insertion dans la base de données
+            self.bddservice.insert_sql("Rating_book", rating_book_data)
+        except Exception as e:
+            print(f"Erreur lors de la création de la table rating_book : {e}")
 
     def table_rating_author(self):
         """
         Crée la table Rating_author à partir des données du DataFrame.
         """
-        # Récupérer les IDs des auteurs
-        df_authors_id = self.bddservice.select_sql("Author")[['name', 'author_id']]
-        author_ids = dict(zip(df_authors_id['name'], df_authors_id['author_id']))
+        try:
+            print(f"Traitement pour peuplement de la table_rating_author en cours ... ", end="\r")
+            # Récupérer les IDs des auteurs
+            df_authors_id = self.bddservice.select_sql("Author")[['name', 'author_id']]
+            author_ids = dict(zip(df_authors_id['name'], df_authors_id['author_id']))
 
-        # Préparer les données pour Rating_author avec apply
-        rating_author_data = self.csvservice.dataframes["authors"].apply(lambda row: {
-            "author_id": author_ids.get(row["author_name"].strip()), 
-            "average_author_rating": float(row["author_average_rating"].replace(",", ".")) if pd.notna(row["author_average_rating"]) else None,
-            "author_rating_count": row["author_rating_count"] if pd.notna(row["author_rating_count"]) else None,
-            "author_review_count": row["author_review_count"] if pd.notna(row["author_review_count"]) else None
-        }, axis=1)
+            # Préparer les données pour Rating_author avec apply
+            rating_author_data = self.csvservice.dataframes["authors"].apply(lambda row: {
+                "author_id": author_ids.get(row["author_name"].strip()), 
+                "average_author_rating": float(row["author_average_rating"].replace(",", ".")) if pd.notna(row["author_average_rating"]) else None,
+                "author_rating_count": row["author_rating_count"] if pd.notna(row["author_rating_count"]) else None,
+                "author_review_count": row["author_review_count"] if pd.notna(row["author_review_count"]) else None
+            }, axis=1)
 
-        # Filtrer les enregistrements pour ne conserver que ceux avec un author_id valide
-        rating_author_data = [rating for rating in rating_author_data if rating["author_id"] is not None]
+            # Filtrer les enregistrements pour ne conserver que ceux avec un author_id valide
+            rating_author_data = [rating for rating in rating_author_data if rating["author_id"] is not None]
 
-        # Insérer les données dans la table Rating_author
-        self.bddservice.insert_sql("Rating_author", rating_author_data)
+            # Insérer les données dans la table Rating_author
+            self.bddservice.insert_sql("Rating_author", rating_author_data)
+        except Exception as e:
+            print(f"Erreur lors de la création de la table rating_author : {e}")
 
     def parse_and_split_column(self, dataframe, column_name, delimiter="/"):
         """
@@ -529,65 +582,67 @@ class peuplement:
             print(e)
 
     def table_characters_of_book(self):
-        self.associate_and_insert('Book', 'Characters', 'characters_of_book', self.csvservice.dataframes["books"], 'title', 'name', "characters")
+        """
+        Remplie table_characters_of_book à partir du dataframe
+        """
+        try:
+            print(f"Traitement pour peuplement de la table_characters_of_book en cours ... ", end="\r")
+            self.associate_and_insert('Book', 'Characters', 'characters_of_book', self.csvservice.dataframes["books"], 'title', 'name', "characters")
+        except Exception as e:
+            print(f"Erreur lors de la création de la table characters_of_book : {e}")
 
     def table_setting_of_book(self):
-        self.associate_and_insert('Book', 'Settings', 'settings_of_book', self.csvservice.dataframes["books"], 'title', 'description', "settings")
+        """
+        Remplie table_setting_of_book
+        """
+        try:
+            print(f"Traitement pour peuplement de la table_setting_of_book en cours ... ", end="\r")
+            self.associate_and_insert('Book', 'Settings', 'settings_of_book', self.csvservice.dataframes["books"], 'title', 'description', "settings")
+        except Exception as e:
+            print(f"Erreur lors de la création de la table setting_of_book : {e}")
 
     def table_award_of_book(self):
-        self.associate_and_insert('Book', 'Award', 'award_of_book', self.csvservice.dataframes["books"], 'title', 'name', "awards")
+        """
+        Remplie table_award_of_book
+        """
+        try:
+            print(f"Traitement pour peuplement de la table_award_of_book en cours ... ", end="\r")
+            self.associate_and_insert('Book', 'Award', 'award_of_book', self.csvservice.dataframes["books"], 'title', 'name', "awards")
+        except Exception as e:
+            print(f"Erreur lors de la création de la table award_of_book : {e}")
 
     def table_serie_of_book(self):
-        self.associate_and_insert_series('Book', 'Serie', 'serie_of_book', self.csvservice.dataframes["books"], 'title', 'name', "series")
+        """
+        Remplie table_serie_of_book
+        """
+        try:
+            print(f"Traitement pour peuplement de la table_serie_of_book en cours ... ", end="\r")
+            self.associate_and_insert_series('Book', 'Serie', 'serie_of_book', self.csvservice.dataframes["books"], 'title', 'name', "series")
+        except Exception as e:
+            print(f"Erreur lors de la création de la table serie_of_book : {e}")
 
     def table_genre_and_vote(self):
-        self.associate_and_insert_with_separator('Book', 'Genre', 'Genre_and_vote', self.csvservice.dataframes["books"], 'title', 'name', "genre_and_votes")
-    
+        """Remplie la table genre_and_vote"""
+        try:
+            print(f"Traitement pour peuplement de la table_genre_and_vote en cours ... ", end="\r")
+            self.associate_and_insert_with_separator('Book', 'Genre', 'Genre_and_vote', self.csvservice.dataframes["books"], 'title', 'name', "genre_and_votes")
+        except Exception as e:
+            print(f"Erreur lors de la création de la table genre_and_vote : {e}")
+
     def table_wrote(self):
         """
         Remplie la table wrote
         """
-        self.associate_and_insert_wrote()
-
-
-    def peuplementTotal(self):
-        """
-        Fonction opérationnel pour faire tout le peuplement
-        """
         try:
-            print("Insertion des données dans les tables principales...")
-
-            # Création des tables
-            self.table_genre()
-            self.table_publisher()
-            self.table_award()
-            self.table_settings()
-            self.table_characters()
-            self.table_series()
-
-            self.table_author()
-            self.table_book()
-
-            self.table_rating_book()
-            self.table_rating_author()
-
-            self.table_characters_of_book()
-            self.table_award_of_book()
-            self.table_serie_of_book()
-            self.table_setting_of_book()
-
-            self.table_genre_and_vote()
-            self.table_wrote()
-            print("Toutes les données ont été insérées avec succès.")
-
+            print(f"Traitement pour peuplement de la table_wrote en cours ... ", end="\r")
+            self.associate_and_insert_wrote()
         except Exception as e:
-            print(f"Une erreur s'est produite : {e}")
+            print(f"Erreur lors de la création de la table wrote : {e}")
 
 
 # Exemple d'utilisation
 if __name__ == "__main__":
     peuplement1 = peuplement()
-    csv_service = CSVService()
 
     try:
         print("Insertion des données dans les tables principales...")
