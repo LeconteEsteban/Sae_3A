@@ -165,94 +165,111 @@ class peuplement:
         print("Insertion des données des évaluations des auteurs...")
         self.bddservice.insert_sql("Rating_author", rating_author_data)
 
-    def associate_and_insert(self, table1_name, table2_name, relation_table_name, df, col1_name, col2_name):
-        """
-        Associe les données entre deux tables via une table de relation.
-        """
+    def associate_and_insert(self, table1_name, table2_name, relation_table_name, df, col1_name, col2_name, df_table_name):
         try:
+            """
+            Associe les données de deux tables via une table de liaison et insère les associations dans la base de données.
+        
+            :param table1_name: Nom de la première table (ex: 'Book')
+            :param table2_name: Nom de la deuxième table (ex: 'Award')
+            :param relation_table_name: Nom de la table de liaison (ex: 'Award_of_book')
+            :param df: DataFrame contenant les données à traiter
+            :param col1_name: Nom de la colonne de la première table (ex: 'title' pour 'Book')
+            :param col2_name: Nom de la colonne de la deuxième table (ex: 'awards' pour 'Award')
+            """
+
+            # Récupérer les IDs des éléments de la première table
             df_table1_id = self.bddservice.select_sql(table1_name)[[col1_name, f'{table1_name.lower()}_id']]
             table1_ids = dict(zip(df_table1_id[col1_name], df_table1_id[f'{table1_name.lower()}_id']))
 
+            # Récupérer les IDs des éléments de la deuxième table
             df_table2_id = self.bddservice.select_sql(table2_name)[[col2_name, f'{table2_name.lower()}_id']]
             table2_ids = dict(zip(df_table2_id[col2_name], df_table2_id[f'{table2_name.lower()}_id']))
 
+            # Créer un ensemble pour stocker les associations uniques
             relation_data_set = set()
+
             for _, row in df.iterrows():
-                if pd.notna(row[col1_name]) and pd.notna(row[col2_name]):
+                if pd.notna(row[col1_name]) and pd.notna(row[df_table_name]):
+                    # Récupérer les IDs associés
                     table1_id = table1_ids.get(row[col1_name])
-                    table2_splits = row[col2_name].split(",")
+                    table2_splits = row[df_table_name].split(",")  # Séparer les noms par virgule s'il y en a plusieurs
+
                     for table2_split in table2_splits:
-                        table2_id = table2_ids.get(table2_split.strip())
+                        table2_id = table2_ids.get(table2_split.strip())  # Enlever les espaces autour du nom
                         if table1_id and table2_id:
+                            # Ajouter seulement des paires uniques
                             relation_data_set.add((table1_id, table2_id))
 
+            # Convertir l'ensemble en une liste de dictionnaires pour l'insertion
             relation_data = [{f'{table1_name.lower()}_id': table1_id, f'{table2_name.lower()}_id': table2_id}
-                             for table1_id, table2_id in relation_data_set]
+                            for table1_id, table2_id in relation_data_set]
 
-            print(f"Insertion des relations {relation_table_name}...")
+            # Insertion dans la table de relation
+            print(f"Insertion des associations uniques entre {table1_name} et {table2_name}...")
             self.bddservice.insert_sql(relation_table_name, relation_data)
         except Exception as e:
-            print(f"Erreur lors de l'association {table1_name}-{table2_name}: {e}")
-    
-
+            print(e)
 
 
     def table_characters_of_book(self):
-        self.associate_and_insert('Book', 'Characters', 'characters_of_book', self.csvservice.dataframes["books"], 'title', 'name')
+        self.associate_and_insert('Book', 'Characters', 'characters_of_book', self.csvservice.dataframes["books"], 'title', 'name', "characters")
 
     def table_setting_of_book(self):
-        self.associate_and_insert('Book', 'Settings', 'setting_of_book', self.csvservice.dataframes["books"], 'title', 'description')
+        self.associate_and_insert('Book', 'Settings', 'settings_of_book', self.csvservice.dataframes["books"], 'title', 'description', "settings")
 
     def table_award_of_book(self):
-        self.associate_and_insert('Book', 'Award', 'award_of_book', self.csvservice.dataframes["books"], 'title', 'name')
+        self.associate_and_insert('Book', 'Award', 'award_of_book', self.csvservice.dataframes["books"], 'title', 'name', "awards")
 
     def table_serie_of_book(self):
-        self.associate_and_insert('Book', 'Serie', 'serie_of_book', self.csvservice.dataframes["books"], 'title', 'name')
+        self.associate_and_insert('Book', 'Serie', 'serie_of_book', self.csvservice.dataframes["books"], 'title', 'name', "series")
 
     def table_genre_and_vote(self):
         1
     
 
-    def peuplementTotal():
-        peuplement1 = peuplement()
-        csv_service = CSVService()
+    def peuplementTotal(self):
 
         try:
             print("Insertion des données dans les tables principales...")
 
             # Création des tables
-            peuplement1.table_genre()
+            self.table_genre()
             print("Table Genre remplie avec succès.")
 
-            peuplement1.table_publisher()
+            self.table_publisher()
             print("Table Publisher remplie avec succès.")
 
-            peuplement1.table_award()
+            self.table_award()
             print("Table Award remplie avec succès.")
 
-            peuplement1.table_settings()
+            self.table_settings()
             print("Table Settings remplie avec succès.")
 
-            peuplement1.table_characters()
+            self.table_characters()
             print("Table Characters remplie avec succès.")
 
-            peuplement1.table_series()
+            self.table_series()
             print("Table Series remplie avec succès.")
 
-            peuplement1.table_author()
+            self.table_author()
             print("Table Author remplie avec succès.")
 
-            peuplement1.table_book()
+            self.table_book()
             print("Table Book remplie avec succès.")
 
-            peuplement1.table_rating_book()
+            self.table_rating_book()
             print("Table Rating_book remplie avec succès.")
 
-            peuplement1.table_rating_author()
+            self.table_rating_author()
             print("Table Rating_author remplie avec succès. ")
 
+            self.table_characters_of_book()
+            self.table_award_of_book()
+            self.table_serie_of_book()
+            self.table_setting_of_book()
 
-            
+
             print("Toutes les données ont été insérées avec succès.")
 
         except Exception as e:

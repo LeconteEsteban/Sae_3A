@@ -19,7 +19,7 @@ if __name__ == "__main__":
         #bddservice.cmd_sql("delete from library.book;")
         #print(bddservice.cmd_sql("SELECT COUNT(*) FROM library.book;"))
         
-        peuplement1.table_characters_of_book()
+        peuplement1.table_setting_of_book()
 
     except Exception as e:
             print(f"Erreur dans le main : {e}")
