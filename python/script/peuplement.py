@@ -22,6 +22,9 @@ class peuplement:
         return
 
     def table_test(self):
+        """
+        just for testing
+        """
         print("1")
 
     def table_genre(self):
@@ -31,10 +34,22 @@ class peuplement:
         df_clust = self.csvservice.dataframes["books"].dropna()
         df_genre = df_clust[['genre_and_votes']].copy()
 
-        # Extraction des genres et votes
         def parse_genre_votes(genre_and_votes):
-            genre_votes = re.findall(r'([\w\s-]+)\s(\d+)', genre_and_votes)
-            return {genre.strip(): int(vote) for genre, vote in genre_votes}
+            # Diviser par '/' pour séparer chaque genre-vote
+            genre_votes = genre_and_votes.split('/')
+            
+            # Extraire le genre et le vote pour chaque segment
+            parsed_genre_votes = {}
+            for genre_vote in genre_votes:
+                genre_vote = genre_vote.strip()  # Supprimer les espaces inutiles
+                match = re.match(r'([A-Za-z- ]+)\s(\d+)', genre_vote)
+                if match:
+                    genre = match.group(1).strip()
+                    vote = int(match.group(2))
+                    parsed_genre_votes[genre] = vote
+
+            return parsed_genre_votes
+
 
         df_genre['genre_votes_dict'] = df_genre['genre_and_votes'].apply(parse_genre_votes)
 
@@ -51,35 +66,106 @@ class peuplement:
         """
         Crée la table Publisher à partir des données du DataFrame.
         """
-        publishers_data = [{'name': publisher} for publisher in self.csvservice.dataframes["books"]['publisher'].dropna().unique()]
-        self.bddservice.insert_sql("Publisher", publishers_data)
+        try:
+            # Utiliser la fonction générique pour parser la colonne 'publisher'
+            unique_publishers = self.parse_and_split_column(
+                self.csvservice.dataframes["books"], "publisher", delimiter="/"
+            )
+
+            # Préparer les données pour l'insertion
+            publishers_data = [{'name': publisher} for publisher in unique_publishers]
+
+            # Insérer dans la base de données
+            self.bddservice.insert_sql("Publisher", publishers_data)
+
+            print(f"Table 'Publisher' créée avec succès avec {len(publishers_data)} éditeurs.")
+        except Exception as e:
+            print(f"Erreur lors de la création de la table Publisher : {e}")
         
     def table_award(self):
         """
         Crée la table Award à partir des données du DataFrame.
         """
-        awards_data = [{'name': award} for award in self.csvservice.dataframes["books"]["awards"].dropna().unique()]
-        self.bddservice.insert_sql("Award", awards_data)
+        try:
+            # Utiliser la fonction générique pour parser la colonne 'publisher'
+            unique_awards = self.parse_and_split_column(
+                self.csvservice.dataframes["books"], "awards", delimiter="/"
+            )
+
+            # Préparer les données pour l'insertion
+            award_data = [{'name': award} for award in unique_awards]
+
+            # Insérer dans la base de données
+            self.bddservice.insert_sql("Award", award_data)
+
+            print(f"Table 'Award' créée avec succès avec {len(award_data)} awards.")
+        except Exception as e:
+            print(f"Erreur lors de la création de la table Award : {e}")
         
     def table_settings(self):
         """
         Crée la table Settings à partir des données du DataFrame.
         """
-        settings_data = [{'description': setting} for setting in self.csvservice.dataframes["books"]["settings"].dropna().unique()]
-        self.bddservice.insert_sql("Settings", settings_data)
+        try:
+            # Utiliser la fonction générique pour parser la colonne 'publisher'
+            unique_settings = self.parse_and_split_column(
+                self.csvservice.dataframes["books"], "settings", delimiter="/"
+            )
+
+            # Préparer les données pour l'insertion
+            setting_data = [{'description': setting} for setting in unique_settings]
+
+            # Insérer dans la base de données
+            self.bddservice.insert_sql("settings", setting_data)
+
+            print(f"Table 'setting' créée avec succès avec {len(setting_data)} settings.")
+        except Exception as e:
+            print(f"Erreur lors de la création de la table setting : {e}")
         
     def table_characters(self):
         """
         Crée la table Characters à partir des données du DataFrame.
         """
-        characters_data = [{'name': character} for character in self.csvservice.dataframes["books"]["characters"].dropna().unique()]
-        self.bddservice.insert_sql("Characters", characters_data)
-        
+        try:
+            # Utiliser la fonction générique pour parser la colonne 'characters'
+            unique_characters = self.parse_and_split_column(
+                self.csvservice.dataframes["books"], "characters", delimiter="/"
+            )
+
+            # Préparer les données pour l'insertion
+            characters_data = [{'name': characters} for characters in unique_characters]
+
+            # Insérer dans la base de données
+            self.bddservice.insert_sql("characters", characters_data)
+
+            print(f"Table 'characters' créée avec succès avec {len(characters_data)} characters.")
+        except Exception as e:
+            print(f"Erreur lors de la création de la table characters : {e}")
+    
+    def clean_series_name(self, series_name):
+        # Trouver la position de la parenthèse ouvrante et extraire la partie avant
+        if '(' in series_name:
+            series_name = series_name.split('(')[1].strip()
+        # Supprimer le `#` et tout ce qui le suit
+        if '#' in series_name:
+            series_name = series_name.split('#')[0].strip()
+        if ')' in series_name:
+            series_name = series_name.split(')')[0].strip()
+        return series_name
+
     def table_series(self):
         """
-        Crée la table Series à partir des données du DataFrame.
+        Crée la table Series à partir des données du DataFrame, en nettoyant les noms sans regex.
         """
-        series_data = [{'name': series} for series in self.csvservice.dataframes["books"]["series"].dropna().unique()]
+        # Extraire et nettoyer les séries
+        series_cleaned = self.csvservice.dataframes["books"]["series"].dropna()
+        series_cleaned = [self.clean_series_name(series) for series in series_cleaned]
+        series_cleaned = list(set(series_cleaned))  # Éliminer les doublons
+
+        # Préparer les données pour insertion
+        series_data = [{'name': series} for series in series_cleaned]
+
+        # Insérer dans la base de données
         self.bddservice.insert_sql("Serie", series_data)
         
     def table_author(self):
@@ -165,9 +251,37 @@ class peuplement:
         print("Insertion des données des évaluations des auteurs...")
         self.bddservice.insert_sql("Rating_author", rating_author_data)
 
-    def associate_and_insert(self, table1_name, table2_name, relation_table_name, df, col1_name, col2_name, df_table_name):
+    def parse_and_split_column(self, dataframe, column_name, delimiter="/"):
+        """
+        Parse et divise les éléments d'une colonne donnée en utilisant un délimiteur.
+        Retourne une liste unique de tous les éléments divisés.
+
+        Args:
+            dataframe (pd.DataFrame): Le DataFrame contenant les données.
+            column_name (str): Nom de la colonne à parser.
+            delimiter (str): Délimiteur utilisé pour séparer les éléments (par défaut : '/').
+
+        Returns:
+            list: Une liste de valeurs uniques, nettoyées et triées.
+        """
         try:
-            """
+            # Extraire la colonne, ignorer les valeurs NaN
+            column_data = dataframe[column_name].dropna()
+
+            # Diviser les éléments par le délimiteur, puis aplatir la liste
+            split_elements = column_data.str.split(delimiter).explode().str.strip()
+
+            # Retirer les doublons et trier les résultats
+            unique_elements = split_elements.drop_duplicates().sort_values()
+
+            return unique_elements.tolist()
+        except KeyError:
+            raise Exception(f"La colonne '{column_name}' est introuvable dans le DataFrame.")
+        except Exception as e:
+            raise Exception(f"Erreur lors du parsing de la colonne '{column_name}' : {e}")
+
+    def associate_and_insert(self, table1_name, table2_name, relation_table_name, df, col1_name, col2_name, df_table_name):
+        """
             Associe les données de deux tables via une table de liaison et insère les associations dans la base de données.
         
             :param table1_name: Nom de la première table (ex: 'Book')
@@ -177,7 +291,7 @@ class peuplement:
             :param col1_name: Nom de la colonne de la première table (ex: 'title' pour 'Book')
             :param col2_name: Nom de la colonne de la deuxième table (ex: 'awards' pour 'Award')
             """
-
+        try:
             # Récupérer les IDs des éléments de la première table
             df_table1_id = self.bddservice.select_sql(table1_name)[[col1_name, f'{table1_name.lower()}_id']]
             table1_ids = dict(zip(df_table1_id[col1_name], df_table1_id[f'{table1_name.lower()}_id']))
@@ -193,7 +307,7 @@ class peuplement:
                 if pd.notna(row[col1_name]) and pd.notna(row[df_table_name]):
                     # Récupérer les IDs associés
                     table1_id = table1_ids.get(row[col1_name])
-                    table2_splits = row[df_table_name].split(",")  # Séparer les noms par virgule s'il y en a plusieurs
+                    table2_splits = row[df_table_name].split("/")  # Séparer les noms par virgule s'il y en a plusieurs
 
                     for table2_split in table2_splits:
                         table2_id = table2_ids.get(table2_split.strip())  # Enlever les espaces autour du nom
@@ -211,6 +325,135 @@ class peuplement:
         except Exception as e:
             print(e)
 
+    def associate_and_insert_with_separator(self, table1_name, table2_name, relation_table_name, df, col1_name, col2_name, df_table_name, separator="/"):
+        """
+        Associe les données de deux tables via une table de liaison et insère les associations avec les votes dans la base de données.
+
+        :param table1_name: Nom de la première table (ex: 'Book')
+        :param table2_name: Nom de la deuxième table (ex: 'Genre')
+        :param relation_table_name: Nom de la table de liaison (ex: 'Genre_and_vote')
+        :param df: DataFrame contenant les données à traiter
+        :param col1_name: Nom de la colonne de la première table (ex: 'title' pour 'Book')
+        :param col2_name: Nom de la colonne de la deuxième table (ex: 'name' pour 'Genre')
+        :param df_table_name: Nom de la colonne contenant les données associées au format genre/vote (ex: 'genre_and_votes')
+        :param separator: Caractère séparant les genres et les votes (par défaut : '/')
+        """
+        try:
+            # Récupérer les IDs des éléments de la première table
+            df_table1_id = self.bddservice.select_sql(table1_name)[[col1_name, f'{table1_name.lower()}_id']]
+            table1_ids = dict(zip(df_table1_id[col1_name], df_table1_id[f'{table1_name.lower()}_id']))
+
+            # Récupérer les IDs des éléments de la deuxième table
+            df_table2_id = self.bddservice.select_sql(table2_name)[[col2_name, f'{table2_name.lower()}_id']]
+            table2_ids = dict(zip(df_table2_id[col2_name], df_table2_id[f'{table2_name.lower()}_id']))
+            
+            # Créer un ensemble pour stocker les associations uniques
+            relation_data_set = set()
+            verif_doublon_set = set()
+            
+            for _, row in df.iterrows():
+                if pd.notna(row[col1_name]) and pd.notna(row[df_table_name]):
+                    # Récupérer les IDs associés
+                    table1_id = table1_ids.get(row[col1_name])
+                    genre_votes = row[df_table_name].split(separator) 
+                    
+                    for genre_vote in genre_votes:
+                        genre_vote = genre_vote.strip()
+                        
+                        if len(genre_vote.split()) >= 2:
+                            *genre_name_parts, vote_count = genre_vote.split()  # Dernier élément est le vote, les autres forment le nom
+                            genre_name = " ".join(genre_name_parts).strip()  # Reconstituer le nom du genre sans les votes
+                            vote_count = vote_count.strip()
+
+                            # Remplacer '1user' ou des chaînes similaires par un nombre valide
+                            if 'user' in vote_count:
+                                #print(f"Correction du vote pour le genre '{genre_name}': '{vote_count}' remplacé par '1'")
+                                vote_count = '1'  # Vous pouvez remplacer ici par la valeur que vous souhaitez.
+
+                            # Vérification si le vote_count est bien un entier
+                            try:
+                                vote_count = int(vote_count)  # Conversion en entier
+                            except ValueError:
+                                print(f"Valeur de vote invalide pour le genre '{genre_name}': '{vote_count}'")
+                                continue  # Ignore cette entrée et passe à la suivante
+
+                            table2_id = table2_ids.get(genre_name)  # Enlever les espaces autour du nom
+
+                            if table1_id and table2_id:
+                                # Vérifier si la combinaison (table1_id, table2_id) existe déjà dans le set
+                                if (table1_id, table2_id) not in verif_doublon_set:
+                                    # Ajouter dans le set pour vérifier l'unicité
+                                    verif_doublon_set.add((table1_id, table2_id))
+                                    
+                                    # Ajouter dans le set final avec le vote_count
+                                    relation_data_set.add((table1_id, table2_id, vote_count))
+
+                        else:
+                            print(f"Format inattendu dans la donnée : {genre_vote}")
+
+            # Convertir l'ensemble en une liste de dictionnaires pour l'insertion
+            relation_data = [
+                {
+                    f'{table1_name.lower()}_id': table1_id,
+                    f'{table2_name.lower()}_id': table2_id,
+                    'vote_count': vote_count
+                }
+                for table1_id, table2_id, vote_count in relation_data_set
+            ]
+            # Insertion dans la table de relation
+            print(f"Insertion des associations uniques avec les param entre {table1_name} et {table2_name}...")
+            self.bddservice.insert_sql(relation_table_name, relation_data)
+        except Exception as e:
+            print(f"Erreur lors de l'association et de l'insertion : {e}")
+            raise
+    
+    def associate_and_insert_series(self, table1_name, table2_name, relation_table_name, df, col1_name, col2_name, df_table_name):
+        """
+            Associe les données de deux tables via une table de liaison et insère les associations dans la base de données.
+        
+            :param table1_name: Nom de la première table 
+            :param table2_name: Nom de la deuxième table
+            :param relation_table_name: Nom de la table de liaison 
+            :param df: DataFrame contenant les données à traiter
+            :param col1_name: Nom de la colonne de la première table 
+            :param col2_name: Nom de la colonne de la deuxième table 
+            """
+        try:
+            # Récupérer les IDs des éléments de la première table
+            df_table1_id = self.bddservice.select_sql(table1_name)[[col1_name, f'{table1_name.lower()}_id']]
+            table1_ids = dict(zip(df_table1_id[col1_name], df_table1_id[f'{table1_name.lower()}_id']))
+
+            # Récupérer les IDs des éléments de la deuxième table
+            df_table2_id = self.bddservice.select_sql(table2_name)[[col2_name, f'{table2_name.lower()}_id']]
+            table2_ids = dict(zip(df_table2_id[col2_name], df_table2_id[f'{table2_name.lower()}_id']))
+
+            # Créer un ensemble pour stocker les associations uniques
+            relation_data_set = set()
+
+            for _, row in df.iterrows():
+                if pd.notna(row[col1_name]) and pd.notna(row[df_table_name]):
+                    # Récupérer les IDs associés
+                    table1_id = table1_ids.get(row[col1_name])
+                    table2_splits = row[df_table_name].split("/")
+
+
+
+                    for table2_split in table2_splits:
+                        table2_split = self.clean_series_name(table2_split)
+                        table2_id = table2_ids.get(table2_split.strip())  # Enlever les espaces autour du nom
+                        if table1_id and table2_id:
+                            # Ajouter seulement des paires uniques
+                            relation_data_set.add((table1_id, table2_id))
+
+            # Convertir l'ensemble en une liste de dictionnaires pour l'insertion
+            relation_data = [{f'{table1_name.lower()}_id': table1_id, f'{table2_name.lower()}_id': table2_id}
+                            for table1_id, table2_id in relation_data_set]
+
+            # Insertion dans la table de relation
+            print(f"Insertion des associations uniques entre {table1_name} et {table2_name}...")
+            self.bddservice.insert_sql(relation_table_name, relation_data)
+        except Exception as e:
+            print(e)
 
     def table_characters_of_book(self):
         self.associate_and_insert('Book', 'Characters', 'characters_of_book', self.csvservice.dataframes["books"], 'title', 'name', "characters")
@@ -222,14 +465,21 @@ class peuplement:
         self.associate_and_insert('Book', 'Award', 'award_of_book', self.csvservice.dataframes["books"], 'title', 'name', "awards")
 
     def table_serie_of_book(self):
-        self.associate_and_insert('Book', 'Serie', 'serie_of_book', self.csvservice.dataframes["books"], 'title', 'name', "series")
+        self.associate_and_insert_series('Book', 'Serie', 'serie_of_book', self.csvservice.dataframes["books"], 'title', 'name', "series")
 
     def table_genre_and_vote(self):
-        1
+        self.associate_and_insert_with_separator('Book', 'Genre', 'Genre_and_vote', self.csvservice.dataframes["books"], 'title', 'name', "genre_and_votes")
     
+    def table_wrote(self):
+        """
+        Remplie la table wrote
+        """
+        
 
     def peuplementTotal(self):
-
+        """
+        Fonction opérationnel pour faire tout le peuplement
+        """
         try:
             print("Insertion des données dans les tables principales...")
 
@@ -269,6 +519,7 @@ class peuplement:
             self.table_serie_of_book()
             self.table_setting_of_book()
 
+            self.table_genre_and_vote()
 
             print("Toutes les données ont été insérées avec succès.")
 
@@ -293,7 +544,3 @@ if __name__ == "__main__":
 
     except Exception as e:
         print(f"Une erreur s'est produite : {e}")
-
-"""
-
-"""

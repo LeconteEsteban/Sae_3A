@@ -102,7 +102,17 @@ class DatabaseService:
         insert dans table de data : une liste de donnée ex: [l1,l2,l3,l4]
         """
         try:
-            
+            # Générer des placeholders pour les valeurs, par exemple : (%s, %s, %s)
+            placeholders = ", ".join(["%s"] * len(data))
+
+            # Créer la requête SQL pour insérer une ligne
+            query = f"INSERT INTO {table} VALUES ({placeholders})"
+
+            # Exécuter la requête
+            self.cursor.execute(query, data)
+
+            # Confirmer la transaction
+            self.connection.commit()
             print("Les données ont été insérées avec succès.")
         except Exception as e:
             print(f"Erreur lors de l'insertion dans la table {table} : {e}")

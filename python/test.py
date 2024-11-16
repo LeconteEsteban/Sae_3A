@@ -15,11 +15,11 @@ if __name__ == "__main__":
         bddservice.initialize_connection()
 
         #db_service.create_database()
-
-        #bddservice.cmd_sql("delete from library.book;")
-        #print(bddservice.cmd_sql("SELECT COUNT(*) FROM library.book;"))
+        bddservice.cmd_sql("delete from library.serie_of_book;")
+        #bddservice.cmd_sql("delete from library.serie;")
+        #print(bddservice.cmd_sql("SELECT COUNT(*) FROM library.genre;"))
         
-        peuplement1.table_setting_of_book()
+        peuplement1.table_serie_of_book()
 
     except Exception as e:
             print(f"Erreur dans le main : {e}")
