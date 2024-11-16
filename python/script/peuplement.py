@@ -77,8 +77,6 @@ class peuplement:
 
             # Insérer dans la base de données
             self.bddservice.insert_sql("Publisher", publishers_data)
-
-            print(f"Table 'Publisher' créée avec succès avec {len(publishers_data)} éditeurs.")
         except Exception as e:
             print(f"Erreur lors de la création de la table Publisher : {e}")
         
@@ -97,8 +95,6 @@ class peuplement:
 
             # Insérer dans la base de données
             self.bddservice.insert_sql("Award", award_data)
-
-            print(f"Table 'Award' créée avec succès avec {len(award_data)} awards.")
         except Exception as e:
             print(f"Erreur lors de la création de la table Award : {e}")
         
@@ -117,8 +113,6 @@ class peuplement:
 
             # Insérer dans la base de données
             self.bddservice.insert_sql("settings", setting_data)
-
-            print(f"Table 'setting' créée avec succès avec {len(setting_data)} settings.")
         except Exception as e:
             print(f"Erreur lors de la création de la table setting : {e}")
         
@@ -137,8 +131,6 @@ class peuplement:
 
             # Insérer dans la base de données
             self.bddservice.insert_sql("characters", characters_data)
-
-            print(f"Table 'characters' créée avec succès avec {len(characters_data)} characters.")
         except Exception as e:
             print(f"Erreur lors de la création de la table characters : {e}")
     
@@ -168,15 +160,46 @@ class peuplement:
         # Insérer dans la base de données
         self.bddservice.insert_sql("Serie", series_data)
         
+    def process_author_data(self, authors_data):
+        """
+        Fonction pour nettoyer et préparer les données des auteurs.
+        """
+        # Nettoyage des données
+        authors_data = authors_data.dropna(subset=['author_name'])  # Garder seulement les lignes avec un nom valide
+        authors_data['author_name'] = authors_data['author_name'].str.strip()  # Enlever les espaces inutiles
+        authors_data['author_gender'] = authors_data['author_gender'].str.strip().str.lower()  # Uniformiser le genre
+        authors_data['birthplace'] = authors_data['birthplace'].fillna('Unknown')  # Remplir les lieux de naissance manquants
+
+        # Renommer les colonnes pour correspondre à la table SQL
+        authors_data = authors_data.rename(columns={'author_name': 'name', 'author_gender': 'gender'})
+
+        # Suppression des doublons
+        #authors_data = authors_data.drop_duplicates(subset=['name','gender','birthplace'])
+        
+        return authors_data
+
     def table_author(self):
         """
         Crée la table Author à partir des données du DataFrame des auteurs.
         """
-        authors_data = self.csvservice.dataframes["authors"][['author_name', 'author_gender', 'birthplace']].dropna()
-        authors_data = authors_data.rename(columns={'author_name': 'name', 'author_gender': 'gender'})
-        authors_data_dict = authors_data.to_dict(orient='records')
-        self.bddservice.insert_sql("Author", authors_data_dict)
-        
+        try:
+            # Charger les données nécessaires
+            authors_data = self.csvservice.dataframes["authors"][['author_name', 'author_gender', 'birthplace']]
+
+            # Traitement des données des auteurs
+            authors_data = self.process_author_data(authors_data)
+
+            # Conversion en dictionnaires
+            authors_data_dict = authors_data.to_dict(orient='records')
+
+            # Insertion dans la base de données
+            if authors_data_dict:
+                self.bddservice.insert_sql("Author", authors_data_dict)
+            else:
+                print("Aucun auteur valide à insérer.")
+        except Exception as e:
+            print(f"Erreur lors de la création de la table Author : {e}")
+
     def table_book(self):
         """
         Crée la table Book à partir des données du DataFrame.
@@ -236,9 +259,10 @@ class peuplement:
         # Récupérer les IDs des auteurs
         df_authors_id = self.bddservice.select_sql("Author")[['name', 'author_id']]
         author_ids = dict(zip(df_authors_id['name'], df_authors_id['author_id']))
+
         # Préparer les données pour Rating_author avec apply
         rating_author_data = self.csvservice.dataframes["authors"].apply(lambda row: {
-            "author_id": author_ids.get(row["author_name"]),  # Assurez-vous d'utiliser author_ids ici
+            "author_id": author_ids.get(row["author_name"].strip()), 
             "average_author_rating": float(row["author_average_rating"].replace(",", ".")) if pd.notna(row["author_average_rating"]) else None,
             "author_rating_count": row["author_rating_count"] if pd.notna(row["author_rating_count"]) else None,
             "author_review_count": row["author_review_count"] if pd.notna(row["author_review_count"]) else None
@@ -248,7 +272,6 @@ class peuplement:
         rating_author_data = [rating for rating in rating_author_data if rating["author_id"] is not None]
 
         # Insérer les données dans la table Rating_author
-        print("Insertion des données des évaluations des auteurs...")
         self.bddservice.insert_sql("Rating_author", rating_author_data)
 
     def parse_and_split_column(self, dataframe, column_name, delimiter="/"):
@@ -288,8 +311,9 @@ class peuplement:
             :param table2_name: Nom de la deuxième table (ex: 'Award')
             :param relation_table_name: Nom de la table de liaison (ex: 'Award_of_book')
             :param df: DataFrame contenant les données à traiter
-            :param col1_name: Nom de la colonne de la première table (ex: 'title' pour 'Book')
-            :param col2_name: Nom de la colonne de la deuxième table (ex: 'awards' pour 'Award')
+            :param col1_name: Nom de la colonne de jointure de la première table (ex: 'title' pour 'Book') 
+            :param col2_name: Nom de la colonne de jointure de la deuxième table (ex: 'awards' pour 'Award')
+            :param df_table_name: Nom de la colonne du csv
             """
         try:
             # Récupérer les IDs des éléments de la première table
@@ -318,9 +342,8 @@ class peuplement:
             # Convertir l'ensemble en une liste de dictionnaires pour l'insertion
             relation_data = [{f'{table1_name.lower()}_id': table1_id, f'{table2_name.lower()}_id': table2_id}
                             for table1_id, table2_id in relation_data_set]
-
+            
             # Insertion dans la table de relation
-            print(f"Insertion des associations uniques entre {table1_name} et {table2_name}...")
             self.bddservice.insert_sql(relation_table_name, relation_data)
         except Exception as e:
             print(e)
@@ -401,7 +424,6 @@ class peuplement:
                 for table1_id, table2_id, vote_count in relation_data_set
             ]
             # Insertion dans la table de relation
-            print(f"Insertion des associations uniques avec les param entre {table1_name} et {table2_name}...")
             self.bddservice.insert_sql(relation_table_name, relation_data)
         except Exception as e:
             print(f"Erreur lors de l'association et de l'insertion : {e}")
@@ -450,7 +472,58 @@ class peuplement:
                             for table1_id, table2_id in relation_data_set]
 
             # Insertion dans la table de relation
-            print(f"Insertion des associations uniques entre {table1_name} et {table2_name}...")
+            self.bddservice.insert_sql(relation_table_name, relation_data)
+        except Exception as e:
+            print(e)
+
+    def associate_and_insert_wrote(self):
+        """
+            Associe les données de deux tables via une table de liaison et insère les associations dans la base de données.
+        
+            :param table1_name: Nom de la première table (ex: 'Book')
+            :param table2_name: Nom de la deuxième table (ex: 'Award')
+            :param relation_table_name: Nom de la table de liaison (ex: 'Award_of_book')
+            :param df: DataFrame contenant les données à traiter
+            :param col1_name: Nom de la colonne de jointure de la première table (ex: 'title' pour 'Book') 
+            :param col2_name: Nom de la colonne de jointure de la deuxième table (ex: 'awards' pour 'Award')
+            :param df_table_name: Nom de la colonne du csv
+            """
+        table1_name='Book'
+        table2_name='Author'
+        relation_table_name ='wrote'
+        df = self.csvservice.dataframes["books"]
+        col1_name = 'title'
+        col2_name = 'name'
+        df_table_name = 'author'
+        try:
+            # Récupérer les IDs des éléments de la première table
+            df_table1_id = self.bddservice.select_sql(table1_name)[[col1_name, f'{table1_name.lower()}_id']]
+            table1_ids = dict(zip(df_table1_id[col1_name], df_table1_id[f'{table1_name.lower()}_id']))
+
+            # Récupérer les IDs des éléments de la deuxième table
+            df_table2_id = self.bddservice.select_sql(table2_name)[[col2_name, f'{table2_name.lower()}_id']]
+            table2_ids = dict(zip(df_table2_id[col2_name], df_table2_id[f'{table2_name.lower()}_id']))
+            #print(table2_ids)
+            # Créer un ensemble pour stocker les associations uniques
+            relation_data_set = set()
+
+            for _, row in df.iterrows():
+                if pd.notna(row[col1_name]) and pd.notna(row[df_table_name]):
+                    # Récupérer les IDs associés
+                    table1_id = table1_ids.get(row[col1_name])
+                    table2_splits = row[df_table_name].split("/")  # Séparer les noms par virgule s'il y en a plusieurs
+
+                    for table2_split in table2_splits:
+                        table2_id = table2_ids.get(table2_split.strip())  # Enlever les espaces autour du nom
+                        if table1_id and table2_id:
+                            # Ajouter seulement des paires uniques
+                            relation_data_set.add((table1_id, table2_id))
+
+            # Convertir l'ensemble en une liste de dictionnaires pour l'insertion
+            relation_data = [{f'{table1_name.lower()}_id': table1_id, f'{table2_name.lower()}_id': table2_id}
+                            for table1_id, table2_id in relation_data_set]
+
+            # Insertion dans la table de relation
             self.bddservice.insert_sql(relation_table_name, relation_data)
         except Exception as e:
             print(e)
@@ -474,7 +547,8 @@ class peuplement:
         """
         Remplie la table wrote
         """
-        
+        self.associate_and_insert_wrote()
+
 
     def peuplementTotal(self):
         """
@@ -485,34 +559,17 @@ class peuplement:
 
             # Création des tables
             self.table_genre()
-            print("Table Genre remplie avec succès.")
-
             self.table_publisher()
-            print("Table Publisher remplie avec succès.")
-
             self.table_award()
-            print("Table Award remplie avec succès.")
-
             self.table_settings()
-            print("Table Settings remplie avec succès.")
-
             self.table_characters()
-            print("Table Characters remplie avec succès.")
-
             self.table_series()
-            print("Table Series remplie avec succès.")
 
             self.table_author()
-            print("Table Author remplie avec succès.")
-
             self.table_book()
-            print("Table Book remplie avec succès.")
 
             self.table_rating_book()
-            print("Table Rating_book remplie avec succès.")
-
             self.table_rating_author()
-            print("Table Rating_author remplie avec succès. ")
 
             self.table_characters_of_book()
             self.table_award_of_book()
@@ -520,7 +577,7 @@ class peuplement:
             self.table_setting_of_book()
 
             self.table_genre_and_vote()
-
+            self.table_wrote()
             print("Toutes les données ont été insérées avec succès.")
 
         except Exception as e:

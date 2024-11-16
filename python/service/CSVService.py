@@ -31,15 +31,15 @@ class CSVService:
         """
         try:
             if self.cache_service.exists(key) and not force_download:
-                print(f"csv '{key}' récuperé du cache.")
                 self.dataframes[key] = self.cache_service.get_csv_cache(key)
+                print(f"csv '{key}' récuperé du cache.")
                 return self.dataframes[key]
                 
             else:
                 df = self.download_csv(url, key, usecols=usecols, max_columns=max_columns)
                 self.cache_service.csv_to_cache(key,df)
                 self.dataframes[key] = df
-                print(f"CSV téléchargé et chargé avec succès pour '{key}'.")
+                #print(f"CSV téléchargé et chargé avec succès pour '{key}'.")
                 return df
             
         except Exception as e:
@@ -60,6 +60,7 @@ class CSVService:
             pd.DataFrame: Le DataFrame chargé, ou None si le téléchargement échoue.
         """
         try:
+            print("Downloading of", key,".csv")
             # Télécharger le fichier CSV depuis l'URL
             response = requests.get(url)
             if response.status_code == 200:

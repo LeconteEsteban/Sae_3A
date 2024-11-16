@@ -77,7 +77,6 @@ class DatabaseService:
             print(f"Erreur lors de l'exécution : {e}")
             raise
     
-    #
     def insert_sql(self, table, data):
         """
         insert dans table de data : une liste de dictionaire de donnée ex: [{name:x},{},{},{}]
@@ -92,7 +91,7 @@ class DatabaseService:
             sql_script = f"INSERT INTO library.{table} ({columns_str}) VALUES ({values_placeholders})"
             self.cursor.executemany(sql_script, data)
             self.connection.commit()
-            print("Les données ont été insérées avec succès.")
+            print("Les données ont été insérées avec succès dans:", table ,".", len(data), "row")
         except Exception as e:
             print(f"Erreur lors de l'insertion dans la table {table} : {e}")
             raise
@@ -130,7 +129,7 @@ class DatabaseService:
 
             # Convertir en DataFrame
             df = pd.DataFrame(rows, columns=columns)
-            print(f"Données récupérées depuis la table {table}.")
+            #print(f"Données récupérées depuis la table {table}.")
             return df
         except Exception as e:
             print(f"Erreur lors de la récupération des données de la table {table} : {e}")
@@ -152,7 +151,7 @@ class DatabaseService:
             
             # Pour les autres requêtes (DELETE, INSERT, etc.)
             self.connection.commit()
-            print("Commande SQL exécutée avec succès.")
+            #print("Commande SQL exécutée avec succès.")
         except Exception as e:
             print(f"Erreur lors de l'exécution de la commande SQL : {e}")
             raise
