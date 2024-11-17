@@ -30,13 +30,13 @@ CREATE TABLE Award (
 
 -- Table Settings
 CREATE TABLE Settings (
-                          setting_id SERIAL PRIMARY KEY,
+                          settings_id SERIAL PRIMARY KEY,
                           description TEXT
 );
 
 -- Table Characters
 CREATE TABLE Characters (
-                            character_id SERIAL PRIMARY KEY,
+                            characters_id SERIAL PRIMARY KEY,
                             name TEXT
 );
 
@@ -144,32 +144,20 @@ CREATE TABLE Rating_book (
                              one_star_rating INTEGER
 );
 
-CREATE MATERIALIZED VIEW library.top_books
-(
-  book_id,
-  title,
-  average_rating,
-  rating_count,
-  review_count,
-  score
-)
-AS 
-SELECT DISTINCT ON (b.book_id)
-    b.book_id,
-    b.title,
-    rb.average_rating,
-    rb.rating_count,
-    rb.review_count,
-    rb.average_rating * 20000::double precision + rb.rating_count::double precision + (rb.review_count::numeric * 0.1)::double precision AS score
+CREATE MATERIALIZED VIEW Top_books AS
+SELECT 
+    B.book_id,
+    B.title,
+    RB.average_rating,
+    RB.rating_count,
+    RB.review_count,
+    (RB.average_rating * 1000000 + RB.rating_count + RB.review_count * 0.1) AS score
 FROM 
-    library.book b
+    Book B
 JOIN 
-    library.rating_book rb ON b.book_id = rb.book_id
+    Rating_book RB ON B.book_id = RB.book_id
 ORDER BY 
-    b.book_id, rb.average_rating DESC, rb.rating_count DESC;
-
-CREATE UNIQUE INDEX top_books_book_id_idx ON library.top_books USING btree (book_id);
-
+    score DESC;
 
 
 -- Table Rating_author
@@ -208,14 +196,6 @@ CREATE TABLE User_Book_History (
                                    reading_date TIMESTAMP
 );
 
--- Table User_Book_History
-CREATE TABLE User_Book_History (
-                                   history_id SERIAL PRIMARY KEY,
-                                   user_id INTEGER REFERENCES "user"(user_id),
-                                   book_id INTEGER REFERENCES Book(book_id),
-                                   reading_date TIMESTAMP
-);
-
 -- Table User_Book_Preference user liked those book
 CREATE TABLE User_Book_Preference (
                                       preference_id SERIAL PRIMARY KEY,
@@ -225,14 +205,6 @@ CREATE TABLE User_Book_Preference (
                                       preference_name VARCHAR(255),
                                       preference_date TIMESTAMP,
                                       preference_rating INTEGER
-);
-
--- Table Genre_and_vote
-CREATE TABLE Genre_and_vote (
-                                book_id INTEGER REFERENCES Book(book_id),
-                                genre_id INTEGER REFERENCES Genre(genre_id),
-                                vote_count INTEGER,
-                                PRIMARY KEY (book_id, genre_id)
 );
 
 -- Table Genre_and_vote
@@ -257,9 +229,7 @@ JOIN
     Book b ON ubp.book_id = b.book_id
 JOIN
     Genre_and_vote Gav ON b.book_id = Gav.book_id
-    Genre_and_vote Gav ON b.book_id = Gav.book_id
 JOIN
-    Genre g ON GAV.genre_id = g.genre_id
     Genre g ON GAV.genre_id = g.genre_id
 GROUP BY
     u.user_id, g.genre_id, g.name;
@@ -269,7 +239,7 @@ GROUP BY
 CREATE OR REPLACE FUNCTION update_vm_genre_affinity_incremental()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Gestion de l'insertion dans la vue matérialisée pour un nouvel enregistrement
+    -- Gestion de l'insertion dans la vue mat�rialis�e pour un nouvel enregistrement
     IF (TG_OP = 'INSERT') THEN
         -- Si le genre n'existe pas encore pour l'utilisateur, on l'ajoute
         INSERT INTO VM_Genre_Affinity (user_id, genre_id, genre_name, genre_count)
@@ -277,7 +247,7 @@ BEGIN
             NEW.user_id,
             g.genre_id,
             g.name,
-            1  -- Incrémenter le compteur à 1 pour une nouvelle insertion
+            1  -- Incr�menter le compteur � 1 pour une nouvelle insertion
         FROM
             Book b
         JOIN
@@ -287,13 +257,13 @@ BEGIN
         WHERE
             b.book_id = NEW.book_id
         ON CONFLICT (user_id, genre_id) DO UPDATE
-        SET genre_count = VM_Genre_Affinity.genre_count + 1;  -- Si genre existe, incrémenter le compteur
+        SET genre_count = VM_Genre_Affinity.genre_count + 1;  -- Si genre existe, incr�menter le compteur
 
     END IF;
 
-    -- Gestion de la suppression dans la vue matérialisée si un livre préféré est supprimé
+    -- Gestion de la suppression dans la vue mat�rialis�e si un livre pr�f�r� est supprim�
     IF (TG_OP = 'DELETE') THEN
-        -- Supprimer le genre du livre qui a été retiré
+        -- Supprimer le genre du livre qui a �t� retir�
         DELETE FROM VM_Genre_Affinity
         WHERE user_id = OLD.user_id
           AND genre_id IN (
@@ -303,7 +273,7 @@ BEGIN
               WHERE b.book_id = OLD.book_id
           );
 
-        -- Si le genre est toujours utilisé par un autre livre de l'utilisateur, on décrémente le compteur
+        -- Si le genre est toujours utilis� par un autre livre de l'utilisateur, on d�cr�mente le compteur
         UPDATE VM_Genre_Affinity
         SET genre_count = genre_count - 1
         WHERE user_id = OLD.user_id
@@ -316,7 +286,7 @@ BEGIN
         AND genre_count > 0;
     END IF;
 
-    RETURN NULL;  -- Pas de retour nécessaire car nous n'avons pas de ligne à renvoyer
+    RETURN NULL;  -- Pas de retour n�cessaire car nous n'avons pas de ligne � renvoyer
 END;
 $$ LANGUAGE plpgsql;
 
@@ -328,13 +298,6 @@ FOR EACH ROW
 EXECUTE FUNCTION update_vm_genre_affinity_incremental();
 
 
-<<<<<<< HEAD
-
-
-
-
-=======
->>>>>>> main
 CREATE INDEX idx_genre_and_vote_genre_id ON Genre_and_vote (genre_id);
 CREATE INDEX idx_genre_and_vote_book_id ON Genre_and_vote (book_id);
 
@@ -368,17 +331,17 @@ CREATE TABLE Award_of_book (
                                PRIMARY KEY (book_id, award_id)
 );
 
--- Table Setting_of_book
-CREATE TABLE Setting_of_book (
+-- Table settings_of_book
+CREATE TABLE Settings_of_book (
                                  book_id INTEGER REFERENCES Book(book_id),
-                                 settings_id INTEGER REFERENCES Settings(setting_id),
+                                 settings_id INTEGER REFERENCES Settings(settings_id),
                                  PRIMARY KEY (book_id, settings_id)
 );
 
 -- Table Characters_of_book
 CREATE TABLE Characters_of_book (
                                     book_id INTEGER REFERENCES Book(book_id),
-                                    characters_id INTEGER REFERENCES Characters(character_id),
+                                    characterss_id INTEGER REFERENCES characterss(characters_id),
                                     PRIMARY KEY (book_id, characters_id)
 );
 
@@ -528,8 +491,8 @@ select b.book_id, b.title, b.publication_date, b.original_title,
        g.name as genre_name,
        a.name as award_name,
        s.name as serie_name,
-       sett.description as setting_description,
-       c.name as character_name,
+       sett.description as settings_description,
+       c.name as characters_name,
        rb.rating_count ,
        rb.average_rating,
        rb.five_star_rating ,
@@ -546,10 +509,10 @@ left join Serie_of_book Sob on b.book_id = Sob.book_id
 left join Serie s on s.serie_id = Sob.serie_id
 left join Award_of_book Aob on b.book_id = Aob.book_id
 left join Award a on a.award_id = Aob.award_id
-left join Setting_of_book Setob on b.book_id = Setob.book_id
-left join Settings sett on sett.setting_id = Setob.setting_id
+left join Settings_of_book Setob on b.book_id = Setob.book_id
+left join Settings sett on sett.settings_id = Setob.settings_id
 left join Characters_of_book Cob on b.book_id = Cob.book_id
-left join Characters c on c.character_id = Cob.character_id
+left join Characters c on c.characters_id = Cob.characters_id
 left join rating_book rb on b.book_id = rb.book_id
 left join author_view av on a.name = av.name;
 
