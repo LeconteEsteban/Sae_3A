@@ -208,6 +208,14 @@ CREATE TABLE User_Book_History (
                                    reading_date TIMESTAMP
 );
 
+-- Table User_Book_History
+CREATE TABLE User_Book_History (
+                                   history_id SERIAL PRIMARY KEY,
+                                   user_id INTEGER REFERENCES "user"(user_id),
+                                   book_id INTEGER REFERENCES Book(book_id),
+                                   reading_date TIMESTAMP
+);
+
 -- Table User_Book_Preference user liked those book
 CREATE TABLE User_Book_Preference (
                                       preference_id SERIAL PRIMARY KEY,
@@ -217,6 +225,14 @@ CREATE TABLE User_Book_Preference (
                                       preference_name VARCHAR(255),
                                       preference_date TIMESTAMP,
                                       preference_rating INTEGER
+);
+
+-- Table Genre_and_vote
+CREATE TABLE Genre_and_vote (
+                                book_id INTEGER REFERENCES Book(book_id),
+                                genre_id INTEGER REFERENCES Genre(genre_id),
+                                vote_count INTEGER,
+                                PRIMARY KEY (book_id, genre_id)
 );
 
 -- Table Genre_and_vote
@@ -241,7 +257,9 @@ JOIN
     Book b ON ubp.book_id = b.book_id
 JOIN
     Genre_and_vote Gav ON b.book_id = Gav.book_id
+    Genre_and_vote Gav ON b.book_id = Gav.book_id
 JOIN
+    Genre g ON GAV.genre_id = g.genre_id
     Genre g ON GAV.genre_id = g.genre_id
 GROUP BY
     u.user_id, g.genre_id, g.name;
@@ -310,10 +328,13 @@ FOR EACH ROW
 EXECUTE FUNCTION update_vm_genre_affinity_incremental();
 
 
+<<<<<<< HEAD
 
 
 
 
+=======
+>>>>>>> main
 CREATE INDEX idx_genre_and_vote_genre_id ON Genre_and_vote (genre_id);
 CREATE INDEX idx_genre_and_vote_book_id ON Genre_and_vote (book_id);
 
@@ -350,15 +371,15 @@ CREATE TABLE Award_of_book (
 -- Table Setting_of_book
 CREATE TABLE Setting_of_book (
                                  book_id INTEGER REFERENCES Book(book_id),
-                                 setting_id INTEGER REFERENCES Settings(setting_id),
-                                 PRIMARY KEY (book_id, setting_id)
+                                 settings_id INTEGER REFERENCES Settings(setting_id),
+                                 PRIMARY KEY (book_id, settings_id)
 );
 
 -- Table Characters_of_book
 CREATE TABLE Characters_of_book (
                                     book_id INTEGER REFERENCES Book(book_id),
-                                    character_id INTEGER REFERENCES Characters(character_id),
-                                    PRIMARY KEY (book_id, character_id)
+                                    characters_id INTEGER REFERENCES Characters(character_id),
+                                    PRIMARY KEY (book_id, characters_id)
 );
 
 -- Table Liked_author (User's liked author)
