@@ -1,0 +1,8 @@
+# Ignorer tous les fichiers du dossier cache
+cache/
+
+# Ignorer tous les dossiers __pycache__ et leur contenu
+**/__pycache__/
+
+# Ignorer le fichier create_table.sql
+create_table.sql

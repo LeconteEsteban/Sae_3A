@@ -93,7 +93,6 @@ class CSVService:
         """
         return self.dataframes.get(key, None)
 
-
     def get_csv_book(self):
         """
         Get le csv et retourne le DataFrame des livres.
@@ -113,7 +112,6 @@ class CSVService:
                 print(f"Erreur get_csv_book : {e}")
                 raise
 
-
     def get_csv_author(self):
         """
         Télécharge ou retourne le DataFrame des auteurs.
@@ -131,8 +129,6 @@ class CSVService:
         except Exception as e:
                 print(f"Erreur get_csv_author : {e}")
                 raise
-
-
 
     def get_csv_questionary(self):
         """
@@ -152,7 +148,6 @@ class CSVService:
                 print(f"Erreur get_csv_questionary : {e}")
                 raise
 
-
     def list_dataframes(self):
         """
         Liste toutes les clés des DataFrames chargés.
@@ -161,8 +156,6 @@ class CSVService:
             list[str]: Liste des clés disponibles.
         """
         return list(self.dataframes.keys())
-
-    
 
 # Exemple d'utilisation
 if __name__ == "__main__":

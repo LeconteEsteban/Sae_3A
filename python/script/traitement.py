@@ -168,13 +168,13 @@ class traitement:
         # Initialisation d'un index FAISS basé sur L2 (distance Euclidienne)
         dimension = data_reduced.shape[1]
         index = faiss.IndexFlatL2(dimension)
-        print("1")
+
         # Normalisation des vecteurs pour de meilleures performances
         faiss.normalize_L2(np.ascontiguousarray(data_reduced, dtype=np.float32))
-        print("2")
+
         # Ajouter les données à l'index
         index.add(data_reduced)
-        print("3")
+
         # Étape 4 : Recherche des k-nearest neighbors
         distances, indices = index.search(data_reduced, n_neighbors)
 
@@ -199,5 +199,4 @@ class traitement:
                 parsed_genre_votes[genre] = vote
 
         return parsed_genre_votes
-
 
