@@ -144,20 +144,32 @@ CREATE TABLE Rating_book (
                              one_star_rating INTEGER
 );
 
-CREATE MATERIALIZED VIEW Top_books AS
-SELECT 
-    B.book_id,
-    B.title,
-    RB.average_rating,
-    RB.rating_count,
-    RB.review_count,
-    (RB.average_rating * 1000000 + RB.rating_count + RB.review_count * 0.1) AS score
+CREATE MATERIALIZED VIEW library.top_books
+(
+  book_id,
+  title,
+  average_rating,
+  rating_count,
+  review_count,
+  score
+)
+AS 
+SELECT DISTINCT ON (b.book_id)
+    b.book_id,
+    b.title,
+    rb.average_rating,
+    rb.rating_count,
+    rb.review_count,
+    rb.average_rating * 20000::double precision + rb.rating_count::double precision + (rb.review_count::numeric * 0.1)::double precision AS score
 FROM 
-    Book B
+    library.book b
 JOIN 
-    Rating_book RB ON B.book_id = RB.book_id
+    library.rating_book rb ON b.book_id = rb.book_id
 ORDER BY 
-    score DESC;
+    b.book_id, rb.average_rating DESC, rb.rating_count DESC;
+
+CREATE UNIQUE INDEX top_books_book_id_idx ON library.top_books USING btree (book_id);
+
 
 
 -- Table Rating_author
@@ -296,6 +308,10 @@ AFTER INSERT OR DELETE
 ON User_Book_Preference
 FOR EACH ROW
 EXECUTE FUNCTION update_vm_genre_affinity_incremental();
+
+
+
+
 
 
 CREATE INDEX idx_genre_and_vote_genre_id ON Genre_and_vote (genre_id);
