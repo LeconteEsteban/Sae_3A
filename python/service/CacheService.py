@@ -71,7 +71,6 @@ class CacheService:
         except Exception as e:
             raise Exception(f"Erreur lors de l'enregistrement dans le cache '{cache_path}' : {e if cache_path else 'Cache path non défini'}")
 
-
     def get_csv_cache(self, key, cache_dir="cache"):
         """
         Retourne un DataFrame à partir du fichier CSV en cache pour une clé donnée.

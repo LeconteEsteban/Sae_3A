@@ -29,4 +29,5 @@ def connectdb():
         return connection
     except Exception as e:
         print(f"Erreur lors de la connexion à la base de données : {e}")
+        print("Assurez vous de la validité des informations de connexion à la bdd dans service.connection_bdd.py")
         raise

@@ -17,8 +17,11 @@ class DatabaseService:
         """
         Initialise la connexion et crée un curseur.
         """
-        self.connection = connectdb()
-        self.cursor = self.connection.cursor()
+        try:
+            self.connection = connectdb()
+            self.cursor = self.connection.cursor()
+        except Exception as e:
+            print(f"Une erreur s'est produite : {e}")
 
     def close_connection(self):
         """

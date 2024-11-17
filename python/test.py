@@ -3,6 +3,7 @@ from service.CSVService import CSVService
 from script.peuplement import *
 from script.traitement import *
 from service.CacheService import *
+from service.RecommandationService import * 
 
 #main pour les tests pls
 if __name__ == "__main__":
@@ -11,6 +12,7 @@ if __name__ == "__main__":
     csv_service = CSVService()
     peuplement1 = peuplement(bddservice, csv_service)
     traitement1 = traitement(bddservice, csv_service)
+    recommandation1 = RecommendationService(bddservice, csv_service)
 
     try:
         # Initialiser la connexion
@@ -21,10 +23,13 @@ if __name__ == "__main__":
         #peuplement1.peuplementTotal()
         #Effectue les traitements: vue matérialisé, pré-traitement, ...
 
-        #bddservice.cmd_sql("delete from library.top_books")
+        #bddservice.cmd_sql("delete from library.book_similarity")
 
         #traitement1.traitementTotal()
-        traitement1.similarity()
+        #traitement1.similarity()
+        #print(traitement1.cluster_genre())
+
+        #print(recommandation1.get_similar_books(1))
 
     except Exception as e:
             print(f"Erreur dans le main : {e}")
