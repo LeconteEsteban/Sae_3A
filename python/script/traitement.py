@@ -200,4 +200,3 @@ class traitement:
 
         return parsed_genre_votes
 
-

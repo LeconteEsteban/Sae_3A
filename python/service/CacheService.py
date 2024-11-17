@@ -117,3 +117,4 @@ class CacheService:
             file_path = os.path.join(self.cache_dir, file)
             os.remove(file_path)
         print(f"Tous les caches ont été supprimés dans le répertoire {self.cache_dir}.")
+
