@@ -30,6 +30,5 @@ def supprimer_caches():
             except Exception as e:
                 print(f"Failed to delete {ct}: {e}")
 
-
 if __name__ == "__main__":
     supprimer_caches()

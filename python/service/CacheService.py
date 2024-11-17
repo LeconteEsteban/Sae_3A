@@ -10,7 +10,10 @@ class CacheService:
             cache_dir (str): Répertoire de stockage des fichiers cache.
         """
         self.cache_dir = cache_dir
-        os.makedirs(cache_dir, exist_ok=True)  # Crée le répertoire s'il n'existe pas
+        try:
+            os.makedirs(cache_dir, exist_ok=True)  # Crée le répertoire s'il n'existe pas
+        except Exception as e:
+            print(f"Problème lors de la création du dossier cache: {e}")
 
     def get_cache_path(self, key):
         """
