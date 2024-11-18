@@ -1,5 +1,7 @@
 Bonjour à tous
-Lisez bien la mention IMPORTANT svp
+
+worker disponible :
+    - installation de tout les dépendances automatiques : auto_install_pip.py
 
 service disponible :
     -DatabaseService, remplir connection_bdd pour renseigner les infos de connection à la bdd
@@ -21,7 +23,10 @@ test disponible :
     utilisé librement test.py ou créer d'autre fichier test, pour effectuer vos tests !
     grace à la mise en cache, vous optimiser les temps d'executions pour les tests !
 
+Spécificité : 
+    
+    - escape.sql est le script sql de création de base de donnée, il ne faut le modifier que si vous êtes
+    sûr des changements, create_table.sql est le script qui sera executer par DatabaseService.create_database(),
+    create_table.sql est téléchargé à partir git main s'il n'existe pas, donc vous devez faire vos tests sql dessus.
 
-!!!!!!!!!! IMPORTANT, SVP, Pour git, supprimer votre dossier cache ainsi que tout les __pycache__ (utilisez si possible avant_de_push.py qui automatise) !!!!!!!!!!!
-Nettoyer localement : Si vous voulez supprimer les __pycache__ de votre répertoire local avant le push :
-python : executer avant_de_push.py situé à la racine du projet
+    

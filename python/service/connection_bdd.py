@@ -1,22 +1,41 @@
 import psycopg2
 from psycopg2 import sql
 
-# Paramètres de connexion à la base de données
+# Paramètres de connexion à la base de données postgresql basique
 host = "localhost"         # Adresse du serveur
 port = 5433                # Port de la base de données
 user = "testuser" # Nom d'utilisateur
 password = "testpassword" # Mot de passe
 database = "testdb1" # Nom de la base de données
 
+# Paramètres de connexion à la base de données kerboros
+host_ker = ""
+port_ker = ""
+database_ker = ""
+
 def connectdb():
     """
-    Établit une connexion à la base de données PostgreSQL.
+    Tente une connexion à la base de données PostgreSQL en mode classique
+    puis en mode Kerberos si la première échoue.
     
     Returns:
         connection (psycopg2.connection): Connexion active à la base de données.
-    Raises:
-        Exception: Si une erreur survient lors de la connexion.
     """
+    try:
+        print("Tentative de connexion classique...")
+        connection = connect_postgress()
+        print("Connexion classique réussie.")
+        return connection
+    except Exception as e1:
+        print("Échec de la connexion classique. Tentative avec Kerberos...")
+        try:
+            connection = connect_kerberos()
+            return connection
+        except Exception as e2:
+            print(f"Impossible de se connecter à la base de données : {e1} /////// {e2}")
+            raise
+
+def connect_postgress():
     try:
         connection = psycopg2.connect(
             host=host,
@@ -25,9 +44,30 @@ def connectdb():
             password=password,
             database=database
         )
-        print("Connexion à la base de données réussie.")
         return connection
     except Exception as e:
         print(f"Erreur lors de la connexion à la base de données : {e}")
-        print("Assurez vous de la validité des informations de connexion à la bdd dans service.connection_bdd.py")
         raise
+
+def connect_kerberos():
+    """
+    Tente une connexion à PostgreSQL en utilisant l'authentification Kerberos (GSSAPI).
+    
+    Returns:
+        connection (psycopg2.connection): Connexion active à la base de données.
+    Raises:
+        Exception: Si une erreur survient lors de la connexion.
+    """
+    try:
+        connection = psycopg2.connect(
+            host=host_ker,
+            port=port_ker,
+            database=database_ker,
+            options="-c gssencmode=prefer",  # Permet d'utiliser GSSAPI si disponible
+        )
+        print("Connexion Kerberos réussie.")
+        return connection
+    except Exception as e:
+        print(f"Erreur lors de la connexion Kerberos : {e}")
+        raise
+

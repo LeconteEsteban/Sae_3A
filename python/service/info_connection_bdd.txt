@@ -1,0 +1,26 @@
+Si vous vous connecter à la bdd par postgresql local, renseigner dans connection_bdd.py les infos
+
+Si vous vous connecter à la bdd par kerberos :
+
+Avant d’établir une connexion, vous devez obtenir un ticket Kerberos valide.
+
+Commande pour obtenir un ticket :
+    kinit votre_utilisateur_kerberos
+
+Si vous ne spécifiez pas d’utilisateur, Kerberos utilisera votre nom d’utilisateur système. 
+Après cette commande, vous pouvez vérifier les tickets Kerberos actifs avec :
+    klist
+
+Exemples d’erreurs et solutions :
+
+    Erreur : "Cannot contact any KDC for realm" :
+    Vérifiez que le fichier krb5.conf est bien configuré pour votre domaine.
+
+    Erreur : "Credentials cache file not found" :
+    Cela signifie que vous n’avez pas de ticket actif. Exécutez kinit.
+
+
+
+
+
+
