@@ -9,9 +9,11 @@ password = "testpassword" # Mot de passe
 database = "testdb1" # Nom de la base de données
 
 # Paramètres de connexion à la base de données kerboros
-host_ker = ""
-port_ker = ""
-database_ker = ""
+host_ker = "" # Adresse du serveur
+port_ker = "" # Port de la base de données
+database_ker = "" # Nom de la base de données
+# Pas besoin d'utilisateur n'y de mdp, modalité à voir dans info_connection_bdd.txt
+
 
 def connectdb():
     """
