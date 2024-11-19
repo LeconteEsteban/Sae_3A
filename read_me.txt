@@ -2,6 +2,7 @@ Bonjour à tous
 
 worker disponible :
     - installation de tout les dépendances automatiques : auto_install_pip.py
+    - si vous avez des erreurs qui ne sont pas lier aux droit de l'environement, vous pouvez rexecuter le script plusieurs fois, ça fonctionnera
 
 service disponible :
     -DatabaseService, remplir connection_bdd pour renseigner les infos de connection à la bdd
