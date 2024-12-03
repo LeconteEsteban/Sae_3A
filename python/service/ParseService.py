@@ -136,3 +136,5 @@ class ParsingService:
         if not isinstance(text, str):
             raise ValueError("Le paramètre 'text' doit être une chaîne de caractères.")
         return text[::-1]
+
+        
