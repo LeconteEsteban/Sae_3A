@@ -1,0 +1,18 @@
+A lire pour comprendre les traitements apportés aux données USER
+
+Les données users nécessitaient du parsing (séparation des choix multiples), en l'occurence : 
+- Format de lecture
+- Centres d'intérêts
+- Genres de livre préférés
+- Cadre / Objectifs de lectures
+
+Pour effectuer ce parse, nous avons donc créé un service pour le parsing, à savoir : ParseService.py sous "python/service/ParseService.py".
+
+Le parsing et peuplement des différentes tables utilisateurs est réalisé via le script peuplement.py sous "python/script/peuplement.py".
+
+Le peuplement spécifiques aux tables user est réalisé avec la fonction table_user.
+
+Les données sont formatées sous forme de dictionnaires Python pour une simplicité d'utilisation (étant donné qu'on prend également en source des formats similaires aux dictionnaires, à savoir un CSV).
+Ce fonctionnement nous simplifie aussi la tâche pour récupérer diverses informations / requêter des informations en base (dans le cas notamment des clés étrangères)
+
+On réalise les insertions dans les différentes tables une fois que les dictionnaires sont correctement remplis.
