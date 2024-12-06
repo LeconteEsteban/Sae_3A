@@ -3,10 +3,10 @@ from psycopg2 import sql
 
 # Paramètres de connexion à la base de données
 host = "localhost"         # Adresse du serveur
-port = 5433                # Port de la base de données
-user = "testuser" # Nom d'utilisateur
-password = "testpassword" # Mot de passe
-database = "testdb1" # Nom de la base de données
+port = 5432               # Port de la base de données
+user = "melvin" # Nom d'utilisateur
+password = "mdp" # Mot de passe
+database = "postgres" # Nom de la base de données
 
 def connectdb():
     """
