@@ -11,9 +11,10 @@ class peuplement:
     Class pour le peuplement
     """
 
-    def __init__(self, bdd, csvservice):
+    def __init__(self, bdd, csvservice, parseservice):
         self.bddservice = bdd
         self.csvservice = csvservice
+        self.parseservice = parseservice
         self.csvservice.get_csv_author()
         self.csvservice.get_csv_book()
         self.csvservice.get_csv_questionary()
@@ -28,13 +29,14 @@ class peuplement:
             
             # Création des tables
             self.table_genre()
+            self.table_author()
+            self.table_user()
             self.table_publisher()
             self.table_award()
             self.table_settings()
             self.table_characters()
             self.table_series()
 
-            self.table_author()
             self.table_book()
 
             self.table_rating_book()
@@ -51,6 +53,146 @@ class peuplement:
 
         except Exception as e:
             print(f"Une erreur s'est produite : {e}")
+
+
+
+
+    def table_user(self):
+        df = pd.read_csv("./user.csv")
+        df = df.loc[df["Donnez vous votre consentement à l'utilisation de vos réponses pour un traitement informatique ?"] == "J'accepte"]
+
+        df["Lieu d'habitation"] = df["Lieu d'habitation"].apply(
+            lambda x: self.parseservice.clean_string(self.parseservice.replace_with_regex(x, r"\s*\([^)]*\)", ""))
+        )
+
+        df["Quel format de lecture / achats préférez-vous ?"] = df["Quel format de lecture / achats préférez-vous ?"].apply(
+            lambda x: [self.parseservice.clean_string(item) for item in self.parseservice.split_string(x, delimiter=",")]
+        )
+
+        df["Quel genre de livre préférez-vous ?"] = df["Quel genre de livre préférez-vous ?"].apply(
+            lambda x: [self.parseservice.clean_string(item) for item in self.parseservice.split_string(x, delimiter=",")]
+        )
+
+        df["Dans quel cadre / objectif pratiquez-vous la lecture ?"] = df["Dans quel cadre / objectif pratiquez-vous la lecture ?"].apply(
+            lambda x: [self.parseservice.clean_string(item) for item in self.parseservice.split_string(x, delimiter=",")]
+        )
+
+        users_data = []
+        for _, row in df.iterrows():
+            user = {
+                "name": None,
+                "age": row["Quel âge avez-vous ?"],
+                "passwords" : None,
+                "child": row["Avez-vous des enfants ?"] == "Oui",
+                "familial_situation": row["Situation familiale"],
+                "gender": row["Genre"],
+                "cat_socio_pro": row["Quelle est votre catégorie socio-professionnelle ?"],
+                "lieu_habitation": row["Lieu d'habitation"],
+                "frequency": row["À quelle fréquence lisez-vous ?"],
+                "book_size": row["Quelle taille de livres préférez vous lire ?"],
+                "birth_date": None,
+            }
+            users_data.append(user)
+            
+        self.bddservice.insert_sql("_Users", users_data)
+
+        # Récupérer les IDs des genres
+        df_genres_id = self.bddservice.select_sql("genre")[['name', 'genre_id']]
+        genre_ids = dict(zip(df_genres_id['name'], df_genres_id['genre_id']))
+
+
+        # Créer le dictionnaire user_id => id_genre
+        user_genre_dict = {}
+        for user_id, row in df.iterrows():
+            genres = row["Quel genre de livre préférez-vous ?"]
+            for genre in genres:
+                if genre in genre_ids:
+                    if user_id not in user_genre_dict:
+                        user_genre_dict[user_id] = []
+                    user_genre_dict[user_id].append(genre_ids[genre])
+
+
+        genre_list = []
+        for user_id, genre_ids in user_genre_dict.items():
+            for genre_id in genre_ids:
+                genre_like = {
+                    "user_id" : user_id + 1,
+                    "genre_id" : genre_id,
+                }
+                genre_list.append(genre_like)
+
+        self.bddservice.insert_sql("user_liked_genre", genre_list)
+
+
+        # Récupérer les IDs des auteurs
+        author_id = self.bddservice.select_sql("author")[['author_id', 'name']]
+        author_ids = dict(zip(author_id['name'], author_id['author_id']))
+
+        author_dict = {}
+        for user_id, row in df.iterrows():
+            authors = row["Quel est votre auteur préféré ?"]
+            if isinstance(authors, float):  # Vérifiez si la valeur est un flottant (NaN)
+                authors = []
+            for author in authors:
+                if author in author_ids:
+                    if user_id not in author_dict:
+                        author_dict[user_id] = []
+                    author_dict[user_id].append(author_ids[author])
+
+        author_list = []
+        for user_id, author_ids in author_dict.items():
+            for author_id in author_ids:
+                author_like = {
+                    "user_id": user_id + 1,
+                    "author_id": author_id,
+                }
+                author_list.append(author_like)
+
+
+        # Insérer les préférences des auteurs dans la base de données
+        try:
+            self.bddservice.insert_sql("liked_author", author_list)
+        except Exception as e:
+            print("Aucun auteur n'est identifiable")
+
+        format_list = []
+        for user_id, row in df.iterrows():
+            formats = row["Quel format de lecture / achats préférez-vous ?"]
+            if not isinstance(formats, list):
+                formats = [formats]  # Convertir en liste si ce n'est pas déjà le cas
+            for format in formats:
+                format_like = {
+                    "user_id": user_id + 1,
+                    "format": format
+                }
+                format_list.append(format_like)
+
+        # Appeler insert_sql une seule fois avec la liste complète
+        try:
+            self.bddservice.insert_sql("preferred_format_of_reading", format_list)
+        except Exception as e:
+            print(f"Une erreur s'est produite lors de l'insertion : {e}")
+
+        field_list = []
+        for user_id, row in df.iterrows():
+            fields = row["Dans quel cadre / objectif pratiquez-vous la lecture ?"]
+            if not isinstance(fields, list):
+                fields = [fields]  # Convertir en liste si ce n'est pas déjà le cas
+            for field in fields:
+                field_like = {
+                    "user_id": user_id + 1,
+                    "field": field
+                }
+                field_list.append(field_like)
+
+        # Appeler insert_sql une seule fois avec la liste complète
+        try:
+            self.bddservice.insert_sql("User_field_of_reading", field_list)
+        except Exception as e:
+            print(f"Une erreur s'est produite lors de l'insertion : {e}")
+
+
+
 
     def table_test(self):
         """
@@ -643,7 +785,7 @@ class peuplement:
 # Exemple d'utilisation
 if __name__ == "__main__":
     peuplement1 = peuplement()
-
+    
     try:
         print("Insertion des données dans les tables principales...")
 
@@ -656,3 +798,4 @@ if __name__ == "__main__":
 
     except Exception as e:
         print(f"Une erreur s'est produite : {e}")
+

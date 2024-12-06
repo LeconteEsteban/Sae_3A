@@ -1,6 +1,7 @@
 DROP SCHEMA IF EXISTS library CASCADE;
-CREATE SCHEMA library;
-SET SCHEMA 'library';
+CREATE SCHEMA IF NOT EXISTS library;
+SET search_path TO library;
+
 
 -- Table Genre
 CREATE TABLE Genre (
@@ -9,17 +10,16 @@ CREATE TABLE Genre (
 );
 
 -- Book
-
 -- Table Publisher
 CREATE TABLE Publisher (
                            publisher_id SERIAL PRIMARY KEY,
-                           name VARCHAR(255) NOT NULL
+                           name VARCHAR(200) NOT NULL
 );
 
 -- Table Serie
 CREATE TABLE Serie (
                        serie_id SERIAL PRIMARY KEY,
-                       name VARCHAR(255)
+                       name VARCHAR(150)
 );
 
 -- Table Award
@@ -37,7 +37,7 @@ CREATE TABLE Settings (
 -- Table Characters
 CREATE TABLE Characters (
                             characters_id SERIAL PRIMARY KEY,
-                            name TEXT
+                            name varchar(150)
 );
 
 ---End book
@@ -93,9 +93,9 @@ CREATE INDEX idx_book_publication_date ON Book (publication_date);
 -- Table Author
 CREATE TABLE Author (
                         author_id SERIAL PRIMARY KEY,
-                        name VARCHAR(255) NOT NULL,
-                        gender VARCHAR(255) CHECK (gender IN ('male', 'female', 'other')),
-                        birthplace VARCHAR(255)
+                        name VARCHAR(70) NOT NULL,
+                        gender VARCHAR(20),
+                        birthplace VARCHAR(70)
 );
 
 CREATE INDEX idx_author_name_fulltext ON Author USING GIN (to_tsvector('simple', lower(name)));
@@ -108,27 +108,21 @@ CREATE TABLE Wrote (
 );
 
 -- Table User
-CREATE TABLE "user" (
+CREATE TABLE _Users (
                         user_id SERIAL PRIMARY KEY,
-                        name VARCHAR(255),
-                        birth_date DATE,
-                        gender VARCHAR(255) CHECK (gender IN ('male', 'female', 'other')),
-                        favorite_book_id INTEGER REFERENCES Book(book_id),
-                        favorite_author_id INTEGER REFERENCES Author(author_id)
+                        name VARCHAR(50),
+                        age VARCHAR(30),
+                        passwords VARCHAR(100),
+                        child boolean,
+                        familial_situation varchar(70),
+                        gender VARCHAR(20),
+                        cat_socio_pro varchar(30),
+                        lieu_habitation varchar(50),
+                        frequency varchar(40),
+                        book_size varchar(30),
+                        birth_date DATE
 );
 
--- Table Questionary
-CREATE TABLE Questionary (
-                             questionary_id SERIAL PRIMARY KEY,
-                             age INTEGER,
-                             child BOOLEAN,
-                             familial_situation varchar,
-                             gender VARCHAR(255) CHECK (gender IN ('male', 'female', 'other')),
-                             socio_pro_cat varchar,
-                             habitation varchar,
-                             frequency varchar,
-                             book_size varchar
-);
 
 -- Table Rating_book
 CREATE TABLE Rating_book (
@@ -190,41 +184,67 @@ CREATE TABLE Book_similarity (
 );
 CREATE INDEX idx_book_similarity_book_id1 ON Book_similarity (book_id1);
 
-
--- Table User_Book_Interaction
-CREATE TABLE User_Book_Interaction (
-                                       interaction_id SERIAL PRIMARY KEY,
-                                       user_id INTEGER REFERENCES "user"(user_id),
-                                       book_id INTEGER REFERENCES Book(book_id),
-                                       interaction_type VARCHAR(255),
-                                       interaction_date TIMESTAMP
+-- Créer la table User_Book_Review sans clé étrangère
+CREATE TABLE User_Book_Review (
+    review_id SERIAL PRIMARY KEY, 
+    review VARCHAR(500),      
+    notation_id INT NOT NULL
 );
 
--- Table User_Book_History
-CREATE TABLE User_Book_History (
-                                   history_id SERIAL PRIMARY KEY,
-                                   user_id INTEGER REFERENCES "user"(user_id),
-                                   book_id INTEGER REFERENCES Book(book_id),
-                                   reading_date TIMESTAMP
+-- Créer la table User_Book_Notation sans clé étrangère
+CREATE TABLE User_Book_Notation (
+    notation_id SERIAL PRIMARY KEY, 
+    note SMALLINT,                   
+    review_id INT,  
+    read_id INT NOT NULL
 );
+
+-- Ajouter la contrainte de clé étrangère pour User_Book_Notation
+ALTER TABLE User_Book_Notation
+    ADD CONSTRAINT fk_review FOREIGN KEY (review_id) 
+    REFERENCES User_Book_Review(review_id) 
+    DEFERRABLE INITIALLY DEFERRED;
+
+-- Ajouter la contrainte de clé étrangère pour User_Book_Review
+ALTER TABLE User_Book_Review
+    ADD CONSTRAINT fk_notation FOREIGN KEY (notation_id) 
+    REFERENCES User_Book_Notation(notation_id) 
+    DEFERRABLE INITIALLY DEFERRED;
+
+
 
 -- Table User_Book_Preference user liked those book
-CREATE TABLE User_Book_Preference (
-                                      preference_id SERIAL PRIMARY KEY,
-                                      user_id INTEGER REFERENCES "user"(user_id),
-                                      book_id INTEGER REFERENCES Book(book_id),
-                                      history_id INTEGER REFERENCES User_Book_History(history_id),
-                                      preference_name VARCHAR(255),
-                                      preference_date TIMESTAMP,
-                                      preference_rating INTEGER
+CREATE TABLE User_Book_Read (
+    read_id SERIAL PRIMARY KEY,
+    user_id INTEGER ,
+    book_id INTEGER ,
+    is_read boolean,
+    is_liked boolean, 
+    is_favorite boolean,
+    reading_date date,
+    notation_id INT,
+    CONSTRAINT fk_notation FOREIGN KEY (notation_id) REFERENCES User_Book_Notation(notation_id),
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES _Users(user_id),
+    CONSTRAINT fk_book FOREIGN KEY (book_id) REFERENCES Book(book_id)
 );
+
+
+-- Table User_Book_Notation
+CREATE TABLE User_Liked_Genre (
+    user_liked_genre_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES _Users(user_id),
+    genre_id INTEGER REFERENCES Genre(genre_id)
+);
+
+
+
 
 -- Table Genre_and_vote
 CREATE TABLE Genre_and_vote (
-                                book_id INTEGER REFERENCES Book(book_id),
-                                genre_id INTEGER REFERENCES Genre(genre_id),
-                                vote_count INTEGER,
-                                PRIMARY KEY (book_id, genre_id)
+        book_id INTEGER REFERENCES Book(book_id),
+        genre_id INTEGER REFERENCES Genre(genre_id),
+        vote_count INTEGER,
+        PRIMARY KEY (book_id, genre_id)
 );
 
 CREATE MATERIALIZED VIEW VM_Genre_Affinity AS
@@ -234,17 +254,18 @@ SELECT
     g.name AS genre_name,
     COUNT(*) AS genre_count  -- Ajout du compteur
 FROM
-    "user" u
+    _Users u
 JOIN
-    User_Book_Preference ubp ON u.user_id = ubp.user_id
+    User_Book_Read ubp ON u.user_id = ubp.user_id  -- Correction ici, utiliser ubp.user_id
 JOIN
     Book b ON ubp.book_id = b.book_id
 JOIN
     Genre_and_vote Gav ON b.book_id = Gav.book_id
 JOIN
-    Genre g ON GAV.genre_id = g.genre_id
+    Genre g ON Gav.genre_id = g.genre_id  -- Correction ici, utiliser Gav.genre_id
 GROUP BY
     u.user_id, g.genre_id, g.name;
+
 
 
 
@@ -305,7 +326,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_update_vm_genre_affinity
 AFTER INSERT OR DELETE
-ON User_Book_Preference
+ON User_Book_Read
 FOR EACH ROW
 EXECUTE FUNCTION update_vm_genre_affinity_incremental();
 
@@ -319,15 +340,15 @@ CREATE INDEX idx_genre_and_vote_book_id ON Genre_and_vote (book_id);
 
 -- Table Friends
 CREATE TABLE Friends (
-                         user_id1 INTEGER REFERENCES "user"(user_id),
-                         user_id2 INTEGER REFERENCES "user"(user_id),
+                         user_id1 INTEGER REFERENCES _Users(user_id),
+                         user_id2 INTEGER REFERENCES _Users(user_id),
                          friendship_date DATE,
                          PRIMARY KEY (user_id1, user_id2)
 );
 
 -- Table genre affinity (User's liked genres)
 CREATE TABLE Genre_affinity (
-                       user_id INTEGER REFERENCES "user"(user_id),
+                       user_id INTEGER REFERENCES _Users(user_id),
                        genre_id INTEGER REFERENCES Genre(genre_id),
                        count int,
                        PRIMARY KEY (user_id, genre_id)
@@ -363,78 +384,43 @@ CREATE TABLE Characters_of_book (
 
 -- Table Liked_author (User's liked author)
 CREATE TABLE Liked_author (
-                              user_id INTEGER REFERENCES "user"(user_id),
+                              user_id INTEGER REFERENCES _Users(user_id),
                               author_id INTEGER REFERENCES Author(author_id),
                               PRIMARY KEY (user_id, author_id)
 );
 
 -- Table Preferred_format_of_reading (User's preferred format of reading)
 CREATE TABLE Preferred_format_of_reading (
-                                             user_id INTEGER REFERENCES "user"(user_id),
-                                             format_id INTEGER REFERENCES Format_of_reading(format_reading_id),
-                                             PRIMARY KEY (user_id, format_id)
+                                             format_id SERIAL PRIMARY KEY,
+                                             user_id INTEGER REFERENCES _Users(user_id),
+                                             format VARCHAR(100)
 );
 
--- Table User_field_of_reading (User's field of reading)
+-- Create the User_field_of_reading table
 CREATE TABLE User_field_of_reading (
-                                       user_id INTEGER REFERENCES "user"(user_id),
-                                       field_id INTEGER REFERENCES Field_of_reading(field_id),
-                                       PRIMARY KEY (user_id, field_id)
+    field_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES _Users(user_id),
+    field VARCHAR(100)
 );
+
 
 
 --Questionary relation
 
--- Table Favorite_book (favorite book of questionary)
-CREATE TABLE Favorite_book (
-                               questionary_id INTEGER REFERENCES Questionary(questionary_id),
-                               book_id INTEGER REFERENCES Book(book_id),
-                               PRIMARY KEY (questionary_id, book_id)
-);
-
--- Table Likes_genre
-CREATE TABLE Likes_genre (
-                             questionary_id INTEGER REFERENCES Questionary(questionary_id),
-                             genre_id INTEGER REFERENCES Genre(genre_id),
-                             PRIMARY KEY (questionary_id, genre_id)
-);
-
--- Table Favorite_author
-CREATE TABLE Favorite_author (
-                                 questionary_id INTEGER REFERENCES Questionary(questionary_id),
-                                 author_id INTEGER REFERENCES Author(author_id),
-                                 PRIMARY KEY (questionary_id, author_id)
-);
-
--- Table Preferred_type_of_book
-CREATE TABLE Preferred_type_of_book (
-                                        questionary_id INTEGER REFERENCES Questionary(questionary_id),
-                                        type_id INTEGER REFERENCES Type_book(type_id),
-                                        PRIMARY KEY (questionary_id, type_id)
-);
-
--- Table Preferred_interest
-CREATE TABLE Preferred_interest (
-                                    questionary_id INTEGER REFERENCES Questionary(questionary_id),
-                                    interest_id INTEGER REFERENCES Interest(interest_id),
-                                    PRIMARY KEY (questionary_id, interest_id)
-);
-
 -- Table Preferred_format_of_reading (questionary's preferred format of reading)
-CREATE TABLE Preferred_format_of_reading_questionary (
-                                                         questionary_id INTEGER REFERENCES Questionary(questionary_id),
+CREATE TABLE Preferred_format_of_reading_user (
+                                                         user_id INTEGER REFERENCES _Users(user_id),
                                                          format_id INTEGER REFERENCES Format_of_reading(format_reading_id),
-                                                         PRIMARY KEY (questionary_id, format_id)
+                                                         PRIMARY KEY (user_id, format_id)
 );
 
 -- Table User_field_of_reading (questionary's field of reading)
-CREATE TABLE User_field_of_reading_questionary (
-                                                   questionary_id INTEGER REFERENCES Questionary(questionary_id),
+CREATE TABLE User_field_of_reading_user (
+                                                   user_id INTEGER REFERENCES _Users(user_id),
                                                    field_id INTEGER REFERENCES Field_of_reading(field_id),
-                                                   PRIMARY KEY (questionary_id, field_id)
+                                                   PRIMARY KEY (user_id, field_id)
 );
 
---End questionary relations
 
 
 --TRIGGERS
@@ -532,4 +518,3 @@ left join Characters c on c.characters_id = Cob.characters_id
 left join rating_book rb on b.book_id = rb.book_id
 left join author_view av on a.name = av.name;
 
----End Views
