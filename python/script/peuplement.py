@@ -58,7 +58,7 @@ class peuplement:
 
 
     def table_user(self):
-        df = pd.read_csv("./user.csv")
+        df = self.csvservice.dataframes["questionary"]
         df = df.loc[df["Donnez vous votre consentement à l'utilisation de vos réponses pour un traitement informatique ?"] == "J'accepte"]
 
         df["Lieu d'habitation"] = df["Lieu d'habitation"].apply(
@@ -123,7 +123,6 @@ class peuplement:
 
         self.bddservice.insert_sql("user_liked_genre", genre_list)
 
-
         # Récupérer les IDs des auteurs
         author_id = self.bddservice.select_sql("author")[['author_id', 'name']]
         author_ids = dict(zip(author_id['name'], author_id['author_id']))
@@ -131,14 +130,17 @@ class peuplement:
         author_dict = {}
         for user_id, row in df.iterrows():
             authors = row["Quel est votre auteur préféré ?"]
+            print(authors)
+            isnan = True
             if isinstance(authors, float):  # Vérifiez si la valeur est un flottant (NaN)
-                authors = []
-            for author in authors:
-                if author in author_ids:
-                    if user_id not in author_dict:
-                        author_dict[user_id] = []
-                    author_dict[user_id].append(author_ids[author])
-
+                isnan = False
+                print("pb")
+            if authors in author_ids and isnan:
+                print("ok")
+                if user_id not in author_dict:
+                    author_dict[user_id] = []
+                author_dict[user_id].append(author_ids[authors])
+        print("3",author_dict)
         author_list = []
         for user_id, author_ids in author_dict.items():
             for author_id in author_ids:
@@ -148,8 +150,9 @@ class peuplement:
                 }
                 author_list.append(author_like)
 
-
+        print(4)
         # Insérer les préférences des auteurs dans la base de données
+        print(author_list)
         try:
             self.bddservice.insert_sql("liked_author", author_list)
         except Exception as e:

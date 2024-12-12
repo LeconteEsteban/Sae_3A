@@ -116,7 +116,7 @@ CREATE TABLE _Users (
                         child boolean,
                         familial_situation varchar(70),
                         gender VARCHAR(20),
-                        cat_socio_pro varchar(30),
+                        cat_socio_pro varchar(50),
                         lieu_habitation varchar(50),
                         frequency varchar(40),
                         book_size varchar(30),
