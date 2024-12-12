@@ -4,9 +4,9 @@ from psycopg2 import sql
 # Paramètres de connexion à la base de données postgresql basique
 host = "localhost"         # Adresse du serveur
 port = 5432               # Port de la base de données
-user = "melvin" # Nom d'utilisateur
-password = "mdp" # Mot de passe
-database = "postgres" # Nom de la base de données
+user = "postgres" # Nom d'utilisateur
+password = "testmdp" # Mot de passe
+database = "test1" # Nom de la base de données
 
 # Paramètres de connexion à la base de données kerboros
 host_ker = "" # Adresse du serveur

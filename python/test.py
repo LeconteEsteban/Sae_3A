@@ -21,7 +21,7 @@ if __name__ == "__main__":
         # Initialiser la connexion
         bddservice.initialize_connection()
         #Créer la base de donnée
-        #bddservice.create_database()
+        bddservice.create_database()
         #remplie la base de donnée des tables
         peuplement1.peuplementTotal()
         #Effectue les traitements: vue matérialisé, pré-traitement, ...
