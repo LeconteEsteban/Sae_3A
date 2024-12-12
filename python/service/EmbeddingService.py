@@ -51,6 +51,6 @@ class EmbeddingService:
 # Exemple d'utilisation
 if __name__ == "__main__":
     service = EmbeddingService()
-    t1 = service.embeddingWord("coucou j'adore les phrases. je décoche avec mon arc")
+    t1 = service.embeddingText("coucou j'adore les phrases. je décoche avec mon arc")
     t2 = service.embeddingText("Bonjour j'aime les mots. Je tire des flèches")
     service.compare(t1, t2)
