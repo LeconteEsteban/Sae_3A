@@ -1,12 +1,15 @@
 import psycopg2
 from psycopg2 import sql
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 # Paramètres de connexion à la base de données postgresql basique
-host = "localhost"         # Adresse du serveur
-port = 5432               # Port de la base de données
-user = "postgres" # Nom d'utilisateur
-password = "testmdp" # Mot de passe
-database = "test1" # Nom de la base de données
+host = os.getenv("DB_HOST")
+port = os.getenv("DB_PORT")
+user = os.getenv("DB_USER")
+password = os.getenv("DB_PASSWORD")
+database = os.getenv("DB_NAME")
 
 # Paramètres de connexion à la base de données kerboros
 host_ker = "" # Adresse du serveur
