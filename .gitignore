@@ -6,3 +6,6 @@ cache/
 
 # Ignorer le fichier create_table.sql
 create_table.sql
+
+#ignorer le .ENV
+.env
