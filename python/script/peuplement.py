@@ -2,6 +2,8 @@ import sys
 import os
 import re
 import pandas as pd
+from service.EmbeddingService import *
+from service.CacheService import *
 
 # Ajoute le dossier parent au chemin pour les imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -18,6 +20,8 @@ class peuplement:
         self.csvservice.get_csv_author()
         self.csvservice.get_csv_book()
         self.csvservice.get_csv_questionary()
+        self.embedding_service=EmbeddingService()
+        self.cache_service=CacheService()
         return
 
     def peuplementTotal(self):
@@ -127,20 +131,59 @@ class peuplement:
         author_id = self.bddservice.select_sql("author")[['author_id', 'name']]
         author_ids = dict(zip(author_id['name'], author_id['author_id']))
 
+
+
+        if self.cache_service.exists_json("author_embeddings"):
+            # Charger le CSV en tant que DataFrame et convertir en dictionnaire
+            author_embeddings = self.cache_service.get_dict_cache("author_embeddings")
+        else:
+            # Créer des embeddings pour tous les auteurs
+            author_embeddings = {name: self.embedding_service.embeddingText(name) for name in author_ids.keys()}
+            self.cache_service.dict_to_cache("author_embeddings", author_embeddings)
+
+        #print(author_embeddings['Victor Hugo']) #renvoie le vecteur
+
+
         author_dict = {}
         for user_id, row in df.iterrows():
             authors = row["Quel est votre auteur préféré ?"]
-            print(authors)
+            #print(authors)
             isnan = True
             if isinstance(authors, float):  # Vérifiez si la valeur est un flottant (NaN)
                 isnan = False
-                print("pb")
-            if authors in author_ids and isnan:
-                print("ok")
-                if user_id not in author_dict:
-                    author_dict[user_id] = []
-                author_dict[user_id].append(author_ids[authors])
-        print("3",author_dict)
+                # print("pb")
+            if isnan:
+                # Créer un embedding pour l'auteur préféré de l'utilisateur
+
+                user_author_embedding = self.embedding_service.embeddingText(authors.strip())
+
+                similar_authors=False
+                final_author = ""
+                final_similarity = 0
+
+                for author_name,author_embedding in author_embeddings.items():
+                    
+                    similarity = self.embedding_service.compare(user_author_embedding,author_embedding)
+
+                    # print(similarity,user_author_embedding,author_embedding)
+                    if similarity > 0.7:
+                        similar_authors= True
+
+                        #print(author_ids[author_name],similarity)
+                        if similarity>final_similarity:
+                            final_author = author_name
+                            final_similarity = similarity
+
+                        
+
+                if similar_authors:
+
+                    #print("ok")
+                    if user_id not in author_dict:
+                        author_dict[user_id] = []
+                    author_dict[user_id].append(author_ids[final_author])
+        #print("3",author_dict)
+
         author_list = []
         for user_id, author_ids in author_dict.items():
             for author_id in author_ids:
@@ -148,11 +191,12 @@ class peuplement:
                     "user_id": user_id + 1,
                     "author_id": author_id,
                 }
+                print(author_like["user_id"],author_like["author_id"])
                 author_list.append(author_like)
 
-        print(4)
+        # print(4)
         # Insérer les préférences des auteurs dans la base de données
-        print(author_list)
+        # print(author_list)
         try:
             self.bddservice.insert_sql("liked_author", author_list)
         except Exception as e:

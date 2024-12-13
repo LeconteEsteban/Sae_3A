@@ -19,7 +19,7 @@ class EmbeddingService:
         if not word or not isinstance(word, str):
             raise ValueError("Le mot doit être une chaîne de caractères non vide.")
         embedding_vector = self.model.encode(word, convert_to_tensor=True)
-        print(f"Embedding du mot '{word}': {embedding_vector}")
+        # print(f"Embedding du mot '{word}': {embedding_vector}")
         return embedding_vector
 
     def embeddingText(self, text):
@@ -32,7 +32,7 @@ class EmbeddingService:
         if not text or not isinstance(text, str):
             raise ValueError("Le texte doit être une chaîne de caractères non vide.")
         embedding_vector = self.model.encode(text, convert_to_tensor=True)
-        print(f"Embedding du texte '{text}': {embedding_vector}")
+        # print(f"Embedding du texte '{text}': {embedding_vector}")
         return embedding_vector
 
     def compare(self, text1, text2):
@@ -44,7 +44,7 @@ class EmbeddingService:
         :return: Score de similarité.
         """
         similarity = util.cos_sim(text1, text2)
-        print(f"Similarité: {similarity.item():.4f}")
+        # print(f"Similarité: {similarity.item():.4f}")
         return similarity.item()
 
 
