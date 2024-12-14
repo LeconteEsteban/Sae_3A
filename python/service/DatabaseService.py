@@ -117,7 +117,37 @@ class DatabaseService:
 
             # Confirmer la transaction
             self.connection.commit()
-            print("Les données ont été insérées avec succès.")
+            #print("Les données ont été insérées avec succès.")
+        except Exception as e:
+            print(f"Erreur lors de l'insertion dans la table {table} : {e}")
+            raise
+
+    def insert_one_sql_with_id(self, table, data, id):
+        """
+        insert dans table de data : une liste de donnée ex: [l1,l2,l3,l4]
+        """
+        try:
+             # Vérifier si l'ID existe déjà dans la table
+            query_check = f"SELECT 1 FROM {table} WHERE id = %s"
+            self.cursor.execute(query_check, (id,))
+            result = self.cursor.fetchone()
+            
+            if result:
+                # Si l'ID existe déjà, vous pouvez choisir de mettre à jour la ligne ou de l'ignorer
+                print(f"ID {data[0]} exist", end="\r")
+            else:
+                # Générer des placeholders pour les valeurs, par exemple : (%s, %s, %s)
+                placeholders = ", ".join(["%s"] * len(data))
+
+                # Créer la requête SQL pour insérer une ligne
+                query = f"INSERT INTO {table} VALUES ({placeholders})"
+
+                # Exécuter la requête
+                self.cursor.execute(query, data)
+
+                # Confirmer la transaction
+                self.connection.commit()
+                #print("Les données ont été insérées avec succès.")
         except Exception as e:
             print(f"Erreur lors de l'insertion dans la table {table} : {e}")
             raise
