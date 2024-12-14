@@ -66,6 +66,7 @@ class traitement:
             - Utiliser la mise en cache 
             - transpherer dans le service recommandation
         """
+        
         try:
             print("Début du traitement book_similarity ...", end="\r")
             books = self.bddservice.cmd_sql("""

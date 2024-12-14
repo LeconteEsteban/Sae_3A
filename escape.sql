@@ -89,6 +89,13 @@ CREATE INDEX idx_book_fulltext ON Book USING GIN (
     );
 CREATE INDEX idx_book_publication_date ON Book (publication_date);
 
+CREATE EXTENSION IF NOT EXISTS vector;
+-- peut être bugger en fonction des environnements, contacter angely! mais grosso modo, l'extension pgvector est activé dans public, et pas dans library
+CREATE TABLE Book_vector (
+    id INT PRIMARY KEY,
+    title TEXT,
+    vector public.VECTOR(384)
+);
 
 -- Table Author
 CREATE TABLE Author (
@@ -187,30 +194,17 @@ CREATE INDEX idx_book_similarity_book_id1 ON Book_similarity (book_id1);
 -- Créer la table User_Book_Review sans clé étrangère
 CREATE TABLE User_Book_Review (
     review_id SERIAL PRIMARY KEY, 
-    review VARCHAR(500),      
+    review VARCHAR(500),
     notation_id INT NOT NULL
 );
 
 -- Créer la table User_Book_Notation sans clé étrangère
 CREATE TABLE User_Book_Notation (
     notation_id SERIAL PRIMARY KEY, 
-    note SMALLINT,                   
-    review_id INT,  
+    note SMALLINT,
+    review_id INT,
     read_id INT NOT NULL
 );
-
--- Ajouter la contrainte de clé étrangère pour User_Book_Notation
-ALTER TABLE User_Book_Notation
-    ADD CONSTRAINT fk_review FOREIGN KEY (review_id) 
-    REFERENCES User_Book_Review(review_id) 
-    DEFERRABLE INITIALLY DEFERRED;
-
--- Ajouter la contrainte de clé étrangère pour User_Book_Review
-ALTER TABLE User_Book_Review
-    ADD CONSTRAINT fk_notation FOREIGN KEY (notation_id) 
-    REFERENCES User_Book_Notation(notation_id) 
-    DEFERRABLE INITIALLY DEFERRED;
-
 
 
 -- Table User_Book_Preference user liked those book
@@ -223,9 +217,6 @@ CREATE TABLE User_Book_Read (
     is_favorite boolean,
     reading_date date,
     notation_id INT,
-    CONSTRAINT fk_notation FOREIGN KEY (notation_id) REFERENCES User_Book_Notation(notation_id),
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES _Users(user_id),
-    CONSTRAINT fk_book FOREIGN KEY (book_id) REFERENCES Book(book_id)
 );
 
 
