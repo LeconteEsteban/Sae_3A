@@ -23,17 +23,17 @@ if __name__ == "__main__":
         # Initialiser la connexion
         bddservice.initialize_connection()
         #Créer la base de donnée
-        #bddservice.create_database()
+        bddservice.create_database()
         #remplie la base de donnée des tables
-        #peuplement1.peuplementTotal()
+        peuplement1.peuplementTotal()
         #Effectue les traitements: vue matérialisé, pré-traitement, ...
 
 
-        similar_books = recommandation1.get_similar_books(1, 5)
+        # similar_books = recommandation1.get_similar_books(1, 5)
 
-        # Affichage des livres similaires
-        for book in similar_books:
-            print(f"ID: {book[0]}, Titre: {book[1]}, Similarité: {book[2]}")
+        # # Affichage des livres similaires
+        # for book in similar_books:
+        #     print(f"ID: {book[0]}, Titre: {book[1]}, Similarité: {book[2]}")
 
 
         #bddservice.cmd_sql("TRUNCATE TABLE library.book_vector;")

@@ -110,7 +110,9 @@ class peuplement:
         for user_id, row in df.iterrows():
             genres = row["Quel genre de livre préférez-vous ?"]
             for genre in genres:
+                print("genre : ",genre)
                 if genre in genre_ids:
+                    print("trouvé",genre)
                     if user_id not in user_genre_dict:
                         user_genre_dict[user_id] = []
                     user_genre_dict[user_id].append(genre_ids[genre])
@@ -159,8 +161,6 @@ class peuplement:
                         if similarity>final_similarity:
                             final_author = author_name
                             final_similarity = similarity
-
-                        
 
                 if similar_authors:
                     if user_id not in author_dict:
