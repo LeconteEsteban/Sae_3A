@@ -28,10 +28,19 @@ if __name__ == "__main__":
         peuplement1.peuplementTotal()
         #Effectue les traitements: vue matérialisé, pré-traitement, ...
 
+        bddservice.cmd_sql("TRUNCATE TABLE library.friends RESTART IDENTITY CASCADE ;")
+        bddservice.cmd_sql("TRUNCATE TABLE library.User_Book_Read RESTART IDENTITY CASCADE;")
+        bddservice.cmd_sql("TRUNCATE TABLE library.User_field_of_reading RESTART IDENTITY CASCADE;")
+        bddservice.cmd_sql("TRUNCATE TABLE library.preferred_format_of_reading RESTART IDENTITY CASCADE;")
+        bddservice.cmd_sql("TRUNCATE TABLE library.liked_author RESTART IDENTITY CASCADE;")
+        bddservice.cmd_sql("TRUNCATE TABLE library.user_liked_genre RESTART IDENTITY CASCADE;")
+        bddservice.cmd_sql("TRUNCATE TABLE library._Users RESTART IDENTITY CASCADE;")
 
-        # similar_books = recommandation1.get_similar_books(1, 5)
+        peuplement1.table_user()
 
-        # # Affichage des livres similaires
+        #similar_books = recommandation1.get_similar_books(1, 5)
+
+        # Affichage des livres similaires
         # for book in similar_books:
         #     print(f"ID: {book[0]}, Titre: {book[1]}, Similarité: {book[2]}")
 
@@ -44,3 +53,10 @@ if __name__ == "__main__":
     finally:
         # Fermer la connexion
         bddservice.close_connection()
+
+
+
+def test_data():
+     """
+     remplie la bdd de donnée de testpour la recommandation
+     """
