@@ -104,17 +104,19 @@ class peuplement:
         df_genres_id = self.bddservice.select_sql("genre")[['name', 'genre_id']]
         genre_ids = dict(zip(df_genres_id['name'], df_genres_id['genre_id']))
 
-
         # Créer le dictionnaire user_id => id_genre
         user_genre_dict = {}
         for user_id, row in df.iterrows():
             genres = row["Quel genre de livre préférez-vous ?"]
             for genre in genres:
+                
                 if genre in genre_ids:
+                    print("user_id",user_id)
+                    print("genre",genre)
                     if user_id not in user_genre_dict:
                         user_genre_dict[user_id] = []
                     user_genre_dict[user_id].append(genre_ids[genre])
-
+        #print("user_genre_dict",user_genre_dict)
 
         genre_list = []
         for user_id, genre_ids in user_genre_dict.items():
