@@ -104,20 +104,43 @@ class peuplement:
         df_genres_id = self.bddservice.select_sql("genre")[['name', 'genre_id']]
         genre_ids = dict(zip(df_genres_id['name'], df_genres_id['genre_id']))
 
+        if self.cache_service.exists_json("genres_embeddings"):
+            # Charger le CSV en tant que DataFrame et convertir en dictionnaire
+            genres_embeddings = self.cache_service.get_dict_cache("genres_embeddings")
+        else:
+            # Créer des embeddings pour tous les auteurs
+            genres_embeddings = {name: self.embedding_service.embeddingText(name) for name in genre_ids.keys()}
+            self.cache_service.dict_to_cache("genres_embeddings", genres_embeddings)
 
         # Créer le dictionnaire user_id => id_genre
-        user_genre_dict = {}
+        genre_dict = {}
         for user_id, row in df.iterrows():
             genres = row["Quel genre de livre préférez-vous ?"]
-            for genre in genres:
-                if genre in genre_ids:
-                    if user_id not in user_genre_dict:
-                        user_genre_dict[user_id] = []
-                    user_genre_dict[user_id].append(genre_ids[genre])
+            isnan = True
+            if isinstance(genres, float):  # Vérifiez si la valeur est un flottant (NaN)
+                isnan = False
+            if isnan:
+                # Créer un embedding pour l'auteur préféré de l'utilisateur
+                user_genre_embedding = self.embedding_service.embeddingText(genres.strip())
+                similar_genre=False
+                final_genre = ""
+                final_similarity = 0
 
+                for genre_name,genre_embedding in genres_embeddings.items():
+                    similarity = self.embedding_service.compare(user_genre_embedding,genre_embedding)
+                    if similarity > 0.7:
+                        similar_genre= True
+                        if similarity>final_similarity:
+                            final_genre = genre_name
+                            final_similarity = similarity
+
+                if similar_genre:
+                    if user_id not in genre_dict:
+                        genre_dict[user_id] = []
+                    genre_dict[user_id].append(genre_ids[final_genre])
 
         genre_list = []
-        for user_id, genre_ids in user_genre_dict.items():
+        for user_id, genre_ids in genre_dict.items():
             for genre_id in genre_ids:
                 genre_like = {
                     "user_id" : user_id + 1,
@@ -125,7 +148,10 @@ class peuplement:
                 }
                 genre_list.append(genre_like)
 
-        self.bddservice.insert_sql("user_liked_genre", genre_list)
+        try:
+            self.bddservice.insert_sql("user_liked_genre", genre_list)
+        except Exception as e:
+            print("Aucun auteur n'est identifiable")
 
         # Récupérer les IDs des auteurs
         author_id = self.bddservice.select_sql("author")[['author_id', 'name']]
