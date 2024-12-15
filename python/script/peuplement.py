@@ -4,6 +4,7 @@ import re
 import pandas as pd
 from service.EmbeddingService import *
 from service.CacheService import *
+from datetime import datetime
 
 # Ajoute le dossier parent au chemin pour les imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -34,7 +35,7 @@ class peuplement:
             # Création des tables
             self.table_genre()
             self.table_author()
-            self.table_user()
+            
             self.table_publisher()
             self.table_award()
             self.table_settings()
@@ -42,6 +43,8 @@ class peuplement:
             self.table_series()
 
             self.table_book()
+
+            self.table_user()
 
             self.table_rating_book()
             self.table_rating_author()
@@ -129,7 +132,7 @@ class peuplement:
 
                     for genre_name,genre_embedding in genres_embeddings.items():
                         similarity = self.embedding_service.compare(user_genre_embedding,genre_embedding)
-                        if similarity > 0.7:
+                        if similarity > 0.4:
                             similar_genre= True
                             if similarity>final_similarity:
                                 final_genre = genre_name
@@ -248,7 +251,7 @@ class peuplement:
 
 
         df_book = self.bddservice.select_sql("Book")[['title', 'book_id']]
-        books_ids = dict(zip(df_genres_id['title'], df_genres_id['book_id']))
+        books_ids = dict(zip(df_book['title'], df_book['book_id']))
 
         if self.cache_service.exists_json("book_embedding"):
             # Charger le CSV en tant que DataFrame et convertir en dictionnaire
@@ -263,7 +266,7 @@ class peuplement:
         for user_id, row in df.iterrows():
             book = row["Quel est votre livre préféré ?"]
             isnan = True
-            if isinstance(authors, float):  # Vérifiez si la valeur est un flottant (NaN)
+            if isinstance(book, float):  # Vérifiez si la valeur est un flottant (NaN)
                 isnan = False
             if isnan:
                 # Créer un embedding pour l'auteur préféré de l'utilisateur
@@ -273,18 +276,17 @@ class peuplement:
                 final_similarity = 0
 
                 for book_name,book_embedding in book_embeddings.items():
-                    similarity = self.embedding_service.compare(user_book_embedding,book_embeddings)
-                    if similarity > 0.7:
-                        similar_authors= True
+                    similarity = self.embedding_service.compare(user_book_embedding,book_embedding)
+                    if similarity > 0.1:
+                        similar_book= True
                         if similarity>final_similarity:
                             final_book = book_name
                             final_similarity = similarity
 
-                        
-
                 if similar_book:
                     if user_id not in book_dict:
                         book_dict[user_id] = []
+                    #print("400",final_book)
                     book_dict[user_id].append(books_ids[final_book])
 
         book_list = []
@@ -296,7 +298,7 @@ class peuplement:
                     "is_favorite": True,
                     "user_id": user_id + 1,
                     "book_id": book_id,
-                    "reading_date": None,
+                    "reading_date": datetime.now(),
                     "notation_id": None
                 }
                 book_list.append(book_like)
