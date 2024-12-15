@@ -89,6 +89,13 @@ CREATE INDEX idx_book_fulltext ON Book USING GIN (
     );
 CREATE INDEX idx_book_publication_date ON Book (publication_date);
 
+CREATE EXTENSION IF NOT EXISTS vector;
+-- peut être bugger en fonction des environnements, contacter angely! mais grosso modo, l'extension pgvector est activé dans public, et pas dans library
+CREATE TABLE Book_vector (
+    id INT PRIMARY KEY,
+    title TEXT,
+    vector public.VECTOR(384)
+);
 
 -- Table Author
 CREATE TABLE Author (
@@ -119,7 +126,7 @@ CREATE TABLE _Users (
                         cat_socio_pro varchar(50),
                         lieu_habitation varchar(50),
                         frequency varchar(40),
-                        book_size varchar(30),
+                        book_size varchar(32),
                         birth_date DATE
 );
 
@@ -199,20 +206,6 @@ CREATE TABLE User_Book_Notation (
     read_id INT NOT NULL
 );
 
--- Ajouter la contrainte de clé étrangère pour User_Book_Notation
-ALTER TABLE User_Book_Notation
-    ADD CONSTRAINT fk_review FOREIGN KEY (review_id) 
-    REFERENCES User_Book_Review(review_id) 
-    DEFERRABLE INITIALLY DEFERRED;
-
--- Ajouter la contrainte de clé étrangère pour User_Book_Review
-ALTER TABLE User_Book_Review
-    ADD CONSTRAINT fk_notation FOREIGN KEY (notation_id) 
-    REFERENCES User_Book_Notation(notation_id) 
-    DEFERRABLE INITIALLY DEFERRED;
-
-
-
 -- Table User_Book_Preference user liked those book
 CREATE TABLE User_Book_Read (
     read_id SERIAL PRIMARY KEY,
@@ -222,118 +215,24 @@ CREATE TABLE User_Book_Read (
     is_liked boolean, 
     is_favorite boolean,
     reading_date date,
-    notation_id INT,
-    CONSTRAINT fk_notation FOREIGN KEY (notation_id) REFERENCES User_Book_Notation(notation_id),
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES _Users(user_id),
-    CONSTRAINT fk_book FOREIGN KEY (book_id) REFERENCES Book(book_id)
+    notation_id INT
 );
 
 
 -- Table User_Book_Notation
 CREATE TABLE User_Liked_Genre (
     user_liked_genre_id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES _Users(user_id),
-    genre_id INTEGER REFERENCES Genre(genre_id)
+    user_id INTEGER,
+    genre_id INTEGER
 );
-
-
-
 
 -- Table Genre_and_vote
 CREATE TABLE Genre_and_vote (
-        book_id INTEGER REFERENCES Book(book_id),
-        genre_id INTEGER REFERENCES Genre(genre_id),
+        book_id INTEGER ,
+        genre_id INTEGER,
         vote_count INTEGER,
         PRIMARY KEY (book_id, genre_id)
 );
-
-CREATE MATERIALIZED VIEW VM_Genre_Affinity AS
-SELECT
-    u.user_id,
-    g.genre_id,
-    g.name AS genre_name,
-    COUNT(*) AS genre_count  -- Ajout du compteur
-FROM
-    _Users u
-JOIN
-    User_Book_Read ubp ON u.user_id = ubp.user_id  -- Correction ici, utiliser ubp.user_id
-JOIN
-    Book b ON ubp.book_id = b.book_id
-JOIN
-    Genre_and_vote Gav ON b.book_id = Gav.book_id
-JOIN
-    Genre g ON Gav.genre_id = g.genre_id  -- Correction ici, utiliser Gav.genre_id
-GROUP BY
-    u.user_id, g.genre_id, g.name;
-
-
-
-
-CREATE OR REPLACE FUNCTION update_vm_genre_affinity_incremental()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- Gestion de l'insertion dans la vue matérialisée pour un nouvel enregistrement
-    IF (TG_OP = 'INSERT') THEN
-        -- Si le genre n'existe pas encore pour l'utilisateur, on l'ajoute
-        INSERT INTO VM_Genre_Affinity (user_id, genre_id, genre_name, genre_count)
-        SELECT 
-            NEW.user_id,
-            g.genre_id,
-            g.name,
-            1  -- Incrémenter le compteur à 1 pour une nouvelle insertion
-        FROM
-            Book b
-        JOIN
-            Book_Genre bg ON b.book_id = bg.book_id
-        JOIN
-            Genre g ON bg.genre_id = g.genre_id
-        WHERE
-            b.book_id = NEW.book_id
-        ON CONFLICT (user_id, genre_id) DO UPDATE
-        SET genre_count = VM_Genre_Affinity.genre_count + 1;  -- Si genre existe, incrémenter le compteur
-
-    END IF;
-
-    -- Gestion de la suppression dans la vue matérialisée si un livre préféré est supprimé
-    IF (TG_OP = 'DELETE') THEN
-        -- Supprimer le genre du livre qui a été retiré
-        DELETE FROM VM_Genre_Affinity
-        WHERE user_id = OLD.user_id
-          AND genre_id IN (
-              SELECT genre_id
-              FROM Book_Genre bg
-              JOIN Book b ON bg.book_id = b.book_id
-              WHERE b.book_id = OLD.book_id
-          );
-
-        -- Si le genre est toujours utilisé par un autre livre de l'utilisateur, on décrémente le compteur
-        UPDATE VM_Genre_Affinity
-        SET genre_count = genre_count - 1
-        WHERE user_id = OLD.user_id
-          AND genre_id IN (
-              SELECT genre_id
-              FROM Book_Genre bg
-              JOIN Book b ON bg.book_id = b.book_id
-              WHERE b.book_id = OLD.book_id
-          )
-        AND genre_count > 0;
-    END IF;
-
-    RETURN NULL;  -- Pas de retour nécessaire car nous n'avons pas de ligne à renvoyer
-END;
-$$ LANGUAGE plpgsql;
-
-
-CREATE TRIGGER trigger_update_vm_genre_affinity
-AFTER INSERT OR DELETE
-ON User_Book_Read
-FOR EACH ROW
-EXECUTE FUNCTION update_vm_genre_affinity_incremental();
-
-
-
-
-
 
 CREATE INDEX idx_genre_and_vote_genre_id ON Genre_and_vote (genre_id);
 CREATE INDEX idx_genre_and_vote_book_id ON Genre_and_vote (book_id);
