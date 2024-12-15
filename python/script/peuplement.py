@@ -121,23 +121,24 @@ class peuplement:
                 isnan = False
             if isnan:
                 # Créer un embedding pour l'auteur préféré de l'utilisateur
-                user_genre_embedding = self.embedding_service.embeddingText(genres.strip())
-                similar_genre=False
-                final_genre = ""
-                final_similarity = 0
+                for elem in genres:
+                    user_genre_embedding = self.embedding_service.embeddingText(elem)
+                    similar_genre=False
+                    final_genre = ""
+                    final_similarity = 0
 
-                for genre_name,genre_embedding in genres_embeddings.items():
-                    similarity = self.embedding_service.compare(user_genre_embedding,genre_embedding)
-                    if similarity > 0.7:
-                        similar_genre= True
-                        if similarity>final_similarity:
-                            final_genre = genre_name
-                            final_similarity = similarity
+                    for genre_name,genre_embedding in genres_embeddings.items():
+                        similarity = self.embedding_service.compare(user_genre_embedding,genre_embedding)
+                        if similarity > 0.7:
+                            similar_genre= True
+                            if similarity>final_similarity:
+                                final_genre = genre_name
+                                final_similarity = similarity
 
-                if similar_genre:
-                    if user_id not in genre_dict:
-                        genre_dict[user_id] = []
-                    genre_dict[user_id].append(genre_ids[final_genre])
+                    if similar_genre:
+                        if user_id not in genre_dict:
+                            genre_dict[user_id] = []
+                        genre_dict[user_id].append(genre_ids[final_genre])
 
         genre_list = []
         for user_id, genre_ids in genre_dict.items():
