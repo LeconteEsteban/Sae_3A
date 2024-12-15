@@ -228,8 +228,6 @@ CREATE TABLE User_Liked_Genre (
 );
 
 
-
-
 -- Table Genre_and_vote
 CREATE TABLE Genre_and_vote (
         book_id INTEGER REFERENCES Book(book_id),
@@ -237,6 +235,7 @@ CREATE TABLE Genre_and_vote (
         vote_count INTEGER,
         PRIMARY KEY (book_id, genre_id)
 );
+
 
 CREATE MATERIALIZED VIEW VM_Genre_Affinity AS
 SELECT
