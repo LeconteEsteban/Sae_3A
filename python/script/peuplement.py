@@ -247,6 +247,67 @@ class peuplement:
 
 
 
+        df_book = self.bddservice.select_sql("Book")[['title', 'book_id']]
+        books_ids = dict(zip(df_genres_id['title'], df_genres_id['book_id']))
+
+        if self.cache_service.exists_json("book_embedding"):
+            # Charger le CSV en tant que DataFrame et convertir en dictionnaire
+            book_embeddings = self.cache_service.get_dict_cache("book_embedding")
+        else:
+            # Créer des embeddings pour tous les auteurs
+            book_embeddings = {name: self.embedding_service.embeddingText(name) for name in books_ids.keys()}
+            self.cache_service.dict_to_cache("book_embedding", book_embeddings)
+
+
+        book_dict = {}
+        for user_id, row in df.iterrows():
+            book = row["Quel est votre livre préféré ?"]
+            isnan = True
+            if isinstance(authors, float):  # Vérifiez si la valeur est un flottant (NaN)
+                isnan = False
+            if isnan:
+                # Créer un embedding pour l'auteur préféré de l'utilisateur
+                user_book_embedding = self.embedding_service.embeddingText(book.strip())
+                similar_book=False
+                final_book = ""
+                final_similarity = 0
+
+                for book_name,book_embedding in book_embeddings.items():
+                    similarity = self.embedding_service.compare(user_book_embedding,book_embeddings)
+                    if similarity > 0.7:
+                        similar_authors= True
+                        if similarity>final_similarity:
+                            final_book = book_name
+                            final_similarity = similarity
+
+                        
+
+                if similar_book:
+                    if user_id not in book_dict:
+                        book_dict[user_id] = []
+                    book_dict[user_id].append(books_ids[final_book])
+
+        book_list = []
+        for user_id, book_ids in book_dict.items():
+            for book_id in book_ids:
+                book_like = {
+                    "is_read": True,
+                    "is_liked": True,
+                    "is_favorite": True,
+                    "user_id": user_id + 1,
+                    "book_id": book_id,
+                    "reading_date": None,
+                    "notation_id": None
+                }
+                book_list.append(book_like)
+
+        try:
+            self.bddservice.insert_sql("User_Book_Read", book_list)
+        except Exception as e:
+            print("Aucun book n'est identifiable")
+
+
+
 
     def table_test(self):
         """
