@@ -97,6 +97,7 @@ CREATE TABLE Book_vector (
     vector public.VECTOR(384)
 );
 
+
 -- Table Author
 CREATE TABLE Author (
                         author_id SERIAL PRIMARY KEY,
@@ -130,6 +131,12 @@ CREATE TABLE _Users (
                         birth_date DATE
 );
 
+
+-- Table User_vector
+CREATE TABLE User_vector(
+    id INT PRIMARY KEY,
+    vector public.VECTOR(1536)
+);
 
 -- Table Rating_book
 CREATE TABLE Rating_book (
