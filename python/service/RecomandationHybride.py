@@ -1,13 +1,18 @@
 import numpy as np
-import pandas as pd
-import faiss
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-from datetime import datetime
 from service.CacheService import *
 
+
+
 def age_to_category(age_range):
-    """Transformer une plage d'âge en catégorie."""
+    """
+    Transformer une plage d'âge en catégorie descriptive.
+
+    Args:
+        age_range (str): Plage d'âge sous forme de chaîne de caractères (ex : "21-30").
+    
+    Returns:
+        str: Catégorie correspondant à la plage d'âge (ex : "jeune adulte").
+    """
     if "0-10" in age_range:
         return "enfant"
     elif "11-20" in age_range:
@@ -25,21 +30,43 @@ def age_to_category(age_range):
     elif "70+" in age_range:
         return "senior âgé"
     else:
-        return "inconnu"  
+        return "inconnu"
 
 class RecomandationHybride:
+    """
+    Classe pour générer des recommandations hybrides basées sur des embeddings utilisateurs.
+    
+    Attributes:
+        bddservice: Service pour interagir avec la base de données.
+        csvservice: Service pour la gestion des fichiers CSV.
+        embedding_service: Service pour générer les embeddings textuels.
+        cache_service: Service de gestion du cache.
+    """
 
     def __init__(self, bddservice, csvservice, embeddingservice):
+        """
+        Initialiser les services nécessaires à la recommandation.
+
+        Args:
+            bddservice: Instance du service pour interagir avec la base de données.
+            csvservice: Instance du service pour manipuler des fichiers CSV.
+            embeddingservice: Instance du service pour générer les embeddings.
+        """
         self.bddservice = bddservice
         self.csvservice = csvservice
         self.embedding_service = embeddingservice
         self.cache_service = CacheService()
-       
-        
         
     def create_vector_users(self):
+        """
+        Créer et insérer les vecteurs utilisateur dans la base de données.
+
+        Cette méthode récupère les données utilisateur depuis la base de données,
+        génère les embeddings correspondants à leurs profils, puis insère les vecteurs 
+        dans la table `library.user_vector`.
+        """
         try:
-            # Récupération des utilisateurs
+            # Récupération des données des utilisateurs
             users = self.bddservice.cmd_sql("""
                 SELECT 
                     u.user_id, 
@@ -66,40 +93,49 @@ class RecomandationHybride:
                     u.user_id;
             """)
 
-            
+            # Parcours des utilisateurs pour générer et insérer les vecteurs
             for user in users:
-                self.bddservice.insert_one_sql_with_id("library.user_vector", [user[0],self.get_embeding_user(user) ], user[0])
-       
+                user_vector = self.get_embeding_user(user)
+                self.bddservice.insert_one_sql_with_id("library.user_vector", [user[0], user_vector], user[0])
         
-            
-
         except Exception as e:
             print(f"Erreur lors de la création des vecteurs utilisateurs : {e}")
             raise
 
-
     def get_embeding_user(self, user):
+        """
+        Générer le vecteur d'embedding pour un utilisateur donné.
+
+        Args:
+            user (tuple): Informations utilisateur récupérées depuis la base de données.
         
+        Returns:
+            list: Vecteur utilisateur sous forme de liste.
+        """
+        # Conversion de l'âge en catégorie
         age_category = age_to_category(user[1])
+        
+        # Création d'une description textuelle du profil utilisateur
         user_profile_text = f"{age_category} {user[2]} {user[3]} {user[5]} {user[6]} {user[7]}"
-        # Création de l'embedding du profil utilisateur
+        
+        # Génération des embeddings pour le profil utilisateur
         profile_embedding = self.embedding_service.embeddingText(user_profile_text)
-        # # Construction des caractéristiques structurées
+        
+        # Embedding des auteurs appréciés
         liked_authors = ', '.join(map(str, user[9])) if user[9] else 'No liked authors'
         liked_authors_embedding = self.embedding_service.embeddingText(liked_authors)
 
+        # Embedding des genres appréciés
         liked_genres_embedding = self.embedding_service.embeddingText(user[8])
 
+        # Embedding des livres appréciés
         liked_books = ', '.join(map(str, user[11])) if user[11] else 'No liked books'
         liked_books_embedding = self.embedding_service.embeddingText(liked_books)
 
-        # Fusion des caractéristiques
-
+        # Fusion de tous les embeddings pour former le vecteur utilisateur final
         full_user_vector = np.concatenate([profile_embedding, liked_authors_embedding, liked_genres_embedding, liked_books_embedding])
         
-
         return full_user_vector.tolist()
-
     
 
 if __name__ == "__main__":
