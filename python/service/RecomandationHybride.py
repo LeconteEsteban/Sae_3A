@@ -66,35 +66,11 @@ class RecomandationHybride:
                     u.user_id;
             """)
 
-            user_vectors = []
-            user_ids = []
-
+            
             for user in users:
-                user_id = user[0]
-                age_category = age_to_category(user[1])
-                user_profile_text = f"{age_category} {user[2]} {user[3]} {user[5]} {user[6]} {user[7]}"
-
-                # Création de l'embedding du profil utilisateur
-                profile_embedding = self.embedding_service.embeddingText(user_profile_text)
-                
-                
-                # # Construction des caractéristiques structurées
-                liked_authors = ', '.join(map(str, user[9])) if user[9] else 'No liked authors'
-                liked_authors_embedding = self.embedding_service.embeddingText(liked_authors)
-
-
-                liked_genres_embedding = self.embedding_service.embeddingText(user[8])
-                liked_books = ', '.join(map(str, user[11])) if user[11] else 'No liked books'
-                liked_books_embedding = self.embedding_service.embeddingText(liked_books)
-                
-                # # Fusion des caractéristiques
-                full_user_vector = profile_embedding + liked_authors_embedding + liked_genres_embedding + liked_books_embedding
-                # user_ids.append(user_id)
-                print(user_id, ": ", full_user_vector)
-            # Sauvegarde des données
-            
-            
-
+                self.bddservice.insert_one_sql_with_id("library.user_vector", [user[0],self.get_embeding_user(user) ], user[0])
+       
+        
             
 
         except Exception as e:
@@ -102,7 +78,29 @@ class RecomandationHybride:
             raise
 
 
+    def get_embeding_user(self, user):
         
+        age_category = age_to_category(user[1])
+        user_profile_text = f"{age_category} {user[2]} {user[3]} {user[5]} {user[6]} {user[7]}"
+        # Création de l'embedding du profil utilisateur
+        profile_embedding = self.embedding_service.embeddingText(user_profile_text)
+        # # Construction des caractéristiques structurées
+        liked_authors = ', '.join(map(str, user[9])) if user[9] else 'No liked authors'
+        liked_authors_embedding = self.embedding_service.embeddingText(liked_authors)
+
+        liked_genres_embedding = self.embedding_service.embeddingText(user[8])
+
+        liked_books = ', '.join(map(str, user[11])) if user[11] else 'No liked books'
+        liked_books_embedding = self.embedding_service.embeddingText(liked_books)
+
+        # Fusion des caractéristiques
+
+        full_user_vector = np.concatenate([profile_embedding, liked_authors_embedding, liked_genres_embedding, liked_books_embedding])
+        
+
+        return full_user_vector.tolist()
+
+    
 
 if __name__ == "__main__":
     service = RecomandationHybride()
