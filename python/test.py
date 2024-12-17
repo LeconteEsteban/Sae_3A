@@ -6,7 +6,6 @@ from service.CacheService import *
 from service.RecommandationService import * 
 from service.ParseService import *
 from service.EmbeddingService import *
-from service.RecomandationHybride import *
 
 
 #main pour les tests pls
@@ -19,7 +18,6 @@ if __name__ == "__main__":
     peuplement1 = peuplement(bddservice, csv_service, parseservice)
     traitement1 = traitement(bddservice, csv_service)
     recommandation1 = RecommendationService(bddservice, csv_service, embservice)
-    recommandation_hybride = RecomandationHybride(bddservice, csv_service, embservice)
 
     try:
         # Initialiser la connexion
@@ -39,7 +37,7 @@ if __name__ == "__main__":
         # bddservice.cmd_sql("TRUNCATE TABLE library._Users RESTART IDENTITY CASCADE;")
 
         # peuplement1.table_user()
-        recommandation_hybride.create_vector_users()
+        recommandation1.create_book_vector()
         #similar_books = recommandation1.get_similar_books(1, 5)
 
         # Affichage des livres similaires
@@ -48,7 +46,6 @@ if __name__ == "__main__":
 
 
         #bddservice.cmd_sql("TRUNCATE TABLE library.book_vector;")
-        #recommandation1.create_book_vector()
 
     except Exception as e:
             print(f"Erreur dans le main : {e}")

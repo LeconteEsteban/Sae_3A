@@ -12,3 +12,6 @@ create_table.sql
 
 #ignorer les fichiers dans le dossier log
 log/
+
+#ignorer les fichiers dans le dossier log
+myenv/
