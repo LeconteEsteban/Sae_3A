@@ -25,7 +25,7 @@ if __name__ == "__main__":
         # Initialiser la connexion
         bddservice.initialize_connection()
         #Créer la base de donnée
-        #bddservice.create_database()
+        # bddservice.create_database()
         #remplie la base de donnée des tables
         #peuplement1.peuplementTotal()
         #Effectue les traitements: vue matérialisé, pré-traitement, ...
@@ -39,17 +39,22 @@ if __name__ == "__main__":
         # bddservice.cmd_sql("TRUNCATE TABLE library._Users RESTART IDENTITY CASCADE;")
 
         # peuplement1.table_user()
-        recommandation_hybride.create_vector_users()
-        #similar_books = recommandation1.get_similar_books(1, 5)
+        #recommandation_hybride.gbm()
+        # similar_books = recommandation1.get_similar_books(3, 5)
 
-        # Affichage des livres similaires
+        # # Affichage des livres similaires
         # for book in similar_books:
-        #     print(f"ID: {book[0]}, Titre: {book[1]}, Similarité: {book[2]}")
+        #      print(f"ID: {book[0]}, Titre: {book[1]}, Similarité: {book[2]}")
 
 
         #bddservice.cmd_sql("TRUNCATE TABLE library.book_vector;")
         #recommandation1.create_book_vector()
-
+        
+        recommandation_hybride.gbm()
+        recommended_books = recommandation_hybride.recommend_books(user_id=2, top_n=5)
+        print(f'Recommended books: {recommended_books}')
+        #recommandation1.recommend_books_for_user(1, 5)
+        print("fin")
     except Exception as e:
             print(f"Erreur dans le main : {e}")
     finally:
