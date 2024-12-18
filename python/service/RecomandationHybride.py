@@ -1,7 +1,10 @@
 import numpy as np
 from service.CacheService import *
-
-
+from sklearn.model_selection import train_test_split
+import lightgbm as lgb
+from sklearn.metrics import accuracy_score
+from lightgbm import LGBMClassifier
+import ast
 
 def age_to_category(age_range):
     """
@@ -137,6 +140,156 @@ class RecomandationHybride:
         
         return full_user_vector.tolist()
     
+
+    def gbm(self):
+        # Récupérer les interactions utilisateur-livre
+        query_interactions = """
+            SELECT user_id, book_id, is_read, is_liked, is_favorite 
+            FROM library.User_Book_Read;
+        """
+        interactions = self.bddservice.cmd_sql(query_interactions)
+        interactions_df = pd.DataFrame(
+            interactions, columns=["user_id", "book_id", "is_read", "is_liked", "is_favorite"]
+        )
+
+        # Vérification des données
+        if interactions_df.empty:
+            print("Aucune interaction utilisateur-livre trouvée.")
+            return
+
+        # Récupérer les vecteurs utilisateur et livre
+        user_vectors_query = "SELECT * FROM library.user_vector;"
+        book_vectors_query = "SELECT * FROM library.book_vector;"
+
+        user_vectors = self.bddservice.cmd_sql(user_vectors_query)
+        book_vectors = self.bddservice.cmd_sql(book_vectors_query)
+
+        user_vectors_df = pd.DataFrame(user_vectors, columns=["user_id", "vector"])
+        book_vectors_df = pd.DataFrame(book_vectors, columns=["book_id", "title", "vector"])
+
+        # Convertir les vecteurs (de chaînes à listes)
+        user_vectors_df["vector"] = user_vectors_df["vector"].apply(lambda x: np.array(ast.literal_eval(x)))
+        book_vectors_df["vector"] = book_vectors_df["vector"].apply(lambda x: np.array(ast.literal_eval(x)))
+
+        # Fusionner les vecteurs utilisateur et livre avec les interactions
+        interactions_df = interactions_df.merge(user_vectors_df, on="user_id", how="left")
+        interactions_df = interactions_df.merge(book_vectors_df, on="book_id", how="left")
+
+        # Définir les pondérations
+        user_weight = 0.1  # Pondération pour les vecteurs utilisateur
+        book_weight = 0.9  # Pondération pour les vecteurs livre
+
+        # Préparer les données pour LightGBM
+        # Combiner les vecteurs utilisateur et livre dans les caractéristiques
+        features = interactions_df.apply(
+            lambda row: np.concatenate([row["vector_x"] * user_weight, row["vector_y"] * book_weight]), axis=1
+        ).tolist()
+        features = np.array(features)  # Convertir en tableau NumPy
+        labels = interactions_df["is_liked"]  # Exemple de label cible
+
+        # Séparer les ensembles d'entraînement et de test
+        X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.4, random_state=42)
+
+        # Créer les datasets LightGBM
+        train_data = lgb.Dataset(X_train, label=y_train)
+        test_data = lgb.Dataset(X_test, label=y_test, reference=train_data)
+
+        # Définir les paramètres LightGBM
+        params = {
+        "objective": "binary",
+        "metric": "binary_logloss",
+        "boosting_type": "gbdt",
+        "learning_rate": 0.03,
+        "num_leaves": 31,
+        "max_depth": 6,
+        "feature_fraction": 0.8,
+        "bagging_fraction": 0.8,
+        "bagging_freq": 5,
+        "verbose": -1
+    }
+
+
+        # Entraîner le modèle avec validation
+        self.model = lgb.train(
+            params,
+            train_data,
+            valid_sets=[train_data, test_data],  # Ajout des jeux de validation
+            valid_names=["train", "valid"],  # Noms des ensembles pour le suivi
+            num_boost_round=100 
+            
+        )
+
+        # Faire des prédictions sur l'ensemble de test
+        y_pred = self.model.predict(X_test, num_iteration=self.model.best_iteration)  # Utiliser la meilleure itération
+        y_pred_binary = (y_pred > 0.5).astype(int)
+
+        # Évaluer le modèle
+        accuracy = accuracy_score(y_test, y_pred_binary)
+        print(f"Accuracy: {accuracy:.4f}")
+
+
+
+        
+
+    def recommend_books(self, user_id, top_n=5):
+        """
+        Générer des recommandations de livres pour un utilisateur donné en utilisant le modèle LightGBM.
+
+        Args:
+            user_id (int): ID de l'utilisateur.
+            top_n (int): Nombre de recommandations à générer.
+
+        Returns:
+            list: Liste des IDs des livres recommandés.
+        """
+        # Récupérer les vecteurs utilisateur et livres
+        user_vectors_query = f"SELECT * FROM library.user_vector WHERE id = {user_id};"
+        book_vectors_query = "SELECT * FROM library.book_vector;"
+
+        user_vectors = self.bddservice.cmd_sql(user_vectors_query)
+        book_vectors = self.bddservice.cmd_sql(book_vectors_query)
+
+        user_vectors_df = pd.DataFrame(user_vectors, columns=["user_id", "vector"])
+        book_vectors_df = pd.DataFrame(book_vectors, columns=["book_id", "title", "vector"])
+
+        # Assurer que l'utilisateur a un vecteur dans la base de données
+        if user_vectors_df.empty:
+            print(f"Utilisateur {user_id} non trouvé dans les vecteurs.")
+            return []
+
+        # Extraire le vecteur de l'utilisateur et vérifier sa forme
+        user_vector = np.array(ast.literal_eval(user_vectors_df.iloc[0]["vector"]))  # Assurez-vous que c'est une liste numpy
+        if user_vector.ndim == 0:
+            user_vector = np.expand_dims(user_vector, axis=0)  # S'assurer que c'est un vecteur 1D
+
+        # Préparer les données de test pour tous les livres (ajouter le vecteur de l'utilisateur à chaque livre)
+        def concatenate_vectors(book_vector):
+            book_vector = np.array(ast.literal_eval(book_vector))  # Convertir le vecteur du livre en numpy array
+            if book_vector.ndim == 0:
+                book_vector = np.expand_dims(book_vector, axis=0)  # S'assurer que c'est un vecteur 1D
+            return np.concatenate([user_vector, book_vector])
+
+        features = book_vectors_df["vector"].apply(concatenate_vectors)
+        features = np.array(features.tolist())
+
+        # Faire des prédictions avec le modèle LightGBM
+        y_pred = self.model.predict(features)  # Assurez-vous que 'self.model' est le modèle LightGBM entraîné
+
+        # Créer un DataFrame des prédictions avec les book_ids
+        predictions_df = pd.DataFrame({"book_id": book_vectors_df["book_id"], "score": y_pred})
+
+        # Trier les livres par score décroissant
+        recommendations = predictions_df.sort_values(by="score", ascending=False).head(top_n)
+
+        # Retourner les IDs des livres recommandés
+        recommended_books = recommendations["book_id"].tolist()
+
+        # Afficher les titres des livres recommandés
+        recommended_titles = recommendations.merge(book_vectors_df, on="book_id", how="left")["title"].tolist()
+        return recommended_titles
+
+
+        
 
 if __name__ == "__main__":
     service = RecomandationHybride()
