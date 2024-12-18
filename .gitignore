@@ -15,3 +15,5 @@ log/
 
 #ignorer les fichiers dans le dossier log
 myenv/
+
+testperso.py
