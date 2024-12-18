@@ -173,7 +173,7 @@ class RecommendationService:
             id != {book_id}
         ORDER BY
             similarity DESC
-        LIMIT {n+1};
+        LIMIT {n};
         """
 
         # Exécuter la requête SQL
