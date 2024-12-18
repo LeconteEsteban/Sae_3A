@@ -23,9 +23,9 @@ if __name__ == "__main__":
         # Initialiser la connexion
         bddservice.initialize_connection()
         #Créer la base de donnée
-        #bddservice.create_database()
+        bddservice.create_database()
         #remplie la base de donnée des tables
-        #peuplement1.peuplementTotal()
+        peuplement1.peuplementTotal()
         #Effectue les traitements: vue matérialisé, pré-traitement, ...
 
         # bddservice.cmd_sql("TRUNCATE TABLE library.friends RESTART IDENTITY CASCADE ;")
@@ -37,7 +37,7 @@ if __name__ == "__main__":
         # bddservice.cmd_sql("TRUNCATE TABLE library._Users RESTART IDENTITY CASCADE;")
 
         # peuplement1.table_user()
-        recommandation1.create_book_vector()
+        #recommandation1.create_book_vector()
         #similar_books = recommandation1.get_similar_books(1, 5)
 
         # Affichage des livres similaires
@@ -59,4 +59,6 @@ def test_data():
      """
      remplie la bdd de donnée de testpour la recommandation
      """
+     
+
      
