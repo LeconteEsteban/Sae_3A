@@ -4,6 +4,7 @@ from script.peuplement import *
 from script.traitement import *
 from service.CacheService import *
 from service.RecommandationService import * 
+from service.RecomandationHybride import * 
 from service.ParseService import *
 from service.EmbeddingService import *
 
@@ -18,14 +19,15 @@ if __name__ == "__main__":
     peuplement1 = peuplement(bddservice, csv_service, parseservice)
     traitement1 = traitement(bddservice, csv_service)
     recommandation1 = RecommendationService(bddservice, csv_service, embservice)
+    recommandationhybride = RecomandationHybride(bddservice, csv_service, embservice,recommandation1)
 
     try:
         # Initialiser la connexion
         bddservice.initialize_connection()
         #Créer la base de donnée
-        bddservice.create_database()
+        #bddservice.create_database()
         #remplie la base de donnée des tables
-        peuplement1.peuplementTotal()
+        #peuplement1.peuplementTotal()
         #Effectue les traitements: vue matérialisé, pré-traitement, ...
 
         # bddservice.cmd_sql("TRUNCATE TABLE library.friends RESTART IDENTITY CASCADE ;")
@@ -39,6 +41,12 @@ if __name__ == "__main__":
         # peuplement1.table_user()
         #recommandation1.create_book_vector()
         #similar_books = recommandation1.get_similar_books(1, 5)
+        #recommandationhybride.get_similar_users_debug(26,5)
+        #print(recommandationhybride.recommend_books_for_user(26,5))
+        #bddservice.cmd_sql("TRUNCATE TABLE library.user_vector;")
+        #recommandationhybride.create_vector_users()
+        #print(recommandationhybride.recommend_books_for_user(26,5))
+        print(recommandationhybride.recommandation_hybride(26,5))
 
         # # Affichage des livres similaires
         # for book in similar_books:
