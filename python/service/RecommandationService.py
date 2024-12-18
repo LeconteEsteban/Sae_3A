@@ -179,8 +179,6 @@ class RecommendationService:
         # Exécuter la requête SQL
         similar_books = self.bddservice.cmd_sql(query)
 
-        
-
         return similar_books
 
     def recommend_books_for_user(self, user_id, n_recommendations=5):

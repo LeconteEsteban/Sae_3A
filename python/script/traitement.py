@@ -26,7 +26,6 @@ class traitement:
         """
         try:
             self.MV()
-            self.table_book_similarity()
 
         except Exception as e:
             print(f"Une erreur s'est produite : {e}")

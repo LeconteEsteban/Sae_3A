@@ -56,6 +56,8 @@ class peuplement:
 
             self.table_genre_and_vote()
             self.table_wrote()
+
+            
             print("Toutes les données ont été insérées avec succès.")
 
         except Exception as e:
