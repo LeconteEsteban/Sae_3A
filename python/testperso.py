@@ -21,7 +21,12 @@ def test_data(bdd):
         (1, 155, TRUE, TRUE, TRUE, '2024-12-17', NULL),
         (1, 156, TRUE, TRUE, TRUE, '2024-12-17', NULL),
         (1, 157, TRUE, TRUE, TRUE, '2024-12-17', NULL),
-        (1, 158, TRUE, TRUE, TRUE, '2024-12-17', NULL);
+        (1, 158, TRUE, TRUE, TRUE, '2024-12-17', NULL),
+        (2, 6452, TRUE, TRUE, TRUE, '2024-12-17', NULL),
+        (2, 11570, TRUE, TRUE, TRUE, '2024-12-17', NULL),
+        (2, 16586, TRUE, TRUE, TRUE, '2023-12-17', NULL),
+        (2, 37980, TRUE, TRUE, TRUE, '2023-12-17', NULL),
+        (2, 38052, TRUE, TRUE, TRUE, '2022-12-17', NULL);
     """
     bdd.cmd_sql(query)
 
@@ -34,7 +39,12 @@ def test_data(bdd):
         (4, NULL, 39),
         (3, NULL, 40),
         (5, NULL, 41),
-        (1, NULL, 42);
+        (1, NULL, 42),
+        (5, NULL, 43),
+        (4, NULL, 44),
+        (3, NULL, 45),
+        (5, NULL, 46),
+        (1, NULL, 47);
     """
     bdd.cmd_sql(query)
 
@@ -79,7 +89,7 @@ if __name__ == "__main__":
         # for book in similar_books:
         #     print(book)
 
-        recommanded_book = recommandation1.recommend_books_for_user(1,5)
+        recommanded_book = recommandation1.recommend_books_for_user(2,5)
         # # Affichage des livres recommandé
         for book in recommanded_book:
              print(book)
