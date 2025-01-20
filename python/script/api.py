@@ -34,14 +34,10 @@ app = FastAPI()
 @app.get("/", response_model=dict)
 def root():
     return {"message": "c'est la api hinhihnhin"}
-
-@app.get("/recomandation/{id_user}/{nbook}", response_model=List[RecommendationResponse])
-def get_recommendations(id_user: int, nbook: int):
+@app.get("/recomandation/{book_id}/{nbook}", response_model=List[RecommendationResponse])
+def get_recommendations(book_id: int, nbook: int):
     # Appeler la fonction de recommandation
-    recommandations = recommendation_hybride.recommandation_hybride(id_user, nbook)
-
-    if not recommandations:
-        raise HTTPException(status_code=404, detail="No recommendations found for the given user and number of books.")
+    recommandations = recommendation_hybride.recommandation_hybride(book_id, nbook)
 
     # Extraire uniquement les champs souhaités
     filtered_recommendations = []
@@ -57,3 +53,20 @@ def get_recommendations(id_user: int, nbook: int):
         })
 
     return filtered_recommendations
+
+
+@app.get("/book/recomandation/{book_id}/{nbook}", response_model=List[RecommendationResponse])
+def get_recommendations_book(book_id: int, nbook: int):
+    try:
+        # Appeler la fonction de recommandation
+        recommandations = recommendation_service.get_similar_books(book_id, nbook)
+
+        # Vérifier si les recommandations sont vides
+        if not recommandations:
+            raise HTTPException(status_code=404, detail="No recommendations found")
+
+        return recommandations
+    except Exception as e:
+        # Log the exception
+        print(f"Error in get_recommendations_book: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
