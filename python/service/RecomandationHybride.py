@@ -1,7 +1,12 @@
 import numpy as np
 from service.CacheService import *
-
-
+from sklearn.model_selection import train_test_split
+#import lightgbm as lgb
+from sklearn.metrics import accuracy_score
+#from lightgbm import LGBMClassifier
+import ast
+from service.RecommandationService import RecommendationService
+from datetime import datetime
 
 def age_to_category(age_range):
     """
@@ -43,7 +48,7 @@ class RecomandationHybride:
         cache_service: Service de gestion du cache.
     """
 
-    def __init__(self, bddservice, csvservice, embeddingservice):
+    def __init__(self, bddservice, csvservice, embeddingservice,recommandationservice):
         """
         Initialiser les services nécessaires à la recommandation.
 
@@ -56,6 +61,7 @@ class RecomandationHybride:
         self.csvservice = csvservice
         self.embedding_service = embeddingservice
         self.cache_service = CacheService()
+        self.recommandation_service = recommandationservice
         
     def create_vector_users(self):
         """
@@ -102,12 +108,13 @@ class RecomandationHybride:
             print(f"Erreur lors de la création des vecteurs utilisateurs : {e}")
             raise
 
-    def get_embeding_user(self, user):
+    def get_embeding_user(self, user, genre_weight=2.0):
         """
         Générer le vecteur d'embedding pour un utilisateur donné.
 
         Args:
             user (tuple): Informations utilisateur récupérées depuis la base de données.
+            genre_weight (float): Facteur de pondération pour l'embedding des genres appréciés.
         
         Returns:
             list: Vecteur utilisateur sous forme de liste.
@@ -125,8 +132,9 @@ class RecomandationHybride:
         liked_authors = ', '.join(map(str, user[9])) if user[9] else 'No liked authors'
         liked_authors_embedding = self.embedding_service.embeddingText(liked_authors)
 
-        # Embedding des genres appréciés
+        # Embedding des genres appréciés (avec pondération)
         liked_genres_embedding = self.embedding_service.embeddingText(user[8])
+        liked_genres_embedding = liked_genres_embedding * genre_weight  # Appliquer la pondération
 
         # Embedding des livres appréciés
         liked_books = ', '.join(map(str, user[11])) if user[11] else 'No liked books'
@@ -136,7 +144,288 @@ class RecomandationHybride:
         full_user_vector = np.concatenate([profile_embedding, liked_authors_embedding, liked_genres_embedding, liked_books_embedding])
         
         return full_user_vector.tolist()
+
     
+
+    # def gbm(self):
+    #     # Récupérer les interactions utilisateur-livre
+    #     query_interactions = """
+    #         SELECT user_id, book_id, is_read, is_liked, is_favorite 
+    #         FROM library.User_Book_Read;
+    #     """
+    #     interactions = self.bddservice.cmd_sql(query_interactions)
+    #     interactions_df = pd.DataFrame(
+    #         interactions, columns=["user_id", "book_id", "is_read", "is_liked", "is_favorite"]
+    #     )
+
+    #     # Vérification des données
+    #     if interactions_df.empty:
+    #         print("Aucune interaction utilisateur-livre trouvée.")
+    #         return
+
+    #     # Récupérer les vecteurs utilisateur et livre
+    #     user_vectors_query = "SELECT * FROM library.user_vector;"
+    #     book_vectors_query = "SELECT * FROM library.book_vector;"
+
+    #     user_vectors = self.bddservice.cmd_sql(user_vectors_query)
+    #     book_vectors = self.bddservice.cmd_sql(book_vectors_query)
+
+    #     user_vectors_df = pd.DataFrame(user_vectors, columns=["user_id", "vector"])
+    #     book_vectors_df = pd.DataFrame(book_vectors, columns=["book_id", "title", "vector"])
+
+    #     # Convertir les vecteurs (de chaînes à listes)
+    #     user_vectors_df["vector"] = user_vectors_df["vector"].apply(lambda x: np.array(ast.literal_eval(x)))
+    #     book_vectors_df["vector"] = book_vectors_df["vector"].apply(lambda x: np.array(ast.literal_eval(x)))
+
+    #     # Fusionner les vecteurs utilisateur et livre avec les interactions
+    #     interactions_df = interactions_df.merge(user_vectors_df, on="user_id", how="left")
+    #     interactions_df = interactions_df.merge(book_vectors_df, on="book_id", how="left")
+
+    #     # Définir les pondérations
+    #     user_weight = 0.1  # Pondération pour les vecteurs utilisateur
+    #     book_weight = 0.9  # Pondération pour les vecteurs livre
+
+    #     # Préparer les données pour LightGBM
+    #     # Combiner les vecteurs utilisateur et livre dans les caractéristiques
+    #     features = interactions_df.apply(
+    #         lambda row: np.concatenate([row["vector_x"] * user_weight, row["vector_y"] * book_weight]), axis=1
+    #     ).tolist()
+    #     features = np.array(features)  # Convertir en tableau NumPy
+    #     labels = interactions_df["is_liked"]  # Exemple de label cible
+
+    #     # Séparer les ensembles d'entraînement et de test
+    #     X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.4, random_state=42)
+
+    #     # Créer les datasets LightGBM
+    #     train_data = lgb.Dataset(X_train, label=y_train)
+    #     test_data = lgb.Dataset(X_test, label=y_test, reference=train_data)
+
+    #     # Définir les paramètres LightGBM
+    #     params = {
+    #     "objective": "binary",
+    #     "metric": "binary_logloss",
+    #     "boosting_type": "gbdt",
+    #     "learning_rate": 0.03,
+    #     "num_leaves": 31,
+    #     "max_depth": 6,
+    #     "feature_fraction": 0.8,
+    #     "bagging_fraction": 0.8,
+    #     "bagging_freq": 5,
+    #     "verbose": -1
+    # }
+
+
+    #     # Entraîner le modèle avec validation
+    #     self.model = lgb.train(
+    #         params,
+    #         train_data,
+    #         valid_sets=[train_data, test_data],  # Ajout des jeux de validation
+    #         valid_names=["train", "valid"],  # Noms des ensembles pour le suivi
+    #         num_boost_round=100 
+            
+    #     )
+
+    #     # Faire des prédictions sur l'ensemble de test
+    #     y_pred = self.model.predict(X_test, num_iteration=self.model.best_iteration)  # Utiliser la meilleure itération
+    #     y_pred_binary = (y_pred > 0.5).astype(int)
+
+    #     # Évaluer le modèle
+    #     accuracy = accuracy_score(y_test, y_pred_binary)
+    #     print(f"Accuracy: {accuracy:.4f}")
+
+
+    def get_similar_users(self, user_id, n=5):
+        """
+        Rechercher les N users les plus similaires à un user donné en utilisant pgvector.
+        """
+        # Formater la requête SQL avec les paramètres user_id et n
+        query = f"""
+        SELECT
+            id,
+            
+            1 - (vector <=> (SELECT vector FROM library.user_vector WHERE id = {user_id})) AS similarity
+        FROM
+            library.user_vector
+
+
+        WHERE
+            id != {user_id}
+        ORDER BY
+            similarity DESC
+        LIMIT {n};
+        """
+
+        # Exécuter la requête SQL
+        similar_users = self.bddservice.cmd_sql(query)
+        return similar_users
+    
+    def get_similar_users_debug(self, user_id, n=5):
+        """
+        Rechercher les N utilisateurs les plus similaires à un utilisateur donné en utilisant pgvector.
+        """
+        # Formater la requête SQL avec les paramètres user_id et n
+        query = f"""
+        SELECT
+            uv.id,
+            us.*,
+            ARRAY_AGG(DISTINCT g.name) AS liked_genres,  -- Agrège les genres associés à l'utilisateur
+            1 - (vector <=> (SELECT vector FROM library.user_vector WHERE id = {user_id})) AS similarity
+        FROM
+            library.user_vector uv
+
+        LEFT JOIN
+            library._users us ON uv.id = us.user_id
+
+        LEFT JOIN
+            library.user_liked_genre lg ON uv.id = lg.user_id
+
+        LEFT JOIN
+            library.genre g ON lg.genre_id = g.genre_id
+
+        WHERE
+            uv.id != {user_id}  -- Pour exclure l'utilisateur lui-même des résultats
+
+        GROUP BY
+            uv.id, us.user_id  -- Groupement par utilisateur pour appliquer ARRAY_AGG
+
+        ORDER BY
+            similarity DESC
+        LIMIT {n+1};
+        """
+        
+        # Exécuter la requête SQL
+        similar_users = self.bddservice.cmd_sql(query)
+        for user in similar_users:
+            print(user)
+        return similar_users
+
+    def get_book(self, book_id):
+        query = f"""
+        SELECT title
+        FROM library.book
+        WHERE book_id={book_id} 
+        """
+        book_title = self.bddservice.cmd_sql(query)
+        return book_title
+    
+    def recommend_books_for_user(self, user_id, n_recommendations=5):
+        """
+        Recommande les N livres les plus populaires basés sur les utilisateurs les plus similaires à un utilisateur donné.
+        """
+        # Récupérer les utilisateurs similaires à l'utilisateur donné
+        similar_users = self.get_similar_users(user_id, n=n_recommendations)
+
+        print(similar_users)
+        
+        # Dictionnaire pour stocker les livres recommandés et leur score de similarité total
+        recommendations = {}
+        
+        for similar_user in similar_users:
+            
+            
+            similar_user_id = similar_user[0]
+            # Récupérer les livres que cet utilisateur similaire a aimés ou consultés
+            similar_user_books = self.recommandation_service.get_user_books(similar_user_id)  # Fonction à implémenter pour obtenir les livres d'un utilisateur
+            #print(similar_user_books)
+            for book in similar_user_books:
+                #print(book)
+                book_id = book['book_id']
+                
+                similarity_score = similar_user[1]  # Utiliser la similarité calculée pour l'utilisateur similaire
+                # Pondération basée sur la note et date de lecture
+                weight = 1.0
+                if book['note']:
+                    weight += book['note'] / 5.0  # Si la note est sur 5
+                if book['reading_date']:
+                    # Calcul de la différence en années
+                    reading_year = book['reading_date'].year
+                    current_year = datetime.now().year
+                    year_delta = max(current_year - reading_year, 1)  # Éviter division par zéro
+
+                    # Calcul du poids avec logarithme
+                    recency_weight = 1 / np.log1p(year_delta)
+                    weight *= recency_weight
+                    
+                # Calcul du score final
+                final_score = similarity_score * weight
+
+                #print(similarity_score,weight)
+
+                # Ajout au dictionnaire des recommandations
+                if book_id not in recommendations:
+                    
+                    recommendations[book_id] = [self.get_book(book_id), final_score]
+                    #print(recommendations[book_id])  # Le titre du livre est aussi pris en compte ici
+                else:
+                    recommendations[book_id][1] += final_score
+
+        # Trier les recommandations par score décroissant
+        sorted_recommendations = sorted(recommendations.items(), key=lambda x: x[1][1], reverse=True)
+        #print(sorted_recommendations)
+        # Retourner les N meilleurs
+        return sorted_recommendations[:n_recommendations]
+    
+
+    def recommandation_hybride(self, user_id, n_recommendations=5):
+        """
+        Effectue une recommandation hybride de livres en combinant les recommandations basées sur l'utilisateur (user-based)
+        et les livres similaires (item-based). Le facteur item_weight_factor permet de donner plus de poids à l'item-based.
+        """
+        # 1. Recommandations basées sur les utilisateurs similaires (user-based)
+        user_based_recommendations = self.recommend_books_for_user(user_id, n_recommendations)
+
+        print(user_based_recommendations)
+
+
+        # Dictionnaire pour stocker les livres recommandés de manière hybride et leur score final
+        hybrid_recommendations = {}
+
+        # 2. Pour chaque livre recommandé par l'approche user-based, recommander des livres similaires (item-based)
+        for book in user_based_recommendations:
+            
+            book_id = book[0]  # Récupérer le book_id du livre recommandé par l'approche user-based
+            print(f"Recommandations basées sur l'utilisateur : Livre ID {book_id}")
+            
+            # Récupérer les livres similaires à ce livre (item-based)
+            similar_books = self.recommandation_service.get_similar_books(book_id, n=n_recommendations)  # Remplacez par votre fonction d'obtention des livres similaires
+            
+            
+
+            for similar_book in similar_books:
+                
+                similar_book_id = similar_book[0]  # Récupérer l'ID du livre similaire
+                similarity_score = similar_book[2]  # Similarité du livre
+
+                print(similar_book_id)
+                
+                # Pondération basée sur le score de l'utilisateur
+                user_weight = book[1][1]  # Le poids de l'utilisateur pour ce livre recommandé
+                
+                
+                # Appliquer le facteur de poids à l'item-based (augmentation de l'influence de l'item-based)
+                final_score = similarity_score * user_weight
+                print(final_score)
+                # Ajouter ou accumuler les livres recommandés
+                if similar_book_id not in hybrid_recommendations:
+                    hybrid_recommendations[similar_book_id] = [self.get_book(similar_book_id), final_score]
+                else:
+                    hybrid_recommendations[similar_book_id][1] += final_score
+
+        # 3. Trier les recommandations hybrides par score décroissant
+        sorted_hybrid_recommendations = sorted(hybrid_recommendations.items(), key=lambda x: x[1][1], reverse=True)
+
+        # 4. Retourner les N meilleurs livres recommandés de manière hybride
+        return sorted_hybrid_recommendations[:n_recommendations]
+
+
+    
+    
+
+
+        
+
+
+        
 
 if __name__ == "__main__":
     service = RecomandationHybride()

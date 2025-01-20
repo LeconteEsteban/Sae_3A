@@ -144,7 +144,7 @@ class RecommendationService:
     
     def book_vector_simple(self, book):
         """
-        temps de traitement : environs 7 min et 50 Mo
+        temps de traitement : environs 10 min et 50 Mo
         """
         # Gestion des champs vides
         # Création du texte à vectoriser
@@ -169,13 +169,17 @@ class RecommendationService:
             1 - (vector <=> (SELECT vector FROM library.book_vector WHERE id = {book_id})) AS similarity
         FROM
             library.book_vector
+        WHERE
+            id != {book_id}
         ORDER BY
             similarity DESC
-        LIMIT {n};
+        LIMIT {n+1};
         """
 
         # Exécuter la requête SQL
         similar_books = self.bddservice.cmd_sql(query)
+
+        
 
         return similar_books
 
@@ -191,10 +195,10 @@ class RecommendationService:
 
         for book in user_books:
             similar_books = self.get_similar_books(book['book_id'], n=n_recommendations)
-
+            
             for similar_book in similar_books:
-                book_id = similar_book['id']
-                similarity_score = similar_book['similarity']
+                book_id = similar_book[0]
+                similarity_score = similar_book[2]
 
                 # Pondération basée sur la note et date de lecture
                 weight = 1.0
@@ -215,9 +219,9 @@ class RecommendationService:
 
                 # Ajout au dictionnaire des recommandations
                 if book_id not in recommendations:
-                    recommendations[book_id] = final_score
+                    recommendations[book_id] = [similar_book[1],final_score]
                 else:
-                    recommendations[book_id] += final_score
+                    recommendations[book_id][1] += final_score
 
         # Trier les recommandations par score décroissant
         sorted_recommendations = sorted(recommendations.items(), key=lambda x: x[1], reverse=True)
@@ -233,8 +237,8 @@ class RecommendationService:
         # Exemple de requête pour récupérer les livres de l'utilisateur à partir de la base de données
         query = f"""
         SELECT ubr.book_id, ubr.reading_date, ubn.note
-        FROM User_Book_Read ubr
-        LEFT JOIN User_Book_Notation ubn ON ubr.read_id = ubn.read_id
+        FROM library.User_Book_Read ubr
+        LEFT JOIN library.User_Book_Notation ubn ON ubr.read_id = ubn.read_id
         WHERE user_id = {user_id};
         """
         
