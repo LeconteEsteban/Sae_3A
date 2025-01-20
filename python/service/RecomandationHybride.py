@@ -301,12 +301,16 @@ class RecomandationHybride:
 
     def get_book(self, book_id):
         query = f"""
-        SELECT title
-        FROM library.book
-        WHERE book_id={book_id} 
+        SELECT title, g.name
+        FROM library.book b
+        INNER JOIN library.Genre_and_vote gv ON b.book_id = gv.book_id
+        INNER JOIN library.Genre g ON gv.genre_id = g.genre_id
+        WHERE b.book_id={book_id} 
         """
         book_title = self.bddservice.cmd_sql(query)
         return book_title
+    
+
     
     def recommend_books_for_user(self, user_id, n_recommendations=5):
         """

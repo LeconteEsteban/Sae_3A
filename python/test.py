@@ -40,13 +40,14 @@ if __name__ == "__main__":
 
         # peuplement1.table_user()
         #recommandation1.create_book_vector()
-        #similar_books = recommandation1.get_similar_books(1, 5)
+        similar_books = recommandation1.get_similar_books(1, 5)
+        print(similar_books)
         #recommandationhybride.get_similar_users_debug(26,5)
         #print(recommandationhybride.recommend_books_for_user(26,5))
         #bddservice.cmd_sql("TRUNCATE TABLE library.user_vector;")
         #recommandationhybride.create_vector_users()
         #print(recommandationhybride.recommend_books_for_user(26,5))
-        print(recommandationhybride.recommandation_hybride(26,5))
+        #print(recommandationhybride.recommandation_hybride(26,5))
 
         # # Affichage des livres similaires
         # for book in similar_books:
