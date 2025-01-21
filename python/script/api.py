@@ -4,6 +4,8 @@ from pathlib import Path
 # Ajouter le chemin parent au PYTHONPATH
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
+import sys
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
@@ -26,6 +28,9 @@ class RecommendationResponse(BaseModel):
     title: str
     genres: List[str]
 
+# Ajouter le chemin parent au PYTHONPATH
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 # Initialisation des services
 bddservice = DatabaseService()
 csv_service = CSVService()
@@ -33,6 +38,28 @@ embservice = EmbeddingService()
 bddservice.initialize_connection()
 recommendation_service = RecommendationService(bddservice, csv_service, embservice)
 recommendation_hybride = RecomandationHybride(bddservice, csv_service, embservice, recommendation_service)
+
+# Fonction utilitaire pour récupérer les genres d'un livre
+def get_book_genres(book_id: int, bddservice: DatabaseService) -> List[str]:
+    """
+    Récupère les genres associés à un livre donné.
+
+    Args:
+        book_id (int): Identifiant du livre.
+        bddservice (DatabaseService): Instance du service de base de données.
+
+    Returns:
+        List[str]: Liste des genres associés au livre.
+    """
+    query = f"""
+    SELECT g.name
+    FROM library.book b
+    INNER JOIN library.Genre_and_vote gv ON b.book_id = gv.book_id
+    INNER JOIN library.Genre g ON gv.genre_id = g.genre_id
+    WHERE b.book_id = {book_id}
+    """
+    book_genres = bddservice.cmd_sql(query)
+    return [genre[0] for genre in book_genres]
 
 # Création de l'application FastAPI
 app = FastAPI()
@@ -74,7 +101,7 @@ def get_recommendations(id_user: int, nbook: int):
         rec_id = rec[0]  # ID de la recommandation
         rec_data = rec[1]  # Liste contenant les titres et genres
         rec_title = rec_data[0][0][0]  # Le premier titre
-        rec_genres = [genre[1] for genre in rec_data[0]]  # Extraire tous les genres
+        rec_genres = get_book_genres(rec_id, bddservice)  # Utiliser la fonction utilitaire
         filtered_recommendations.append({
             "id": rec_id,
             "title": rec_title,
@@ -108,23 +135,12 @@ def get_book_recommendations(id_book: int, nbook: int):
     formatted_recommendations = []
     for book in similar_books:
         book_id, book_title, _ = book  # Nous utilisons uniquement l'ID et le titre pour l'instant
-
-        # Requête SQL pour récupérer les genres associés au livre
-        query = f"""
-        SELECT g.name
-        FROM library.book b
-        INNER JOIN library.Genre_and_vote gv ON b.book_id = gv.book_id
-        INNER JOIN library.Genre g ON gv.genre_id = g.genre_id
-        WHERE b.book_id = {book_id}
-        """
-        book_genres = bddservice.cmd_sql(query)
-        # Extraire les genres dans une liste
-        genre_list = [genre[0] for genre in book_genres]
+        book_genres = get_book_genres(book_id, bddservice)  # Utiliser la fonction utilitaire
 
         formatted_recommendations.append({
             "id": book_id,
             "title": book_title,
-            "genres": genre_list
+            "genres": book_genres
         })
 
     return formatted_recommendations
@@ -157,26 +173,14 @@ def get_book_recommendations_user(id_user: int, nbook: int):
         # Déstructuration correcte
         book_id = book[0]
         book_title = book[1][0]  # Titre du livre
-
-        # Récupérer les genres associés au livre
-        query = f"""
-        SELECT g.name
-        FROM library.book b
-        INNER JOIN library.Genre_and_vote gv ON b.book_id = gv.book_id
-        INNER JOIN library.Genre g ON gv.genre_id = g.genre_id
-        WHERE b.book_id = {book_id}
-        """
-        book_genres = bddservice.cmd_sql(query)
+        book_genres = get_book_genres(book_id, bddservice)  # Utiliser la fonction utilitaire
         print(f"Genres for book {book_id}: {book_genres}")  # Debugging
-
-        # Extraire les genres dans une liste
-        genre_list = [genre[0] for genre in book_genres]
 
         # Ajouter les données formatées à la réponse
         formatted_recommendations.append({
             "id": book_id,
             "title": book_title,
-            "genres": genre_list
+            "genres": book_genres
         })
 
     return formatted_recommendations
