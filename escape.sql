@@ -90,6 +90,7 @@ CREATE INDEX idx_book_fulltext ON Book USING GIN (
 CREATE INDEX idx_book_publication_date ON Book (publication_date);
 
 CREATE EXTENSION IF NOT EXISTS vector;
+-- SET search_path to library, public;
 -- peut être bugger en fonction des environnements, contacter angely! mais grosso modo, l'extension pgvector est activé dans public, et pas dans library
 CREATE TABLE Book_vector (
     id INT PRIMARY KEY,
