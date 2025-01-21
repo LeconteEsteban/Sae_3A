@@ -173,13 +173,33 @@ class RecommendationService:
             id != {book_id}
         ORDER BY
             similarity DESC
-        LIMIT {n+1};
+        LIMIT {n};
         """
 
         # Exécuter la requête SQL
         similar_books = self.bddservice.cmd_sql(query)
 
-        
+        return similar_books
+
+    def get_similar_books_hybrid(self, book_id, n=5):
+        """
+        Rechercher les N livres les plus similaires à un livre donné en utilisant pgvector.
+        """
+        # Formater la requête SQL avec les paramètres book_id et n
+        query = f"""
+        SELECT
+            id,
+            title,
+            1 - (vector <=> (SELECT vector FROM library.book_vector WHERE id = {book_id})) AS similarity
+        FROM
+            library.book_vector
+        ORDER BY
+            similarity DESC
+        LIMIT {n+1};
+        """
+
+        # Exécuter la requête SQL
+        similar_books = self.bddservice.cmd_sql(query)
 
         return similar_books
 
@@ -214,6 +234,7 @@ class RecommendationService:
                     recency_weight = 1 / np.log1p(year_delta)
                     weight *= recency_weight
                     
+                    
                 # Calcul du score final
                 final_score = similarity_score * weight
 
@@ -224,8 +245,7 @@ class RecommendationService:
                     recommendations[book_id][1] += final_score
 
         # Trier les recommandations par score décroissant
-        sorted_recommendations = sorted(recommendations.items(), key=lambda x: x[1], reverse=True)
-
+        sorted_recommendations = sorted(recommendations.items(), key=lambda x: x[1][1], reverse=True)
         # Retourner les N meilleurs
         return sorted_recommendations[:n_recommendations]
 
