@@ -387,7 +387,7 @@ class RecomandationHybride:
             print(f"Recommandations basées sur l'utilisateur : Livre ID {book_id}")
             
             # Récupérer les livres similaires à ce livre (item-based)
-            similar_books = self.recommandation_service.get_similar_books(book_id, n=n_recommendations)  # Remplacez par votre fonction d'obtention des livres similaires
+            similar_books = self.recommandation_service.get_similar_books_hybrid(book_id, n=n_recommendations)  # Remplacez par votre fonction d'obtention des livres similaires
             
             
 
