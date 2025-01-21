@@ -30,6 +30,10 @@ if __name__ == "__main__":
         #peuplement1.peuplementTotal()
         #Effectue les traitements: vue matérialisé, pré-traitement, ...
 
+        #recommandation1.create_book_vector()
+        #recommandationhybride.create_vector_users()
+        
+
         # bddservice.cmd_sql("TRUNCATE TABLE library.friends RESTART IDENTITY CASCADE ;")
         # bddservice.cmd_sql("TRUNCATE TABLE library.User_Book_Read RESTART IDENTITY CASCADE;")
         # bddservice.cmd_sql("TRUNCATE TABLE library.User_field_of_reading RESTART IDENTITY CASCADE;")
@@ -45,8 +49,8 @@ if __name__ == "__main__":
         #print(recommandationhybride.recommend_books_for_user(26,5))
         #bddservice.cmd_sql("TRUNCATE TABLE library.user_vector;")
         #recommandationhybride.create_vector_users()
-        #print(recommandationhybride.recommend_books_for_user(26,5))
-        print(recommandationhybride.recommandation_hybride(26,5))
+        print(recommandationhybride.recommend_books_for_user(26,5))
+        #print(recommandationhybride.recommandation_hybride(26,5))
 
         # # Affichage des livres similaires
         # for book in similar_books:
