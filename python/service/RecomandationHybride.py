@@ -354,10 +354,14 @@ class RecomandationHybride:
                 # Ajout au dictionnaire des recommandations
                 if book_id not in recommendations:
                     
-                    recommendations[book_id] = [self.get_book(book_id), final_score]
+                    recommendations[book_id] = [self.get_book(book_id), final_score, 1] # 1 = count du nombre de score
                     #print(recommendations[book_id])  # Le titre du livre est aussi pris en compte ici
                 else:
                     recommendations[book_id][1] += final_score
+                    recommendations[book_id][2] += 1
+
+        for reco in recommendations:
+            reco[1] = reco[1]/reco[2]
 
         # Trier les recommandations par score décroissant
         sorted_recommendations = sorted(recommendations.items(), key=lambda x: x[1][1], reverse=True)
@@ -407,9 +411,13 @@ class RecomandationHybride:
                 print(final_score)
                 # Ajouter ou accumuler les livres recommandés
                 if similar_book_id not in hybrid_recommendations:
-                    hybrid_recommendations[similar_book_id] = [self.get_book(similar_book_id), final_score]
+                    hybrid_recommendations[similar_book_id] = [self.get_book(similar_book_id), final_score, 1]
                 else:
                     hybrid_recommendations[similar_book_id][1] += final_score
+                    hybrid_recommendations[similar_book_id][2] += 1
+
+        for reco in hybrid_recommendations:
+            reco[1] = reco[1]/reco[2]
 
         # 3. Trier les recommandations hybrides par score décroissant
         sorted_hybrid_recommendations = sorted(hybrid_recommendations.items(), key=lambda x: x[1][1], reverse=True)
