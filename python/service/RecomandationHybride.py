@@ -315,7 +315,7 @@ class RecomandationHybride:
         # Récupérer les utilisateurs similaires à l'utilisateur donné
         similar_users = self.get_similar_users(user_id, n=n_recommendations)
 
-        print(similar_users)
+        
         
         # Dictionnaire pour stocker les livres recommandés et leur score de similarité total
         recommendations = {}
@@ -357,11 +357,11 @@ class RecomandationHybride:
                     recommendations[book_id] = [self.get_book(book_id), final_score, 1] # 1 = count du nombre de score
                     #print(recommendations[book_id])  # Le titre du livre est aussi pris en compte ici
                 else:
+                    
                     recommendations[book_id][1] += final_score
                     recommendations[book_id][2] += 1
-
         for reco in recommendations:
-            reco[1] = reco[1]/reco[2]
+            recommendations[reco][1] = recommendations[reco][1]/recommendations[reco][2]
 
         # Trier les recommandations par score décroissant
         sorted_recommendations = sorted(recommendations.items(), key=lambda x: x[1][1], reverse=True)
@@ -378,7 +378,7 @@ class RecomandationHybride:
         # 1. Recommandations basées sur les utilisateurs similaires (user-based)
         user_based_recommendations = self.recommend_books_for_user(user_id, n_recommendations)
 
-        print(user_based_recommendations)
+        #print(user_based_recommendations)
 
 
         # Dictionnaire pour stocker les livres recommandés de manière hybride et leur score final
@@ -388,7 +388,7 @@ class RecomandationHybride:
         for book in user_based_recommendations:
             
             book_id = book[0]  # Récupérer le book_id du livre recommandé par l'approche user-based
-            print(f"Recommandations basées sur l'utilisateur : Livre ID {book_id}")
+            #print(f"Recommandations basées sur l'utilisateur : Livre ID {book_id}")
             
             # Récupérer les livres similaires à ce livre (item-based)
             similar_books = self.recommandation_service.get_similar_books_hybrid(book_id, n=n_recommendations)  # Remplacez par votre fonction d'obtention des livres similaires
@@ -400,7 +400,7 @@ class RecomandationHybride:
                 similar_book_id = similar_book[0]  # Récupérer l'ID du livre similaire
                 similarity_score = similar_book[2]  # Similarité du livre
 
-                print(similar_book_id)
+                
                 
                 # Pondération basée sur le score de l'utilisateur
                 user_weight = book[1][1]  # Le poids de l'utilisateur pour ce livre recommandé
@@ -408,7 +408,7 @@ class RecomandationHybride:
                 
                 # Appliquer le facteur de poids à l'item-based (augmentation de l'influence de l'item-based)
                 final_score = similarity_score * user_weight
-                print(final_score)
+                
                 # Ajouter ou accumuler les livres recommandés
                 if similar_book_id not in hybrid_recommendations:
                     hybrid_recommendations[similar_book_id] = [self.get_book(similar_book_id), final_score, 1]
@@ -417,7 +417,7 @@ class RecomandationHybride:
                     hybrid_recommendations[similar_book_id][2] += 1
 
         for reco in hybrid_recommendations:
-            reco[1] = reco[1]/reco[2]
+            hybrid_recommendations[reco][1] = hybrid_recommendations[reco][1]/hybrid_recommendations[reco][2]
 
         # 3. Trier les recommandations hybrides par score décroissant
         sorted_hybrid_recommendations = sorted(hybrid_recommendations.items(), key=lambda x: x[1][1], reverse=True)

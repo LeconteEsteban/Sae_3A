@@ -49,8 +49,8 @@ if __name__ == "__main__":
         #print(recommandationhybride.recommend_books_for_user(26,5))
         #bddservice.cmd_sql("TRUNCATE TABLE library.user_vector;")
         #recommandationhybride.create_vector_users()
-        print(recommandationhybride.recommend_books_for_user(26,5))
-        #print(recommandationhybride.recommandation_hybride(26,5))
+        #print(recommandationhybride.recommend_books_for_user(26,5))
+        print(recommandationhybride.recommandation_hybride(26,20))
 
         # # Affichage des livres similaires
         # for book in similar_books:
