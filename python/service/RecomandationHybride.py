@@ -416,6 +416,18 @@ class RecomandationHybride:
                     hybrid_recommendations[similar_book_id][1] += final_score
                     hybrid_recommendations[similar_book_id][2] += 1
 
+        #on récupère les top 1000 livres
+        #on prend 20 aléatoire
+        #on attribue un poids aléatoire à chaque -> alea20
+        alea10 = [1,2,23,45,847,4554,741,18879,648,48974]
+        for idalea in alea10:
+            scoreAlea = math.random()
+            if similar_book_id not in hybrid_recommendations:
+                hybrid_recommendations[idalea] = [self.get_book(idalea), scoreAlea, 1]
+            else:
+                hybrid_recommendations[idalea][1] += scoreAlea
+                hybrid_recommendations[idalea][2] += 1
+
         for reco in hybrid_recommendations:
             hybrid_recommendations[reco][1] = hybrid_recommendations[reco][1]/hybrid_recommendations[reco][2]
 
