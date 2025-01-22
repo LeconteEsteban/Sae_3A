@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from service.CacheService import *
 from sklearn.model_selection import train_test_split
 #import lightgbm as lgb
@@ -308,6 +309,37 @@ class RecomandationHybride:
         book_title = self.bddservice.cmd_sql(query)
         return book_title
     
+
+    def get_top_books(self, n=10):
+        """
+        Récupère les N meilleurs livres selon la vue matérialisée library.top_books.
+
+        Args:
+            n (int): Nombre de livres à récupérer (par défaut 10).
+
+        Returns:
+            list[tuple]: Une liste de tuples contenant les IDs et titres des meilleurs livres.
+        """
+        # Requête SQL pour récupérer les N meilleurs livres
+        query = f"""
+        SELECT
+            book_id,
+            title
+        FROM
+            library.top_books
+        ORDER BY
+            score DESC
+        LIMIT {n};
+        """
+
+        # Exécuter la requête SQL
+        top_books = self.bddservice.cmd_sql(query)
+
+
+        # Retourner les résultats sous forme de liste de tuples
+        return [book[0] for book in top_books]
+
+    
     def recommend_books_for_user(self, user_id, n_recommendations=5):
         """
         Recommande les N livres les plus populaires basés sur les utilisateurs les plus similaires à un utilisateur donné.
@@ -419,14 +451,16 @@ class RecomandationHybride:
         #on récupère les top 1000 livres
         #on prend 20 aléatoire
         #on attribue un poids aléatoire à chaque -> alea20
-        alea10 = [1,2,23,45,847,4554,741,18879,648,48974]
-        for idalea in alea10:
-            scoreAlea = math.random()
-            if similar_book_id not in hybrid_recommendations:
+        aleaN = self.get_top_books(n=1000)
+        aleaNlist = random.sample(aleaN,20)
+        for idalea in aleaNlist:
+            scoreAlea = random.uniform(0.5,1)
+            if idalea not in hybrid_recommendations:
                 hybrid_recommendations[idalea] = [self.get_book(idalea), scoreAlea, 1]
             else:
                 hybrid_recommendations[idalea][1] += scoreAlea
                 hybrid_recommendations[idalea][2] += 1
+
 
         for reco in hybrid_recommendations:
             hybrid_recommendations[reco][1] = hybrid_recommendations[reco][1]/hybrid_recommendations[reco][2]
