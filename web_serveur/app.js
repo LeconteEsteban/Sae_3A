@@ -11,11 +11,11 @@ const io = socketIo(server);
 const postgresqlService = require('./scripts/postgresqlService');
 
 // Servir les fichiers statiques (HTML/CSS/JS frontend)
-app.use(express.static(path.join(__dirname, '../front_end/public')));
+app.use(express.static(path.join(__dirname, '../frontend/public')));
 
 // Route pour la page du livre
 app.get('/livre', (req, res) => {
-    res.sendFile(path.join(__dirname, '../front_end/public/livre.html'));
+    res.sendFile(path.join(__dirname, '../frontend/public/livre.html'));
 });
 
 // Connexion via Socket.IO
