@@ -30,4 +30,11 @@ Spécificité :
     sûr des changements, create_table.sql est le script qui sera executer par DatabaseService.create_database(),
     create_table.sql est téléchargé à partir git main s'il n'existe pas, donc vous devez faire vos tests sql dessus.
 
+Serveur web :
+    Mise en place : faire : npm install , pour installer les dépendances requises
+
+    Lancement : node app.js
+
+    prévu : faire un .sh qui lance tout automatiquement (mise à jour des dépendances, api python, serveur node)
+    
     

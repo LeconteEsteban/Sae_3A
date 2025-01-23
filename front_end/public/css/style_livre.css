@@ -1,0 +1,16 @@
+body{
+    background-color: #1E1E1E;
+    color: #B3B3B3;
+    padding: 2em;
+}
+
+#book_cover{
+    width: 50%;
+    height: auto;
+    background-color: #B3B3B3;
+}
+
+#first_part_book{
+    display: flex;
+    flex-direction: row;
+}

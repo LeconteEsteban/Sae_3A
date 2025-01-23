@@ -19,3 +19,5 @@ myenv/
 testperso.py
 
 venv
+
+node_modules/

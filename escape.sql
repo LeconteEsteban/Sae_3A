@@ -423,5 +423,6 @@ left join Settings sett on sett.settings_id = Setob.settings_id
 left join Characters_of_book Cob on b.book_id = Cob.book_id
 left join Characters c on c.characters_id = Cob.characters_id
 left join rating_book rb on b.book_id = rb.book_id
-left join author_view av on a.name = av.name;
+left join Wrote wr on b.book_id = wr.book_id
+left join author_view av on wr.author_id = av.author_id;
 
