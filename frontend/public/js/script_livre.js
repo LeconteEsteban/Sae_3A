@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // });
 
             // Afficher la couverture du livre
-            const imgUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${bookData.isbn}`;
+            const imgUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${bookData.isbn13}`;
             try {
                 const response = await fetch(imgUrl);
                 const data = await response.json();
