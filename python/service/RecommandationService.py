@@ -1,4 +1,5 @@
 import numpy as np
+import random
 import pandas as pd
 import faiss
 from sklearn.preprocessing import StandardScaler
@@ -240,9 +241,25 @@ class RecommendationService:
 
                 # Ajout au dictionnaire des recommandations
                 if book_id not in recommendations:
-                    recommendations[book_id] = [similar_book[1],final_score]
+                    recommendations[book_id] = [similar_book[1],final_score,1]
                 else:
                     recommendations[book_id][1] += final_score
+                    recommendations[book_id][2] += 1
+
+        aleaN = self.get_top_books(n=1000)
+        aleaNlist = random.sample(aleaN,n_recommendations/2)
+        for idalea in aleaNlist:
+            scoreAlea = random.uniform(0.5,1)
+            if idalea not in recommendations:
+                recommendations[idalea] = [self.get_book(idalea), scoreAlea, 1]
+            else:
+                recommendations[idalea][1] += scoreAlea
+                recommendations[idalea][2] += 1
+
+
+        for reco in recommendations:
+            recommendations[reco][1] = recommendations[reco][1]/recommendations[reco][2]
+
 
         # Trier les recommandations par score décroissant
         sorted_recommendations = sorted(recommendations.items(), key=lambda x: x[1][1], reverse=True)
@@ -267,6 +284,33 @@ class RecommendationService:
         
         return [{'book_id': book[0], 'reading_date': book[1], 'note': book[2]} for book in books] 
 
+    def get_top_books(self, n=10):
+        """
+        Récupère les N meilleurs livres selon la vue matérialisée library.top_books.
+
+        Args:
+            n (int): Nombre de livres à récupérer (par défaut 10).
+
+        Returns:
+            list[tuple]: Une liste de tuples contenant les IDs et titres des meilleurs livres.
+        """
+        # Requête SQL pour récupérer les N meilleurs livres
+        query = f"""
+        SELECT
+            book_id,
+            title
+        FROM
+            library.top_books
+        ORDER BY
+            score DESC
+        LIMIT {n};
+        """
+
+        # Exécuter la requête SQL
+        top_books = self.bddservice.cmd_sql(query)
+
+        # Retourner les résultats sous forme de liste de tuples
+        return [book[0] for book in top_books]
 
 # Exemple d'utilisation
 if __name__ == "__main__":
