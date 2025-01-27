@@ -18,6 +18,11 @@ app.get('/livre', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/public/livre.html'));
 });
 
+// Route pour la page du mainTest
+app.get('/test', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/public/testfront/index.html'));
+});
+
 // Connexion via Socket.IO
 io.on('connection', (socket) => {
     console.log('Nouvelle connexion Socket.IO');

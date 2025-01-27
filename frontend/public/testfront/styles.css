@@ -1,0 +1,35 @@
+/* Ajoutez vos styles personnalisés ici */
+header {
+    font-family: 'Arial', sans-serif;
+    position: fixed; /* Le header reste fixé à l'écran */
+    top: 0;          /* Positionné en haut de la fenêtre */
+    left: 0;
+    width: 100%;     /* S'étend sur toute la largeur de l'écran */
+    z-index: 1000;   /* S'assure qu'il reste au-dessus des autres éléments */
+    background-color: #fff; /* Ajoutez un fond pour éviter que le contenu passe en dessous */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Une légère ombre pour distinguer */
+}
+
+input:focus {
+    border-color: #3b82f6; /* Couleur de mise au point bleue */
+    box-shadow: 0 0 0 1px #3b82f6;
+}
+
+button:hover {
+    transition: all 0.2s;
+    transform: scale(1.05);
+}
+
+.flex-wrap > span {
+    margin-bottom: 10px; /* Pour espacer les lignes de tags */
+}
+
+.search {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ajout pour que le contenu en dessous ne soit pas masqué par le header */
+body {
+    padding-top: 70px; /* Ajustez la valeur en fonction de la hauteur du header */
+}
