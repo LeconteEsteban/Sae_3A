@@ -171,7 +171,7 @@ function handleLogout() {
     document.getElementById('loginButton').classList.remove('hidden');
     document.getElementById('usernameHeader').classList.add('hidden');
     document.getElementById('menuBurger').classList.add('hidden');
-    alert('Déconnexion réussie !');
+    //alert('Déconnexion réussie !');
 }
 
 // fin du code pour gérer les comptes
