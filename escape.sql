@@ -253,6 +253,14 @@ CREATE TABLE Friends (
                          PRIMARY KEY (user_id1, user_id2)
 );
 
+-- Table WishListe
+CREATE TABLE WishListe (
+                         wish_id SERIAL PRIMARY KEY,
+                         user_id INTEGER REFERENCES _Users(user_id),
+                         book_id INTEGER REFERENCES Book(book_id),
+                         add_date DATE
+);
+
 -- Table genre affinity (User's liked genres)
 CREATE TABLE Genre_affinity (
                        user_id INTEGER REFERENCES _Users(user_id),
