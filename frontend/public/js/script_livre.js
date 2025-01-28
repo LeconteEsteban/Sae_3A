@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Afficher la couverture du livre
             const cover = document.getElementById('book-cover');
+            
             // const imgUrl = `https://covers.openlibrary.org/b/isbn/${bookData.isbn}-L.jpg`;
             // fetchImage(imgUrl).then(img => {
             //     cover.src = imgUrl;
