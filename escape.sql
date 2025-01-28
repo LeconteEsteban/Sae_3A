@@ -310,6 +310,13 @@ CREATE TABLE User_field_of_reading (
     field VARCHAR(100)
 );
 
+-- Table Book_Cover
+CREATE TABLE Book_Cover (
+                               book_id INTEGER REFERENCES Book(book_id),
+                               isbn13 VARCHAR(255),
+                               cover_url VARCHAR(255),
+                               PRIMARY KEY (book_id)
+);
 
 
 --Questionary relation
