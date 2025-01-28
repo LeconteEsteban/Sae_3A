@@ -27,24 +27,25 @@
         </button>
         <button id="usernameHeader" onclick="openBurgerHeader()" class="hidden px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300"></button>
         
-        <div id="menuBurger" class="hidden fixed top-16 right-6 flex flex-col items-stretch bg-opacity">
-            <button
-            id="logoutButton"
-            class="flex items-center px-4 py-2 bg-red-200 hover:bg-red-300"
-            onclick="handleLogout()"
-            >
-            <i class="robot icon"></i>
-            <span>Déconnexion</span>
-            </button>
-            <button
+        <div id="menuBurger" class="hidden fixed rounded top-16 right-6 flex flex-col items-stretch bg-opacity">
+            
+            <div
             id="WishListeButton"
             class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300"
             onclick="WishListe()"
             >
             <i class="robot icon"></i>
             <span>Wish Liste</span>
-            </button>
+            </div>
             
+            <div
+            id="logoutButton"
+            class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 hover:text-red-600"
+            onclick="handleLogout()"
+            >
+            <i class="robot icon"></i>
+            <span>Déconnexion</span>
+            </div>
         </div>
     </header>
 
