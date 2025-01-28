@@ -13,12 +13,125 @@
         <div class="flex items-center w-1/2 search">
             <input type="text" placeholder="Recherche" class="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none">
         </div>
-        <button class="flex items-center px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300">
-            <i class="robot icon"></i>
-            <span>Connexion</span>
+
+        <!-- Bouton de Connexion -->
+        
+        
+        <button
+        id="loginButton"
+        class="flex items-center px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+        onclick="openModal()"
+        >
+        <i class="robot icon"></i>
+        <span>Connexion</span>
         </button>
+        <button id="usernameHeader" onclick="openBurgerHeader()" class="hidden px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300"></button>
+        
+        <div id="menuBurger" class="hidden fixed top-16 right-6 flex flex-col items-stretch bg-opacity">
+            <button
+            id="logoutButton"
+            class="flex items-center px-4 py-2 bg-red-200 hover:bg-red-300"
+            onclick="handleLogout()"
+            >
+            <i class="robot icon"></i>
+            <span>Déconnexion</span>
+            </button>
+            <button
+            id="WishListeButton"
+            class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300"
+            onclick="WishListe()"
+            >
+            <i class="robot icon"></i>
+            <span>Wish Liste</span>
+            </button>
+            
+        </div>
     </header>
 
+    <!-- Modale -->
+    <div id="loginModal" class="modaleForHide hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-[1000]" >
+        <div class="bg-white rounded-md p-6 w-96">
+            <div id="loginForm">
+                <h2 class="text-xl font-bold mb-4 flex justify-between">Connexion <button onclick="closeModal()" class="relative -top-4 -right-4 text-red-600">X</button></h2>
+                <form id="loginFormElement">
+                    <div class="mb-4">
+                    <label class="block text-gray-700">Identifiant</label>
+                    <input
+                        type="text"
+                        id="username"
+                        class="w-full p-2 border border-gray-300 rounded-md"
+                        required
+                    />
+                    </div>
+                    <div class="mb-4">
+                    <label class="block text-gray-700">Mot de passe</label>
+                    <input
+                        type="password"
+                        id="password"
+                        class="w-full p-2 border border-gray-300 rounded-md"
+                        required
+                    />
+                    </div>
+                    <button
+                    type="submit"
+                    class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
+                    >
+                    Se connecter
+                    </button>
+                </form>
+                <div class="mt-4 text-center">
+                    <p class="text-sm">Pas de compte ? 
+                    <a href="#" onclick="switchToRegister()" class="text-blue-500 hover:underline">
+                        Créer un compte
+                    </a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Modale (Créer un compte) -->
+            <div id="registerForm" class="modaleForHide hidden">
+                <h2 class="text-xl font-bold mb-4 flex justify-between">Créer un compte <button onclick="closeModal()" class="relative -top-4 -right-4 text-red-600">X</button></h2>
+                <form id="registerFormElement">
+                <div class="mb-4">
+                    <label class="block text-gray-700">Identifiant</label>
+                    <input
+                    type="text"
+                    id="newUsername"
+                    class="w-full p-2 border border-gray-300 rounded-md"
+                    required
+                    />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700">Mot de passe</label>
+                    <input
+                    type="password"
+                    id="newPassword"
+                    class="w-full p-2 border border-gray-300 rounded-md"
+                    required
+                    />
+                </div>
+                <button
+                    type="submit"
+                    class="w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600"
+                >
+                    Créer un compte
+                </button>
+                </form>
+                <div class="mt-4 text-center">
+                <p class="text-sm">Déjà un compte ? 
+                    <a href="#" onclick="switchToLogin()" class="text-blue-500 hover:underline">
+                    Se connecter
+                    </a>
+                </p>
+                </div>
+            </div>
+
+        </div>
+        
+    </div>
+
+    
+    
 
     <main class="px-6 py-8 space-y-8" style="padding: 0;">
         <section style="padding-bottom: 16px; background-image: url(img/scattered-forcefields.svg);">
