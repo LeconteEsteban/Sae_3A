@@ -47,6 +47,58 @@ def test_data(bdd):
         (1, NULL, 47);
     """
     bdd.cmd_sql(query)
+    
+    import random
+    from datetime import datetime, timedelta
+
+    def generate_fake_data(user_id, book_ids, mu=3, sigma=1):
+        def random_date():
+            start_date = datetime.now() - timedelta(days=3*365)
+            end_date = datetime.now()
+            random_days = random.randint(0, (end_date - start_date).days)
+            return (start_date + timedelta(days=random_days)).strftime('%Y-%m-%d')
+
+        # Insertion dans User_Book_Read
+        values_read = []
+        for book_id in book_ids:
+            is_read = True
+            is_liked = random.choice([True, False])
+            is_favorite = random.choice([True, False])
+            reading_date = random_date()
+            values_read.append(f"({user_id}, {book_id}, {is_read}, {is_liked}, {is_favorite}, '{reading_date}', NULL)")
+
+        query_read = f"""
+            INSERT INTO library.User_Book_Read 
+            (user_id, book_id, is_read, is_liked, is_favorite, reading_date, notation_id) 
+            VALUES 
+            {", ".join(values_read)};
+        """
+
+        # Insertion dans User_Book_Notation  
+        values_notation = []
+        for idx, book_id in enumerate(book_ids):
+            notation = round(random.gauss(mu, sigma))  
+            notation = max(1, min(5, notation)) 
+            read_id = idx + 1  
+            values_notation.append(f"({notation}, NULL, {read_id})")
+
+        query_notation = f"""
+            INSERT INTO library.User_Book_Notation 
+            (note, review_id, read_id) 
+            VALUES 
+            {", ".join(values_notation)};
+        """
+
+        return query_read, query_notation
+
+    # Exemple d'utilisation
+    user_id = 2
+    book_ids = [6452, 11570, 16586, 37980, 38052]
+    query_read, query_notation = generate_fake_data(user_id, book_ids)
+
+    print(query_read)
+    print(query_notation)
+
 
 #main pour les tests pls
 if __name__ == "__main__":

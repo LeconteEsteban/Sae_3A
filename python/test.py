@@ -51,14 +51,14 @@ if __name__ == "__main__":
         #recommandationhybride.create_vector_users()
         #print(recommandationhybride.recommend_books_for_user(26,5))
         #print(recommandationhybride.get_top_books(20))
-        print(recommandationhybride.recommandation_hybride(26,20))
+        #print(recommandationhybride.recommandation_hybride(26,20))
 
         # # Affichage des livres similaires
         # for book in similar_books:
         #      print(f"ID: {book[0]}, Titre: {book[1]}, Similarité: {book[2]}")
 
 
-        #bddservice.cmd_sql("TRUNCATE TABLE library.book_vector;")
+        bddservice.cmd_sql("TRUNCATE TABLE library.book_vector;")
 
     except Exception as e:
             print(f"Erreur dans le main : {e}")
