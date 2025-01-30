@@ -241,7 +241,7 @@ class RecommendationService:
                     # Calcul du poids avec logarithme
                     recency_weight = 1 / np.log1p(year_delta)
                     weight *= recency_weight
-                #poids par rapport au classement top book / autheur / année de publication
+                #poids par rapport au classement top book / autheur / année de publication / series / note de l'auteur
                 
                 rank_score = self.get_ranking_score(book_id)
                 if rank_score and rank_score[0]:
