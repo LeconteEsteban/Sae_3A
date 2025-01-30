@@ -1,4 +1,4 @@
-# README - Projet Escape
+# Projet Escape
 
 ## Installation des dépendances
 
