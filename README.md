@@ -1,5 +1,4 @@
-```markdown
-# README - Projet Escape
+#README - Projet Escape
 
 ## Installation des dépendances
 
