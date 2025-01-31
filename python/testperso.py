@@ -51,16 +51,28 @@ def test_data(bdd):
     import random
     from datetime import datetime, timedelta
 
-    def generate_fake_data(user_id, book_ids, mu=3, sigma=1):
+    def generate_fake_data_with_recommendations(user_id, book_titles, recommendation_service, mu=3, sigma=1, n_recommendations=5):
         def random_date():
             start_date = datetime.now() - timedelta(days=3*365)
             end_date = datetime.now()
             random_days = random.randint(0, (end_date - start_date).days)
             return (start_date + timedelta(days=random_days)).strftime('%Y-%m-%d')
 
+        # Récupérer les book_id à partir des titres
+        query_book_ids = f"""
+            SELECT book_id, title FROM library.Book WHERE title IN ({', '.join([f"'{title}'" for title in book_titles])});
+        """
+        book_id_results = recommendation_service.bddservice.cmd_sql(query_book_ids)
+        
+        book_id_map = {title: book_id for book_id, title in book_id_results}
+
+        if not book_id_map:
+            print("Aucun livre correspondant trouvé.")
+            return None, None, []
+
         # Insertion dans User_Book_Read
         values_read = []
-        for book_id in book_ids:
+        for title, book_id in book_id_map.items():
             is_read = True
             is_liked = random.choice([True, False])
             is_favorite = random.choice([True, False])
@@ -74,11 +86,11 @@ def test_data(bdd):
             {", ".join(values_read)};
         """
 
-        # Insertion dans User_Book_Notation  
+        # Insertion dans User_Book_Notation avec une loi normale
         values_notation = []
-        for idx, book_id in enumerate(book_ids):
+        for idx, (title, book_id) in enumerate(book_id_map.items()):
             notation = round(random.gauss(mu, sigma))  
-            notation = max(1, min(5, notation)) 
+            notation = max(1, min(5, notation))  
             read_id = idx + 1  
             values_notation.append(f"({notation}, NULL, {read_id})")
 
@@ -89,16 +101,25 @@ def test_data(bdd):
             {", ".join(values_notation)};
         """
 
-        return query_read, query_notation
+        # Générer les recommandations
+        recommended_books = {}
+        for book_id in book_id_map.values():
+            similar_books = recommendation_service.get_similar_books(book_id, n=n_recommendations)
+            for similar_book in similar_books:
+                recommended_books[similar_book[0]] = similar_book[1]
+
+        return query_read, query_notation, recommended_books
 
     # Exemple d'utilisation
     user_id = 2
-    book_ids = [6452, 11570, 16586, 37980, 38052]
-    query_read, query_notation = generate_fake_data(user_id, book_ids)
+    book_titles = ["Harry Potter et la pierre philosophale", "Le Seigneur des Anneaux", "1984"]
+    recommendation_service = RecommendationService(bddservice=None, csvservice=None, embeddingservice=None)  # À initialiser correctement
+
+    query_read, query_notation, recommended_books = generate_fake_data_with_recommendations(user_id, book_titles, recommendation_service)
 
     print(query_read)
     print(query_notation)
-
+    print("Livres recommandés :", recommended_books)
 
 #main pour les tests pls
 if __name__ == "__main__":
