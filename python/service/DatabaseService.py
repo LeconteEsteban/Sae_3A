@@ -209,6 +209,8 @@ class DatabaseService:
         if not self.connection:
             raise HTTPException(status_code=500, detail="La connexion à la base de données n'est pas établie.")
         
+        
+
         query = """
         INSERT INTO library._Users
         (name, age, passwords, child, familial_situation, gender, cat_socio_pro, lieu_habitation, frequency, book_size, birth_date)

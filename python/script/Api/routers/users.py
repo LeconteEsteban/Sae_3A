@@ -11,14 +11,14 @@ router = APIRouter()
 class UserCreate(BaseModel):
     username: str
     password: str
-    age: int
+    age: str
     child: bool
     familial_situation: str
     gender: str
     cat_socio_pro: str
     lieu_habitation: str
-    frequency: int
-    book_size: int
+    frequency: str
+    book_size: str
     birth_date: str
 
 # Modèle pour la connexion
@@ -33,13 +33,13 @@ bddservice = DatabaseService()
 def register(user: UserCreate):
     try:
         bddservice.initialize_connection()
-        new_user = bddservice.create_user(user.dict())  # Conversion en dict
-        bddservice.close_connection()
-        return {"message": "Utilisateur créé avec succès", "userId": new_user["user_id"]}
+        new_user = bddservice.create_user(user.model_dump())
+        return {"message": "Utilisateur créé avec succès", "userId": new_user[0]}
     except Exception as e:
-        bddservice.close_connection()
         print(e)
         raise HTTPException(status_code=500, detail="Erreur lors de la création de l'utilisateur")
+    finally:
+        bddservice.close_connection()
 
 # Route pour se connecter
 @router.post("/api/login")
@@ -47,7 +47,6 @@ def login(user: UserLogin):
     try:
         bddservice.initialize_connection()
         authenticated_user = bddservice.authenticate_user(user.username, user.password)
-        bddservice.close_connection()
         if authenticated_user:
             return {
                 "message": "Connexion réussie",
@@ -59,6 +58,7 @@ def login(user: UserLogin):
         else:
             raise HTTPException(status_code=401, detail="Nom ou mot de passe incorrect")
     except Exception as e:
-        bddservice.close_connection()
         print(e)
         raise HTTPException(status_code=500, detail="Erreur lors de la connexion")
+    finally:
+        bddservice.close_connection()
