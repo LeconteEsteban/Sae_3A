@@ -1,10 +1,10 @@
 from service.DatabaseService import *
 from service.CSVService import CSVService
-from script.peuplement import *
-from script.traitement import *
-from service.CacheService import *
+#from script.peuplement import *
+#from script.traitement import *
+#from service.CacheService import *
 from service.RecommandationService import * 
-from service.ParseService import *
+#from service.ParseService import *
 from service.EmbeddingService import *
 from datetime import datetime
 
@@ -50,13 +50,13 @@ def test_data(bdd):
 
 #main pour les tests pls
 if __name__ == "__main__":
-    cache_service  = CacheService()
+    #cache_service  = CacheService()
     bddservice = DatabaseService()
     csv_service = CSVService()
-    parseservice = ParsingService()
+    #parseservice = ParsingService()
     embservice = EmbeddingService()
-    peuplement1 = peuplement(bddservice, csv_service, parseservice)
-    traitement1 = traitement(bddservice, csv_service)
+    #peuplement1 = peuplement(bddservice, csv_service, parseservice)
+    #traitement1 = traitement(bddservice, csv_service)
     recommandation1 = RecommendationService(bddservice, csv_service, embservice)
 
     try:
@@ -64,11 +64,14 @@ if __name__ == "__main__":
         bddservice.initialize_connection()
         print(datetime.now())
 
+        #print(bddservice.get_book_cover_url(1,'9781416950417'))
+
         #Créer la base de donnée
         #bddservice.create_database()
         #remplie la base de donnée des tables
         #peuplement1.peuplementTotal()
         #Effectue les traitements: vue matérialisé, pré-traitement, ...
+        #traitement1.traitementTotal()
 
         # bddservice.cmd_sql("TRUNCATE TABLE library.friends RESTART IDENTITY CASCADE ;")
         # bddservice.cmd_sql("TRUNCATE TABLE library.User_Book_Read RESTART IDENTITY CASCADE;")
@@ -89,11 +92,11 @@ if __name__ == "__main__":
         # for book in similar_books:
         #     print(book)
 
-        recommanded_book = recommandation1.recommend_books_for_user(2,5)
-        # # Affichage des livres recommandé
-        for book in recommanded_book:
-             print(book)
-
+        # recommanded_book = recommandation1.recommend_books_for_user(2,200)
+        # # # Affichage des livres recommandé
+        # for book in recommanded_book:
+        #      print(book)
+        # print(len(recommanded_book))
 
         #bddservice.cmd_sql("TRUNCATE TABLE library.book_vector;")
 

@@ -4,11 +4,13 @@ from pathlib import Path
 # Ajouter le chemin parent au PYTHONPATH
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-import sys
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List
+
 from service.DatabaseService import DatabaseService
 from service.CSVService import CSVService
 from service.EmbeddingService import EmbeddingService
@@ -64,15 +66,14 @@ def get_book_genres(book_id: int, bddservice: DatabaseService) -> List[str]:
 # Création de l'application FastAPI
 app = FastAPI()
 
-@app.get("/", response_model=dict)
-def root():
-    """
-    Endpoint racine de l'API.
+# Monter le dossier des fichiers statiques (HTML, CSS, JS, images)
+app.mount("/static", StaticFiles(directory="../../frontend/public"), name="static")
 
-    Returns:
-        dict: Message de bienvenue.
-    """
-    return {"message": "c'est la api hinhihnhin"}
+@app.get("/")
+def home():
+    return FileResponse("../../frontend/public/index.html")
+
+
 
 @app.get("/recommandation/user/{id_user}/{nbook}", response_model=List[RecommendationResponse])
 def get_recommendations(id_user: int, nbook: int):

@@ -1,4 +1,6 @@
 import numpy as np
+import math
+import random
 import pandas as pd
 import faiss
 from sklearn.preprocessing import StandardScaler
@@ -166,7 +168,7 @@ class RecommendationService:
         SELECT
             id,
             title,
-            1 - (vector <=> (SELECT vector FROM library.book_vector WHERE id = {book_id})) AS similarity
+            1 - (vector000(SELECT vector FROM library.book_vector WHERE id = {book_id})) AS similarity
         FROM
             library.book_vector
         WHERE
@@ -206,6 +208,7 @@ class RecommendationService:
     def recommend_books_for_user(self, user_id, n_recommendations=5):
         """
         Recommande les N livres les plus similaires basés sur les livres déjà appréciés ou consultés par l'utilisateur.
+        Faire un mode exploration, pour plus de diversité
         """
         # Récupérer les livres que l'utilisateur a aimés ou consultés
         user_books = self.get_user_books(user_id)  # Fonction que tu devras implémenter pour obtenir les livres d'un utilisateur
@@ -218,10 +221,15 @@ class RecommendationService:
             
             for similar_book in similar_books:
                 book_id = similar_book[0]
+                
+                # Vérifie si le livre similaire est déjà lu
+                if book_id in user_books:
+                    continue 
+
                 similarity_score = similar_book[2]
 
                 # Pondération basée sur la note et date de lecture
-                weight = 1.0
+                weight = 0.5
                 if book['note']:
                     weight += book['note'] / 5.0  # Si la note est sur 5
                 if book['reading_date']:
@@ -233,16 +241,43 @@ class RecommendationService:
                     # Calcul du poids avec logarithme
                     recency_weight = 1 / np.log1p(year_delta)
                     weight *= recency_weight
-                    
+                #poids par rapport au classement top book / autheur / année de publication / series / note de l'auteur
+                
+                rank_score = self.get_ranking_score(book_id)
+                if rank_score and rank_score[0]:
+                    weight *= 1 + rank_score[0][0]/9000000
                     
                 # Calcul du score final
                 final_score = similarity_score * weight
 
                 # Ajout au dictionnaire des recommandations
                 if book_id not in recommendations:
-                    recommendations[book_id] = [similar_book[1],final_score]
+                    recommendations[book_id] = [similar_book[1],final_score,1]
                 else:
                     recommendations[book_id][1] += final_score
+                    recommendations[book_id][2] += 1
+
+        aleaN = self.get_top_books(n=1000)
+        aleaNlist = random.sample(aleaN, min(len(aleaN), math.floor(n_recommendations / 10) ))
+        for idalea in aleaNlist:
+            # Vérifie si le livre aléatoire est déjà lu
+            if idalea in user_books:
+                continue 
+            scoreAlea = random.uniform(0.5,1)
+            if idalea not in recommendations:
+                recommendations[idalea] = [self.get_book(idalea), scoreAlea, 1]
+            else:
+                recommendations[idalea][1] += scoreAlea
+                recommendations[idalea][2] += 1
+
+        for reco in recommendations:
+            recommendations[reco][1] = recommendations[reco][1]/recommendations[reco][2]
+
+        max_score = max([rec[1][1] for rec in recommendations.items()])
+        if max_score > 0:
+            for reco in recommendations:
+                recommendations[reco][1] /= max_score
+
 
         # Trier les recommandations par score décroissant
         sorted_recommendations = sorted(recommendations.items(), key=lambda x: x[1][1], reverse=True)
@@ -267,6 +302,56 @@ class RecommendationService:
         
         return [{'book_id': book[0], 'reading_date': book[1], 'note': book[2]} for book in books] 
 
+    def get_book(self, book_id):
+        query = f"""
+        SELECT title
+        FROM library.book
+        WHERE book_id={book_id} 
+        """
+        book_title = self.bddservice.cmd_sql(query)
+        return book_title
+
+    def get_top_books(self, n=10):
+        """
+        Récupère les N meilleurs livres selon la vue matérialisée library.top_books.
+
+        Args:
+            n (int): Nombre de livres à récupérer (par défaut 10).
+
+        Returns:
+            list[tuple]: Une liste de tuples contenant les IDs et titres des meilleurs livres.
+        """
+        # Requête SQL pour récupérer les N meilleurs livres
+        query = f"""
+        SELECT
+            book_id,
+            title
+        FROM
+            library.top_books
+        ORDER BY
+            score DESC
+        LIMIT {n};
+        """
+
+        # Exécuter la requête SQL
+        top_books = self.bddservice.cmd_sql(query)
+
+        # Retourner les résultats sous forme de liste de tuples
+        return [book[0] for book in top_books]
+    
+    def get_ranking_score(self, id):
+        """
+        Récupère le livre avec l'id library.top_books.
+        """
+        query = f"""
+        SELECT
+            score
+        FROM
+            library.top_books
+        where book_id = {id};
+        """
+        book = self.bddservice.cmd_sql(query)
+        return book
 
 # Exemple d'utilisation
 if __name__ == "__main__":

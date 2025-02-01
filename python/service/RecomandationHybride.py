@@ -347,8 +347,8 @@ class RecomandationHybride:
         # Récupérer les utilisateurs similaires à l'utilisateur donné
         similar_users = self.get_similar_users(user_id, n=n_recommendations)
 
-        
-        
+        # Récupérer les livres que l'utilisateur a aimés ou consultés
+        user_books = self.recommandation_service.get_user_books(user_id)
         # Dictionnaire pour stocker les livres recommandés et leur score de similarité total
         recommendations = {}
         
@@ -362,6 +362,10 @@ class RecomandationHybride:
             for book in similar_user_books:
                 #print(book)
                 book_id = book['book_id']
+
+                # Vérifie si le livre similaire est déjà lu
+                if book_id in user_books:
+                    continue
                 
                 similarity_score = similar_user[1]  # Utiliser la similarité calculée pour l'utilisateur similaire
                 # Pondération basée sur la note et date de lecture
@@ -377,7 +381,12 @@ class RecomandationHybride:
                     # Calcul du poids avec logarithme
                     recency_weight = 1 / np.log1p(year_delta)
                     weight *= recency_weight
-                    
+
+                #poids par rapport au classement top book / autheur / année de publication
+                rank_score = self.recommandation_service.get_ranking_score(book_id)
+                if rank_score and rank_score[0]:
+                    weight *= 1 + rank_score[0][0]/9000000
+
                 # Calcul du score final
                 final_score = similarity_score * weight
 
