@@ -136,7 +136,7 @@
         console.log("Debut fetch");
 
         try {
-          const response = await fetch("http://127.0.0.1:8000/books/topbook/30");
+          const response = await fetch("http://localhost:8000/books/topbook/30");
           booksData = await response.json();
           console.log("Données récupérées :", booksData); // Affiche les données récupérées
         } catch (error) {
@@ -179,10 +179,14 @@
             "zoom-hover"
           );
 
-          const truncatedDescription = truncateDescription(
+          let truncatedDescription = "pas de description";
+          if (book.description != null) {
+            const truncatedDescription = truncateDescription(
             book.description.replaceAll("#virgule", ","),
             110
           );
+          }
+          
           const genres = book.genre_names.slice(0, 2);
           slide.innerHTML = `
             <div class="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center relative w-40 max-w-xs mx-auto">

@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import recommendations, books
 
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 app = FastAPI()
 
 # Configuration du middleware CORS
@@ -20,3 +23,10 @@ app.add_middleware(
 
 app.include_router(recommendations.router, prefix="/recommandations")
 app.include_router(books.router, prefix="/books")
+
+# Monter le dossier des fichiers statiques (HTML, CSS, JS, images)
+app.mount("/static", StaticFiles(directory="../../../frontend/public"), name="static")
+
+@app.get("/")
+def home():
+    return FileResponse("../../../frontend/public/carrousel.html")
