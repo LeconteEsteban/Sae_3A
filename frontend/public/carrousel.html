@@ -136,7 +136,7 @@
         console.log("Debut fetch");
 
         try {
-          const response = await fetch("http://127.0.0.1:8000/books/topbook/2");
+          const response = await fetch("http://127.0.0.1:8000/books/topbook/30");
           booksData = await response.json();
           console.log("Données récupérées :", booksData); // Affiche les données récupérées
         } catch (error) {
@@ -226,9 +226,9 @@
             prevEl: ".swiper-button-prev",
           },
           breakpoints: {
-            1920: { slidesPerView: 2, spaceBetween: 10 },
-            1028: { slidesPerView: 2, spaceBetween: 10 },
-            768: { slidesPerView: 2, spaceBetween: 10 },
+            1920: { slidesPerView: 8, spaceBetween: 10 },
+            1028: { slidesPerView: 8, spaceBetween: 10 },
+            768: { slidesPerView: 8, spaceBetween: 10 },
             480: { slidesPerView: 1, spaceBetween: 10 },
           },
         });
