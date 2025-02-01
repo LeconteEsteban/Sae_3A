@@ -171,6 +171,16 @@ class DatabaseService:
             print(f"Erreur lors de la récupération des données de la table {table} : {e}")
             raise
 
+    def execute_query(self, query, values):
+        with self.connection.cursor() as cursor:
+            cursor.execute(query, values)
+            return cursor.fetchall()
+
+    def execute_update(self, query, values):
+        with self.connection.cursor() as cursor:
+            cursor.execute(query, values)
+            self.connection.commit()
+    
     def cmd_sql(self, query):
         """
         Exécute une commande SQL.
@@ -261,6 +271,42 @@ class DatabaseService:
             # Optionnel, tu pourrais fermer le curseur ici, mais cela dépend de ta gestion des connexions.
             pass
 
+    def get_book_cover_url(self, book_id: int, isbn: str):
+        try:
+            # Vérifier si une couverture existe déjà
+            cover_query = """
+                SELECT cover_url
+                FROM library.Book_Cover
+                WHERE book_id = %s;
+            """
+            cover_res = self.execute_query(cover_query, (book_id,))
+    
+            if cover_res:  # Si une couverture existe déjà
+                return cover_res[0][0]
+    
+            # Si aucune couverture n'existe, appeler l'API Google Books
+            api_url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
+            response = requests.get(api_url)
+            data = response.json()
+    
+            cover_url = "-1"  # Valeur par défaut si aucune couverture n'est trouvée
+    
+            if "items" in data and len(data["items"]) > 0:
+                cover_url = data["items"][0]["volumeInfo"].get("imageLinks", {}).get("thumbnail", "-1")
+    
+            # Insérer ou mettre à jour l'URL de la couverture dans la base de données
+            insert_query = """
+                INSERT INTO library.Book_Cover (book_id, isbn13, cover_url)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (book_id) 
+                DO UPDATE SET cover_url = %s;
+            """
+            self.execute_update(insert_query, (book_id, isbn, cover_url, cover_url))
+    
+            return cover_url
+        except Exception as e:
+            print(f"Erreur lors de la récupération ou de l'insertion de la couverture: {e}")
+            raise HTTPException(status_code=500, detail="Erreur lors de la récupération ou de l'insertion de la couverture")
 
 
 # Exemple d'utilisation
