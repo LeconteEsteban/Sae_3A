@@ -168,7 +168,7 @@ class RecommendationService:
         SELECT
             id,
             title,
-            1 - (vector <=> (SELECT vector FROM library.book_vector WHERE id = {book_id})) AS similarity
+            1 - (vector000(SELECT vector FROM library.book_vector WHERE id = {book_id})) AS similarity
         FROM
             library.book_vector
         WHERE
