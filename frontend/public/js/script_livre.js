@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // });
 
             // Afficher la couverture du livre
-            const imgUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${bookData.isbn}`;
+            const imgUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${bookData.isbn13}`;
             try {
                 const response = await fetch(imgUrl);
                 const data = await response.json();
@@ -50,6 +50,16 @@ document.addEventListener('DOMContentLoaded', () => {
             bookData.genre_names.forEach(genre => {
                 const genreElement = document.createElement('span');
                 genreElement.innerText = genre;
+                genreElement.classList.add(
+                    'px-3',      // Padding horizontal
+                    'py-1',      // Padding vertical
+                    'bg-[#FFB100]', // Couleur de fond bleu
+                    'rounded-lg', // Coins arrondis
+                    'text-sm',    // Taille de texte petite
+                    'text-black', // Couleur du texte en blanc
+                    'mr-2',       // Marge à droite pour espacer les badges
+                    'mb-2'        // Marge en bas pour les petites tailles d'écran
+                );
                 genresContainer.appendChild(genreElement);
             });
             document.getElementById('book-description').innerText =  bookData.description.replaceAll("#virgule", ",");

@@ -441,3 +441,4 @@ left join rating_book rb on b.book_id = rb.book_id
 left join Wrote wr on b.book_id = wr.book_id
 left join author_view av on wr.author_id = av.author_id;
 
+

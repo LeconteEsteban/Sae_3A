@@ -48,7 +48,7 @@ class PostgresqlService {
                 WHERE
                     bv.book_id = $1
                 GROUP BY
-                    bv.book_id, bv.title,bv.isbn,
+                    bv.book_id, bv.title,bv.isbn,bv.isbn13,
                     bv.author_name,
                     bv.description,
                     bv.number_of_pages, bv.publisher_name,  bv.rating_count, bv.average_rating, bv.isbn13, bc.cover_url;
