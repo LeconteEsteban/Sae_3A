@@ -98,7 +98,7 @@
     flex-wrap: wrap;
     gap: 1.5rem;
     padding: 2rem;
-    background-image: url(../img/scattered-forcefields.svg);
+    background-image: url(/static/img/scattered-forcefields.svg);
 }
 
 .book {
