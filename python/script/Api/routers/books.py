@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from typing import List
 from models.schemas import BookResponse
 from services.servicebdd import bddservice, recommendation_service, recommendation_hybride
-
+import random
 
 
 router = APIRouter()
@@ -26,10 +26,6 @@ def get_all_books():
     return books
 
 
-
-from fastapi import HTTPException
-from typing import Optional
-from datetime import date
 
 @router.get('/{id_book}', response_model=BookResponse)
 def get_book(id_book: int):
@@ -67,20 +63,63 @@ def get_book(id_book: int):
 
     book_data = book[0]
     response_data = {
-        "id": book_data[0],
-        "title": book_data[1],
-        "isbn": book_data[2],
-        "isbn13": book_data[3],
-        "author_name": book_data[4],
-        "description": book_data[5],
-        "number_of_pages": book_data[6],
-        "publisher_name": book_data[7],
-        "genre_names": book_data[8],
-        "award_names": book_data[9],  
-        "rating_count": book_data[10],
-        "average_rating": book_data[11],
+        "id": book[0],
+            "title": book[1],
+            "isbn13": book[2],
+            "author_name": book[3],
+            "description": book[4],
+            "number_of_pages": book[5],
+            "publisher_name": book[6],
+            "genre_names": book[7],
+            "award_names": book[8],
+            "average_rating": book[9],
     }
     
     return response_data
+@router.get("/topbook/{nbook}", response_model=List[BookResponse])
+def get_top_books(nbook: int):
+    """
+    Endpoint pour obtenir des livres aléatoires parmi les meilleurs livres.
+    """
+    query = """
+                SELECT
+                    bv.book_id, bv.title, bv.isbn13, bv.author_name,
+                    bv.description, bv.number_of_pages, bv.publisher_name,
+                    array_agg(DISTINCT bv.genre_name) AS genre_names,
+                    array_agg(DISTINCT bv.award_name) AS award_names,
+                    bv.average_rating
+                FROM library.top_books tb
+                JOIN library.book_view bv ON tb.book_id = bv.book_id
+                GROUP BY
+                            bv.book_id, bv.title, bv.isbn, bv.isbn13, bv.author_name,
+                            bv.description, bv.number_of_pages, bv.publisher_name,
+                            bv.rating_count, bv.average_rating
+                LIMIT 10;
+    """
+    
+    top_books = bddservice.cmd_sql(query)
 
+    if not top_books:
+        raise HTTPException(status_code=404, detail="No top books found in the database")
+    
+    # Sélection aléatoire des livres
+    sampled_books = random.sample(top_books, min(nbook, len(top_books)))
 
+    # Transformation des données pour correspondre au schéma BookResponse
+    books_data = [
+        {
+            "id": book[0],
+            "title": book[1],
+            "isbn13": book[2],
+            "author_name": book[3],
+            "description": book[4],
+            "number_of_pages": book[5],
+            "publisher_name": book[6],
+            "genre_names": book[7],
+            "award_names": book[8],
+            "average_rating": book[9],
+        }
+        for book in sampled_books
+    ]
+
+    return books_data
