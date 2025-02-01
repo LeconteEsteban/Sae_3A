@@ -1,4 +1,34 @@
-document.addEventListener('DOMContentLoaded', () => {
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails du Livre</title>
+    <style>
+        .px-3 { padding-left: 1rem; padding-right: 1rem; }
+        .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+        .bg-red { background-color: #FFB100; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-black { color: black; }
+        .mr-2 { margin-right: 0.5rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div id="book-details">
+        <img id="book-cover" alt="Couverture du livre">
+        <h1 id="book-title"></h1>
+        <p id="book-author"></p>
+        <div id="book-genres"></div>
+        <p id="book-description"></p>
+        <p id="book-page"></p>
+        <p id="book-publisher"></p>
+        <div id="book-awards"></div>
+        <p id="book-isbn"></p>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const bookId = urlParams.get('id');
 
@@ -68,3 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 });
+
+    </script>
+</body>
+</html>

@@ -12,11 +12,11 @@ class BookResponse(BaseModel):
     description: Optional[str] = None
     number_of_pages: Optional[int] = None
     publisher_name: Optional[str] = None
-    genre_names: Optional[List[str]] = None
+    genre_names: Optional[List[Optional[str]]] = None
     award_names: Optional[List[Optional[str]]] = None
     rating_count: Optional[int] = None
     average_rating: Optional[float] = None
-    
+
 class RecommendationReponse(BaseModel):
     id: int
     title: str
