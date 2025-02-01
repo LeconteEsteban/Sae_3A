@@ -178,14 +178,8 @@
             "duration-300",
             "zoom-hover"
           );
+         
 
-          let truncatedDescription = "pas de description";
-          if (book.description != null) {
-            const truncatedDescription = truncateDescription(
-            book.description.replaceAll("#virgule", ","),
-            110
-          );
-          }
           
           const genres = book.genre_names.slice(0, 2);
           slide.innerHTML = `
@@ -204,9 +198,12 @@
                     <p class="text-xs text-black font-semibold mb-1">${
                       book.author_name
                     }</p>
-                    <p class="text-xs text-black mb-2">${truncatedDescription}</p>
+                    <p class="text-xs text-black mb-2">
+                    ${book.description ? truncateDescription(book.description.replaceAll("#virgule", ","), 110) : "Pas de description"}
+                    </p>
+
                     <ul class="flex gap-2 mb-3">
-                        ${genres.map(genre => `<li class="bg-gray-500 text-black px-2 py-1 text-xs rounded">${genre}</li>`).join('')}
+                        ${genres.map(genre => `<li class="bg-gray-500 text-white px-2 py-1 text-xs rounded">${genre}</li>`).join('')}
                     </ul>
                     <div class="flex gap-2 mt-auto justify-between w-full">
                         <i class="fas fa-heart text-gray-500 text-2xl cursor-pointer transition-transform duration-200 hover:scale-110 like-button"></i>
