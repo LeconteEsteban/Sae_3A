@@ -10,49 +10,56 @@
 <body class="bg-gray-50">
     <header class="flex items-center justify-between px-6 py-4 bg-white shadow-md">
         <div class="text-2xl font-bold text-gray-800">ESCAPE</div>
-        <div class="flex items-center w-1/2 search">
-            <input type="text" placeholder="Recherche" class="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none">
+        <div class="flex items-center w-1/2 search relative">
+            <!-- Barre de recherche -->
+            <input
+                type="text"
+                id="search-input"
+                placeholder="Recherche"
+                class="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none"
+            >
+            <!-- Pop-up des résultats -->
+            <div id="search-results-popup" class="search-results-popup absolute top-full left-0 w-full bg-white border border-gray-300 rounded-b-md shadow-lg mt-1 max-h-80 overflow-y-auto hidden">
+                <!-- Les résultats seront injectés ici par JavaScript -->
+            </div>
         </div>
-
+    
         <!-- Bouton de Connexion -->
-        
-        
         <button
-        id="loginButton"
-        class="flex items-center px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
-        onclick="openModal()"
+            id="loginButton"
+            class="flex items-center px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+            onclick="openModal()"
         >
-        <i class="robot icon"></i>
-        <span>Connexion</span>
+            <i class="robot icon"></i>
+            <span>Connexion</span>
         </button>
         <button id="usernameHeader" onclick="openBurgerHeader()" class="hidden px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300"></button>
-        
+    
+        <!-- Menu Burger -->
         <div id="menuBurger" class="hidden fixed rounded top-16 right-6 flex flex-col items-stretch bg-opacity">
-            
             <div
-            id="WishListeButton"
-            class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300"
-            onclick="wishListe()"
+                id="WishListeButton"
+                class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300"
+                onclick="wishListe()"
             >
-            <i class="robot icon"></i>
-            <span>Wish Liste</span>
+                <i class="robot icon"></i>
+                <span>Wish Liste</span>
             </div>
             <div
-            id="LivreListeButton"
-            class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300"
-            onclick="livreLuListe()"
+                id="LivreListeButton"
+                class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300"
+                onclick="livreLuListe()"
             >
-            <i class="robot icon"></i>
-            <span>Livre lu</span>
+                <i class="robot icon"></i>
+                <span>Livre lu</span>
             </div>
-            
             <div
-            id="logoutButton"
-            class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 hover:text-red-600"
-            onclick="handleLogout()"
+                id="logoutButton"
+                class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 hover:text-red-600"
+                onclick="handleLogout()"
             >
-            <i class="robot icon"></i>
-            <span>Déconnexion</span>
+                <i class="robot icon"></i>
+                <span>Déconnexion</span>
             </div>
         </div>
     </header>

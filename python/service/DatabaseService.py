@@ -180,15 +180,42 @@ class DatabaseService:
         with self.connection.cursor() as cursor:
             cursor.execute(query, values)
             self.connection.commit()
+
+    # def cmd_sql(self, query):
+    #     """
+    #     Exécute une commande SQL.
+    #     - Pour les commandes `SELECT`, retourne les résultats.
+    #     - Pour les autres commandes (`INSERT`, `UPDATE`, `DELETE`), effectue la commande sans attendre de résultat.
+    #     """
+    #     try:
+    #         self.cursor.execute(query)
+            
+    #         # Vérifie si la requête est une commande `SELECT`
+    #         if query.strip().lower().startswith("select"):
+    #             results = self.cursor.fetchall()
+    #             return results
+            
+    #         # Pour les autres requêtes (DELETE, INSERT, etc.)
+    #         self.connection.commit()
+    #         #print("Commande SQL exécutée avec succès.")
+    #     except Exception as e:
+    #         print(f"Erreur lors de l'exécution de la commande SQL : {e}")
+    #         raise
     
-    def cmd_sql(self, query):
+    def cmd_sql(self, query, params=None):
         """
         Exécute une commande SQL.
         - Pour les commandes `SELECT`, retourne les résultats.
         - Pour les autres commandes (`INSERT`, `UPDATE`, `DELETE`), effectue la commande sans attendre de résultat.
+        - `params` : Un tuple ou une liste de paramètres pour les requêtes paramétrées.
         """
         try:
-            self.cursor.execute(query)
+            if params:
+                # Exécute la requête avec des paramètres
+                self.cursor.execute(query, params)
+            else:
+                # Exécute la requête sans paramètres
+                self.cursor.execute(query)
             
             # Vérifie si la requête est une commande `SELECT`
             if query.strip().lower().startswith("select"):
