@@ -180,15 +180,42 @@ class DatabaseService:
         with self.connection.cursor() as cursor:
             cursor.execute(query, values)
             self.connection.commit()
+
+    # def cmd_sql(self, query):
+    #     """
+    #     Exécute une commande SQL.
+    #     - Pour les commandes `SELECT`, retourne les résultats.
+    #     - Pour les autres commandes (`INSERT`, `UPDATE`, `DELETE`), effectue la commande sans attendre de résultat.
+    #     """
+    #     try:
+    #         self.cursor.execute(query)
+            
+    #         # Vérifie si la requête est une commande `SELECT`
+    #         if query.strip().lower().startswith("select"):
+    #             results = self.cursor.fetchall()
+    #             return results
+            
+    #         # Pour les autres requêtes (DELETE, INSERT, etc.)
+    #         self.connection.commit()
+    #         #print("Commande SQL exécutée avec succès.")
+    #     except Exception as e:
+    #         print(f"Erreur lors de l'exécution de la commande SQL : {e}")
+    #         raise
     
-    def cmd_sql(self, query):
+    def cmd_sql(self, query, params=None):
         """
         Exécute une commande SQL.
         - Pour les commandes `SELECT`, retourne les résultats.
         - Pour les autres commandes (`INSERT`, `UPDATE`, `DELETE`), effectue la commande sans attendre de résultat.
+        - `params` : Un tuple ou une liste de paramètres pour les requêtes paramétrées.
         """
         try:
-            self.cursor.execute(query)
+            if params:
+                # Exécute la requête avec des paramètres
+                self.cursor.execute(query, params)
+            else:
+                # Exécute la requête sans paramètres
+                self.cursor.execute(query)
             
             # Vérifie si la requête est une commande `SELECT`
             if query.strip().lower().startswith("select"):
@@ -205,44 +232,64 @@ class DatabaseService:
     def create_user(self, user: dict):
         """
         Crée un nouvel utilisateur dans la base de données.
+        Si le nom d'utilisateur est déjà pris, renvoie une exception.
         """
         if not self.connection:
             raise HTTPException(status_code=500, detail="La connexion à la base de données n'est pas établie.")
         
-        
-
-        query = """
-        INSERT INTO library._Users
-        (name, age, passwords, child, familial_situation, gender, cat_socio_pro, lieu_habitation, frequency, book_size, birth_date)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        RETURNING user_id;
+        # Vérification si le nom d'utilisateur existe déjà
+        check_query = """
+        SELECT user_id
+        FROM library._Users
+        WHERE name = %s;
         """
-        values = [
-            user["username"],
-            user["age"],
-            user["password"],
-            user["child"],
-            user["familial_situation"],
-            user["gender"],
-            user["cat_socio_pro"],
-            user["lieu_habitation"],
-            user["frequency"],
-            user["book_size"],
-            user["birth_date"]
-        ]
         
         try:
-            # Exécution de la requête
-            self.cursor.execute(query, values)
+            # Vérifier si l'utilisateur existe déjà
+            self.cursor.execute(check_query, (user["username"],))
+            existing_user = self.cursor.fetchone()
+            
+            if existing_user:
+                # Si l'utilisateur existe déjà, lever une exception
+                raise HTTPException(status_code=400, detail="Nom d'utilisateur déjà pris.")
+            
+            # Si l'utilisateur n'existe pas, insérer le nouvel utilisateur
+            insert_query = """
+            INSERT INTO library._Users
+            (name, age, passwords, child, familial_situation, gender, cat_socio_pro, lieu_habitation, frequency, book_size, birth_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING user_id;
+            """
+            values = [
+                user["username"],
+                user["age"],
+                user["password"],
+                user["child"],
+                user["familial_situation"],
+                user["gender"],
+                user["cat_socio_pro"],
+                user["lieu_habitation"],
+                user["frequency"],
+                user["book_size"],
+                user["birth_date"]
+            ]
+            
+            # Exécution de la requête d'insertion
+            self.cursor.execute(insert_query, values)
             self.connection.commit()
+            
+            # Récupérer l'ID du nouvel utilisateur
             result = self.cursor.fetchone()
-            return result  # Retourne l'ID du nouvel utilisateur
+            return result  # Retourner l'ID du nouvel utilisateur
+        except HTTPException as http_exc:
+            raise http_exc  
         except Exception as e:
-            self.connection.rollback()  # En cas d'erreur, annuler la transaction
+            # Annuler la transaction en cas d'erreur
+            self.connection.rollback()
             print(f"Erreur lors de la création de l'utilisateur : {e}")
             raise HTTPException(status_code=500, detail="Erreur lors de la création de l'utilisateur.")
         finally:
-            # Optionnel, tu pourrais fermer le curseur ici, mais cela dépend de ta gestion des connexions.
+            # Optionnel: fermer le curseur si nécessaire
             pass
 
     def authenticate_user(self, username: str, password: str):

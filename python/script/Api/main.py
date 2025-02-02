@@ -7,18 +7,13 @@ from fastapi.responses import FileResponse
 
 app = FastAPI()
 
-# Configuration du middleware CORS
-origins = [
-    "http://localhost:5500",
-    "http://127.0.0.1:5500"
-]
-
+# Configuration du middleware CORS pour autoriser toutes les origines
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Autoriser toutes les origines
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Autoriser toutes les méthodes (GET, POST, etc.)
+    allow_headers=["*"],  # Autoriser tous les en-têtes
 )
 
 app.include_router(recommendations.router, prefix="/recommandations")
@@ -29,4 +24,4 @@ app.mount("/static", StaticFiles(directory="../../../frontend/public"), name="st
 
 @app.get("/")
 def home():
-    return FileResponse("../../../frontend/public/carrousel.html")
+    return FileResponse("../../../frontend/public/index.html")
