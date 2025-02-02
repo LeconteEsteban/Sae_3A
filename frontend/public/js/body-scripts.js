@@ -114,6 +114,7 @@ document.getElementById('loginFormElement').addEventListener('submit', async (e)
 function switchToRegister() {
 document.getElementById('loginForm').classList.add('hidden');
 document.getElementById('registerForm').classList.remove('hidden');
+showStep(1);
 }
 
 function switchToLogin() {
@@ -121,40 +122,61 @@ document.getElementById('registerForm').classList.add('hidden');
 document.getElementById('loginForm').classList.remove('hidden');
 }
 
-// Gestion du formulaire d'inscription
-document.getElementById('registerFormElement').addEventListener('submit', async (e) => {
-e.preventDefault();
-const newUsername = document.getElementById('newUsername').value;
-const newPassword = document.getElementById('newPassword').value;
+// Afficher une étape et cacher les autres
+function showStep(step) {
+    document.querySelectorAll('.register-step').forEach((el) => el.classList.add('hidden'));
+    document.getElementById(`registerStep${step}`).classList.remove('hidden');
+}
 
-try {
-    const response = await fetch('/api/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-        username: newUsername, 
-        password: newPassword, 
-        age: 'N/A',
+// Passer à l'étape suivante
+function nextStep(currentStep) {
+    showStep(currentStep + 1);
+}
+
+// Revenir à l'étape précédente
+function prevStep(currentStep) {
+    showStep(currentStep - 1);
+}
+
+// Gestion de la soumission du formulaire d'inscription
+document.getElementById('registerFormElement').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const userData = {
+        username: document.getElementById('newUsername').value,
+        password: document.getElementById('newPassword').value,
+        age: document.getElementById('age').value,
+        gender: document.getElementById('gender').value,
+        cat_socio_pro: document.getElementById('cat_socio_pro').value,
+        lieu_habitation: document.getElementById('lieu_habitation').value,
         child: false,
         familial_situation: 'N/A',
-        gender: 'N/A',
-        cat_socio_pro: 'N/A',
-        lieu_habitation: 'N/A',
-        frequency: 'N/A',
-        book_size: 'N/A',
-        birth_date: '2000-01-01' }),
-    });
+        frequency: document.getElementById('frequency').value,
+        book_size: document.getElementById('book_size').value,
+        birth_date: document.getElementById('birth_date').value,
+    };
+    const childValue = document.querySelector('input[name="child"]:checked');
+    userData.child = childValue ? childValue.value === "true" : false;
 
-    if (response.ok) {
-    alert('Compte créé avec succès !');
-    switchToLogin();
-    } else {
-    alert('Erreur lors de la création du compte');
+
+    try {
+        const response = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData),
+        });
+
+        if (response.ok) {
+            alert('Compte créé avec succès !');
+            switchToLogin();
+        } else {
+            const errorData = await response.json();
+            alert(errorData.detail || 'Erreur lors de la création du compte');
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Erreur de serveur');
     }
-} catch (error) {
-    console.error(error);
-    alert('Erreur de serveur');
-}
 });
 
 function openBurgerHeader(){

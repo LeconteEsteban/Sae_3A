@@ -28,16 +28,20 @@ class UserLogin(BaseModel):
 
 bddservice = DatabaseService()
 
-# Route pour créer un nouvel utilisateur
 @router.post("/api/register")
 def register(user: UserCreate):
     try:
         bddservice.initialize_connection()
         new_user = bddservice.create_user(user.model_dump())
         return {"message": "Utilisateur créé avec succès", "userId": new_user[0]}
+    
+    except HTTPException as http_exc:
+        raise http_exc  
+    
     except Exception as e:
         print(e)
-        raise HTTPException(status_code=500, detail="Erreur lors de la création de l'utilisateur")
+        raise HTTPException(status_code=500, detail="Erreur lors de la création de l'utilisateur: {str(e)}")
+    
     finally:
         bddservice.close_connection()
 
