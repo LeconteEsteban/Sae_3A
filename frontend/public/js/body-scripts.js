@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             }" class="w-24 h-32 object-cover rounded transition-transform duration-300">
                     <div>
                         <h3 class="font-semibold">${book.title}</h3>
-                        <p class="text-sm text-gray-600">${book.author_name || "pas auteur"}</p>
+                        <p class="text-sm text-gray-600">${book.author_name || ""}</p>
                     </div>
                     
                 `;
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
         showLoading(); // Afficher l'indicateur de chargement
 
         try {
-            const response = await fetch(`http://localhost:8000/books/search?query=${encodeURIComponent(query)}&skip=0&limit=100`);
+            const response = await fetch(`http://localhost:8000/books/search?query=${encodeURIComponent(query)}&skip=0&limit=20`);
             
             if (!response.ok) {
                 const errorText = await response.text();

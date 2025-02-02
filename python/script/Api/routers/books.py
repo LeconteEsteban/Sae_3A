@@ -117,29 +117,37 @@ def get_all_books(skip: int = 0, limit: int = 10):
 
     return books_data
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
 @router.get("/search", response_model=List[BookResponse])
 def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10):
-    """
-    Endpoint pour rechercher des livres en fonction d'une requête.
-    """
     if not query:
         raise HTTPException(status_code=400, detail="Query parameter is required")
 
-    search_query = query.replace(" ", " & ")
+    logging.debug(f"Search query: {query}")
+
     query_sql = """
         SELECT
             bv.book_id,
             bv.title,
             bv.isbn13,
-            bv.description
+            bv.description,
+            a.name        
         FROM
             library.book bv
+        JOIN library.wrote w ON bv.book_id = w.book_id 
+        JOIN library.author a ON w.author_id = a.author_id 
         WHERE
-            to_tsvector('french', bv.title) @@ to_tsquery('french', %s)
+            bv.title ILIKE CONCAT('%%', %s, '%%')  
         LIMIT %s OFFSET %s;
     """
 
-    books = bddservice.cmd_sql(query_sql, (search_query, limit, skip))
+    books = bddservice.cmd_sql(query_sql, (query, limit, skip))
+    
+    logging.debug(f"Books found: {books}")
+
     if not books:
         raise HTTPException(status_code=404, detail="No books found matching the query")
 
@@ -149,12 +157,14 @@ def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10):
             "title": book[1],
             "isbn13": book[2],
             "description": book[3],
-            "url" : bddservice.get_book_cover_url(book[0], book[2])
+            "author_name": book[4],
+            "url": bddservice.get_book_cover_url(book[0], book[2])
         }
         for book in books
     ]
 
     return books_data
+
 
 
 @router.get('/{id_book}', response_model=BookResponse)
