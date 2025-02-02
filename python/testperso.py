@@ -64,6 +64,8 @@ if __name__ == "__main__":
         bddservice.initialize_connection()
         print(datetime.now())
 
+        #print(bddservice.get_book_cover_url(1,'9781416950417'))
+
         #Créer la base de donnée
         #bddservice.create_database()
         #remplie la base de donnée des tables
@@ -90,11 +92,11 @@ if __name__ == "__main__":
         # for book in similar_books:
         #     print(book)
 
-        recommanded_book = recommandation1.recommend_books_for_user(2,200)
-        # # Affichage des livres recommandé
-        for book in recommanded_book:
-             print(book)
-        print(len(recommanded_book))
+        # recommanded_book = recommandation1.recommend_books_for_user(2,200)
+        # # # Affichage des livres recommandé
+        # for book in recommanded_book:
+        #      print(book)
+        # print(len(recommanded_book))
 
         #bddservice.cmd_sql("TRUNCATE TABLE library.book_vector;")
 
