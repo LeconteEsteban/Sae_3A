@@ -14,6 +14,7 @@ class BookResponse(BaseModel):
     genre_names: Optional[List[Optional[str]]] = None
     award_names: Optional[List[Optional[str]]] = None
     average_rating: Optional[float] = None
+    url: Optional[str] = None
 
 class RecommendationReponse(BaseModel):
     id: int

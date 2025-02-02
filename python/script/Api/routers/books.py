@@ -104,7 +104,8 @@ def get_top_books(nbook: int):
     
     # Sélection aléatoire des livres
     sampled_books = random.sample(top_books, min(nbook, len(top_books)))
-
+   
+    
     # Transformation des données pour correspondre au schéma BookResponse
     books_data = [
         {
@@ -118,6 +119,7 @@ def get_top_books(nbook: int):
             "genre_names": book[7],
             "award_names": book[8],
             "average_rating": book[9],
+            "url" : bddservice.get_book_cover_url(book[0], book[2])
         }
         for book in sampled_books
     ]
