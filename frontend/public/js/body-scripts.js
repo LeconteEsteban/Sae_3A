@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (books.length === 0) {
             resultsPopup.innerHTML = '<div class="p-2 text-gray-500">Aucun résultat trouvé.</div>';
         } else {
-            const maxResults = 10; // Limite le nombre de résultats affichés
+            const maxResults = 100; // Limite le nombre de résultats affichés
             books.slice(0, maxResults).forEach(book => {
                 const resultElement = document.createElement('div');
                 resultElement.classList.add('p-2', 'hover:bg-gray-100', 'cursor-pointer', 'flex','items-center', 'gap-4');
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
         showLoading(); // Afficher l'indicateur de chargement
 
         try {
-            const response = await fetch(`http://127.0.0.1:8000/books/search?query=${encodeURIComponent(query)}&skip=0&limit=10`);
+            const response = await fetch(`http://localhost:8000/books/search?query=${encodeURIComponent(query)}&skip=0&limit=100`);
             
             if (!response.ok) {
                 const errorText = await response.text();
