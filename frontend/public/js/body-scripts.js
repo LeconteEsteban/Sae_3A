@@ -84,10 +84,18 @@ document.addEventListener("DOMContentLoaded", function () {
             const maxResults = 10; // Limite le nombre de résultats affichés
             books.slice(0, maxResults).forEach(book => {
                 const resultElement = document.createElement('div');
-                resultElement.classList.add('p-2', 'hover:bg-gray-100', 'cursor-pointer');
+                resultElement.classList.add('p-2', 'hover:bg-gray-100', 'cursor-pointer', 'flex','items-center', 'gap-4');
                 resultElement.innerHTML = `
-                    <h3 class="font-semibold">${book.title}</h3>
-                    <p class="text-sm text-gray-600">${book.author_name || "pas auteur"}</p>
+                    <img src="${
+                                book.url !== "-1" ? book.url : "/static/notfound.jpg"
+                                }" alt="Couverture de ${
+                                book.title
+                            }" class="w-24 h-32 object-cover rounded transition-transform duration-300">
+                    <div>
+                        <h3 class="font-semibold">${book.title}</h3>
+                        <p class="text-sm text-gray-600">${book.author_name || "pas auteur"}</p>
+                    </div>
+                    
                 `;
                 resultsPopup.appendChild(resultElement);
             });
