@@ -138,6 +138,27 @@ function prevStep(currentStep) {
     showStep(currentStep - 1);
 }
 
+// Fonction qui vérifie si les champs "Identifiant" et "Mot de passe" sont remplis
+function checkFieldsStep1() {
+    const username = document.getElementById('newUsername').value;
+    const password = document.getElementById('newPassword').value;
+    const nextButton = document.getElementById('nextButton1');
+
+    // Si les deux champs sont remplis, activer le bouton
+    if (username && password) {
+        nextButton.disabled = false;
+    } else {
+        nextButton.disabled = true;
+    }
+}
+
+// Ajouter des écouteurs d'événements pour les champs "Identifiant" et "Mot de passe"
+document.getElementById('newUsername').addEventListener('input', checkFieldsStep1);
+document.getElementById('newPassword').addEventListener('input', checkFieldsStep1);
+
+// Appeler la fonction au début pour s'assurer que l'état du bouton est correct
+checkFieldsStep1();
+
 // Gestion de la soumission du formulaire d'inscription
 document.getElementById('registerFormElement').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -158,7 +179,6 @@ document.getElementById('registerFormElement').addEventListener('submit', async 
     const childValue = document.querySelector('input[name="child"]:checked');
     userData.child = childValue ? childValue.value === "true" : false;
 
-
     try {
         const response = await fetch('/api/register', {
             method: 'POST',
@@ -171,6 +191,9 @@ document.getElementById('registerFormElement').addEventListener('submit', async 
             switchToLogin();
         } else {
             const errorData = await response.json();
+            if (errorData.detail=="Nom d'utilisateur déjà pris.") {
+                showStep(1);
+            }
             alert(errorData.detail || 'Erreur lors de la création du compte');
         }
     } catch (error) {

@@ -111,7 +111,7 @@
                             <label class="block text-gray-700">Mot de passe</label>
                             <input type="password" id="newPassword" class="w-full p-2 border border-gray-300 rounded-md" required />
                         </div>
-                        <button type="button" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600" onclick="nextStep(1)">
+                        <button type="button" id="nextButton1" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600" onclick="nextStep(1)" disabled>
                             Suivant
                         </button>
                     </div>
@@ -120,7 +120,7 @@
                     <div class="register-step hidden" id="registerStep2">
                         <div class="mb-4">
                             <label class="block text-gray-700">Âge</label>
-                            <select type="text" id="age" class="w-full p-2 border border-gray-300 rounded-md" required />
+                            <select type="text" id="age" class="w-full p-2 border border-gray-300 rounded-md">
                                 <option value="" disabled selected>-- Sélectionner --</option>    
                                 <option value="0 - 10 ans">0 - 10 ans</option>
                                 <option value="11 - 20 ans">11 - 20 ans</option>
@@ -149,7 +149,7 @@
                     <div class="register-step hidden" id="registerStep3">
                         <div class="mb-4">
                             <label class="block text-gray-700">Catégorie</label>
-                            <select type="text" id="cat_socio_pro" class="w-full p-2 border border-gray-300 rounded-md" required />
+                            <select type="text" id="cat_socio_pro" class="w-full p-2 border border-gray-300 rounded-md">
                                 <option value="" disabled selected>-- Sélectionner --</option>    
                                 <option value="Étudiant(e)">Étudiant(e)</option>
                                 <option value="Employés">Employés</option>
@@ -185,11 +185,11 @@
                             <label class="block text-gray-700">Avez-vous des enfants ?</label>
                             <div class="flex space-x-4">
                                 <label class="flex items-center">
-                                    <input type="radio" name="child" value="true" class="mr-2" required>
+                                    <input type="radio" name="child" value="true" class="mr-2" >
                                     Oui
                                 </label>
                                 <label class="flex items-center">
-                                    <input type="radio" name="child" value="false" class="mr-2" checked required>
+                                    <input type="radio" name="child" value="false" class="mr-2" checked>
                                     Non
                                 </label>
                             </div>
