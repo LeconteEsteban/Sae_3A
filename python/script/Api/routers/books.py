@@ -217,36 +217,56 @@ def get_book(id_book: int):
     }
     
     return response_data
+
+
 @router.get("/topbook/{nbook}", response_model=List[BookResponse])
 def get_top_books(nbook: int):
     """
     Endpoint pour obtenir des livres aléatoires parmi les meilleurs livres.
     """
     query = """
-                SELECT
-                    bv.book_id, bv.title, bv.isbn13, bv.author_name,
-                    bv.description, bv.number_of_pages, bv.publisher_name,
-                    array_agg(DISTINCT bv.genre_name) AS genre_names,
-                    array_agg(DISTINCT bv.award_name) AS award_names,
-                    bv.average_rating
-                FROM library.top_books tb
-                JOIN library.book_view bv ON tb.book_id = bv.book_id
-                GROUP BY
-                            bv.book_id, bv.title, bv.isbn, bv.isbn13, bv.author_name,
-                            bv.description, bv.number_of_pages, bv.publisher_name,
-                            bv.rating_count, bv.average_rating
-                LIMIT 100;
+            WITH top_books_filtered AS (
+            SELECT book_id
+            FROM library.top_books
+            LIMIT 100
+        )
+        SELECT
+            bv.book_id,
+            bv.title,
+            bv.isbn13,
+            bv.author_name,
+            bv.description,
+            bv.number_of_pages,
+            bv.publisher_name,
+            array_agg(DISTINCT bv.genre_name) AS genre_names,
+            array_agg(DISTINCT bv.award_name) AS award_names,
+            bv.average_rating
+        FROM
+            top_books_filtered tbf
+        JOIN
+            library.book_view bv ON tbf.book_id = bv.book_id
+        GROUP BY
+            bv.book_id,
+            bv.title,
+            bv.isbn13,
+            bv.author_name,
+            bv.description,
+            bv.number_of_pages,
+            bv.publisher_name,
+            bv.average_rating;
     """
-    
+
+    print("Executing query...")
     top_books = bddservice.cmd_sql(query)
+    print(f"Query executed. {len(top_books)} top books found.")
 
     if not top_books:
         raise HTTPException(status_code=404, detail="No top books found in the database")
-    
+
     # Sélection aléatoire des livres
     sampled_books = random.sample(top_books, min(nbook, len(top_books)))
-   
-    
+    print(f"Sampled {len(sampled_books)} books.")
+
     # Transformation des données pour correspondre au schéma BookResponse
     books_data = [
         {
@@ -260,9 +280,10 @@ def get_top_books(nbook: int):
             "genre_names": book[7],
             "award_names": book[8],
             "average_rating": book[9],
-            "url" : bddservice.get_book_cover_url(book[0], book[2])
+            "url": bddservice.get_book_cover_url(book[0], book[2])
         }
         for book in sampled_books
     ]
 
+    print(f"Returning {len(books_data)} books.")
     return books_data
