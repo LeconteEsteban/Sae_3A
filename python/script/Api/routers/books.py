@@ -5,6 +5,7 @@ from typing import Optional
 from models.schemas import BookResponse
 from services.servicebdd import bddservice, recommendation_service, recommendation_hybride
 from datetime import date
+import random
 
 
 
