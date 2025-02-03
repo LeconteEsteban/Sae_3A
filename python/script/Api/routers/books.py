@@ -4,7 +4,7 @@ from typing import List
 from typing import Optional
 from models.schemas import BookResponse
 from services.servicebdd import bddservice, recommendation_service, recommendation_hybride
-
+from datetime import date
 
 
 
@@ -117,39 +117,37 @@ def get_all_books(skip: int = 0, limit: int = 10):
 
     return books_data
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
 @router.get("/search", response_model=List[BookResponse])
 def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10):
-    """
-    Endpoint pour rechercher des livres en fonction d'une requête.
-    """
     if not query:
         raise HTTPException(status_code=400, detail="Query parameter is required")
 
-    search_query = f"%{query}%"
-    query_sql = f"""SELECT
-                bv.book_id,
-                bv.title,
-                bv.isbn,
-                bv.isbn13,
-                bv.author_name,
-                bv.description,
-                bv.number_of_pages,
-                bv.publisher_name,
-                array_agg(DISTINCT bv.genre_name) AS genre_names,
-                array_agg(DISTINCT bv.award_name) AS award_names,
-                bv.rating_count,
-                bv.average_rating
-            FROM
-                library.book_view bv
-            WHERE
-                bv.title ILIKE %s OR bv.author_name ILIKE %s
-            GROUP BY
-                bv.book_id, bv.title, bv.isbn, bv.isbn13,
-                bv.author_name, bv.description, bv.number_of_pages,
-                bv.publisher_name, bv.rating_count, bv.average_rating
-            LIMIT {limit} OFFSET {skip};
-            """
-    books = bddservice.cmd_sql(query_sql, (search_query, search_query))
+    logging.debug(f"Search query: {query}")
+
+    query_sql = """
+        SELECT
+            bv.book_id,
+            bv.title,
+            bv.isbn13,
+            bv.description,
+            a.name        
+        FROM
+            library.book bv
+        JOIN library.wrote w ON bv.book_id = w.book_id 
+        JOIN library.author a ON w.author_id = a.author_id 
+        WHERE
+            bv.title ILIKE CONCAT('%%', %s, '%%')  
+        LIMIT %s OFFSET %s;
+    """
+
+    books = bddservice.cmd_sql(query_sql, (query, limit, skip))
+    
+    logging.debug(f"Books found: {books}")
+
     if not books:
         raise HTTPException(status_code=404, detail="No books found matching the query")
 
@@ -157,17 +155,10 @@ def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10):
         {
             "id": book[0],
             "title": book[1],
-            "isbn": book[2],
-            "isbn13": book[3],
+            "isbn13": book[2],
+            "description": book[3],
             "author_name": book[4],
-            "description": book[5],
-            "number_of_pages": book[6],
-            "publisher_name": book[7],
-            "genre_names": book[8],
-            "award_names": book[9],  
-            "rating_count": book[10],
-            "average_rating": book[11],
-            "url" : bddservice.get_book_cover_url(book[0], book[3])
+            "url": bddservice.get_book_cover_url(book[0], book[2])
         }
         for book in books
     ]
@@ -175,12 +166,6 @@ def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10):
     return books_data
 
 
-
-
-
-from fastapi import HTTPException
-from typing import Optional
-from datetime import date
 
 @router.get('/{id_book}', response_model=BookResponse)
 def get_book(id_book: int):
