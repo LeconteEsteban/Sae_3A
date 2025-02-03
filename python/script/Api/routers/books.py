@@ -67,38 +67,42 @@ router = APIRouter()
 
 #     return books_data
 
-
 @router.get("/all", response_model=List[BookResponse])
-def get_all_books(skip: int = 0, limit: int = 10):
+def get_all_books():
+    query = f"""
+        WITH book_data AS (
+            SELECT 
+                b.book_id,
+                b.title,
+                b.isbn,
+                b.isbn13,
+                a.name AS author_name,
+                b.description,
+                b.number_of_pages,
+                p.name AS publisher_name,
+                array_agg(DISTINCT g.name) AS genre_names,
+                array_agg(DISTINCT aw.name) AS award_names,
+                rb.rating_count,
+                rb.average_rating
+            FROM library.book b
+            JOIN library.wrote w ON b.book_id = w.book_id
+            JOIN library.author a ON w.author_id = a.author_id
+            JOIN library.publisher p ON b.publisher_id = p.publisher_id
+            left join library.genre_and_vote Gav on b.book_id = Gav.book_id
+            LEFT JOIN library.genre g ON Gav.genre_id = g.genre_id
+            LEFT JOIN library.Award_of_book ba ON b.book_id = ba.book_id
+            LEFT JOIN library.award aw ON ba.award_id = aw.award_id
+            left join library.rating_book rb on b.book_id = rb.book_id
+            GROUP BY b.book_id, b.title, b.isbn, b.isbn13, a.name, b.description,
+                     b.number_of_pages, p.name, rb.rating_count, rb.average_rating
+        )
+        SELECT * FROM book_data;
     """
-    Endpoint pour obtenir tous les livres de la base de données avec pagination.
-    """
-    query = f"""SELECT
-                bv.book_id,
-                bv.title,
-                bv.isbn,
-                bv.isbn13,
-                bv.author_name,
-                bv.description,
-                bv.number_of_pages,
-                bv.publisher_name,
-                array_agg(DISTINCT bv.genre_name) AS genre_names,
-                array_agg(DISTINCT bv.award_name) AS award_names,
-                bv.rating_count,
-                bv.average_rating
-            FROM
-                library.book_view bv
-            GROUP BY
-                bv.book_id, bv.title, bv.isbn, bv.isbn13,
-                bv.author_name, bv.description, bv.number_of_pages,
-                bv.publisher_name, bv.rating_count, bv.average_rating
-            LIMIT {limit} OFFSET {skip};
-            """
     books = bddservice.cmd_sql(query)
     if not books:
         raise HTTPException(status_code=404, detail="No books found in the database")
 
-    books_data = [
+    return [
         {
             "id": book[0],
             "title": book[1],
@@ -116,7 +120,6 @@ def get_all_books(skip: int = 0, limit: int = 10):
         for book in books
     ]
 
-    return books_data
 
 import logging
 
@@ -228,7 +231,7 @@ def get_top_books(nbook: int):
             WITH top_books_filtered AS (
             SELECT book_id
             FROM library.top_books
-            LIMIT 100
+            LIMIT 2000
         )
         SELECT
             bv.book_id,
