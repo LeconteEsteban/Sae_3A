@@ -25,6 +25,12 @@ class RecommendationReponse(BaseModel):
 class AuthorReponse(BaseModel):
     id: int
     name: str
-    birth_date: Optional[date] = None
-    biography: Optional[str] = None
+    birthplace: Optional[str] = None
+    authorRating: Optional[float] = None
+    BooksWritten: Optional[List[Optional[int]]] = None
+    
 
+class SeriesReponse(BaseModel):
+    id: int
+    name: Optional[str] = None
+    BooksSeries: Optional[List[Optional[int]]] = None
