@@ -1,1004 +1,545 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Escape Header</title>
-    <link rel="stylesheet" href="/static/css/styles.css">
-    <link rel="stylesheet" href="/static/css/body-styles.css">
-</head>
-<body class="bg-gray-50">
-    <header class="flex items-center justify-between px-6 py-4 bg-white shadow-md">
-        <div class="text-2xl font-bold text-gray-800">ESCAPE</div>
-        <div class="flex items-center w-1/2 search relative">
-            <!-- Barre de recherche -->
-            <input
-                type="text"
-                id="search-input"
-                placeholder="Recherche"
-                class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none"
-            >
-            <!-- Pop-up des résultats -->
-            <div id="search-results-popup" class="search-results-popup absolute top-full left-0 w-full bg-white border border-gray-300 rounded-b-md shadow-lg mt-1 max-h-80 overflow-y-auto hidden">
-                <!-- Les résultats seront injectés ici par JavaScript -->
-            </div>
-        </div>
-    
-        <!-- Bouton de Connexion -->
-        <button
-            id="loginButton"
-            class="flex items-center px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
-            onclick="openModal()"
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <link rel="stylesheet" href="/static/css/body-styles.css" />
+    <link rel="stylesheet" href="static/css/carrousel.css">
+    <link
+      href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
+  <body class="bg-gray-50">
+    <header
+      class="flex items-center justify-between px-6 py-4 bg-white shadow-md"
+    >
+      <div class="text-2xl font-bold text-gray-800">ESCAPE</div>
+      <div class="flex items-center w-1/2 search relative">
+        <!-- Barre de recherche -->
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Recherche"
+          class="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none"
+        />
+        <!-- Pop-up des résultats -->
+        <div
+          id="search-results-popup"
+          class="search-results-popup absolute top-full left-0 w-full bg-white border border-gray-300 rounded-b-md shadow-lg mt-1 max-h-80 overflow-y-auto hidden"
         >
-            <i class="robot icon"></i>
-            <span>Connexion</span>
-        </button>
-        <button id="usernameHeader" onclick="openBurgerHeader()" class="hidden px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300"></button>
-    
-        <!-- Menu Burger -->
-        <div id="menuBurger" class="hidden fixed rounded top-16 right-6 flex flex-col items-stretch bg-opacity">
-            <div
-                id="WishListeButton"
-                class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300"
-                onclick="wishListe()"
-            >
-                <i class="robot icon"></i>
-                <span>Wish Liste</span>
-            </div>
-            <div
-                id="LivreListeButton"
-                class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300"
-                onclick="livreLuListe()"
-            >
-                <i class="robot icon"></i>
-                <span>Livre lu</span>
-            </div>
-            <div
-                id="logoutButton"
-                class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 hover:text-red-600"
-                onclick="handleLogout()"
-            >
-                <i class="robot icon"></i>
-                <span>Déconnexion</span>
-            </div>
+          <!-- Les résultats seront injectés ici par JavaScript -->
         </div>
+      </div>
+
+      <!-- Bouton de Connexion -->
+      <button
+        id="loginButton"
+        class="flex items-center px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+        onclick="openModal()"
+      >
+        <i class="robot icon"></i>
+        <span>Connexion</span>
+      </button>
+      <button
+        id="usernameHeader"
+        onclick="openBurgerHeader()"
+        class="hidden px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300"
+      ></button>
+
+      <!-- Menu Burger -->
+      <div
+        id="menuBurger"
+        class="hidden fixed rounded top-16 right-6 flex flex-col items-stretch bg-opacity"
+      >
+        <div
+          id="WishListeButton"
+          class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300"
+          onclick="wishListe()"
+        >
+          <i class="robot icon"></i>
+          <span>Wish Liste</span>
+        </div>
+        <div
+          id="LivreListeButton"
+          class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300"
+          onclick="livreLuListe()"
+        >
+          <i class="robot icon"></i>
+          <span>Livre lu</span>
+        </div>
+        <div
+          id="logoutButton"
+          class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 hover:text-red-600"
+          onclick="handleLogout()"
+        >
+          <i class="robot icon"></i>
+          <span>Déconnexion</span>
+        </div>
+      </div>
     </header>
 
     <!-- Modale -->
-    <div id="loginModal" class="modaleForHide hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-[1000]" >
-        <div class="bg-white rounded-md p-6 w-96">
-            <div id="loginForm">
-                <h2 class="text-xl font-bold mb-4 flex justify-between">Connexion <button onclick="closeModal()" class="relative -top-4 -right-4 text-red-600">X</button></h2>
-                <form id="loginFormElement">
-                    <div class="mb-4">
-                    <label class="block text-gray-700">Identifiant</label>
-                    <input
-                        type="text"
-                        id="username"
-                        class="w-full p-2 border border-gray-300 rounded-md"
-                        required
-                    />
-                    </div>
-                    <div class="mb-4">
-                    <label class="block text-gray-700">Mot de passe</label>
-                    <input
-                        type="password"
-                        id="password"
-                        class="w-full p-2 border border-gray-300 rounded-md"
-                        required
-                    />
-                    </div>
-                    <button
-                    type="submit"
-                    class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
-                    >
-                    Se connecter
-                    </button>
-                </form>
-                <div class="mt-4 text-center">
-                    <p class="text-sm">Pas de compte ? 
-                    <a href="#" onclick="switchToRegister()" class="text-blue-500 hover:underline">
-                        Créer un compte
-                    </a>
-                    </p>
-                </div>
+    <div
+      id="loginModal"
+      class="modaleForHide hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-[1000]"
+    >
+      <div class="bg-white rounded-md p-6 w-96">
+        <div id="loginForm">
+          <h2 class="text-xl font-bold mb-4 flex justify-between">
+            Connexion
+            <button
+              onclick="closeModal()"
+              class="relative -top-4 -right-4 text-red-600"
+            >
+              X
+            </button>
+          </h2>
+          <form id="loginFormElement">
+            <div class="mb-4">
+              <label class="block text-gray-700">Identifiant</label>
+              <input
+                type="text"
+                id="username"
+                class="w-full p-2 border border-gray-300 rounded-md"
+                required
+              />
             </div>
-
-            <!-- Modale (Créer un compte) -->
-            <div id="registerForm" class="modaleForHide hidden">
-                <h2 class="text-xl font-bold mb-4 flex justify-between">Créer un compte <button onclick="closeModal()" class="relative -top-4 -right-4 text-red-600">X</button></h2>
-                <form id="registerFormElement">
-                    <!-- Étape 1 -->
-                    <div class="register-step" id="registerStep1">
-                        <div class="mb-4">
-                            <label class="block text-gray-700">Identifiant</label>
-                            <input type="text" id="newUsername" class="w-full p-2 border border-gray-300 rounded-md" required />
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700">Mot de passe</label>
-                            <input type="password" id="newPassword" class="w-full p-2 border border-gray-300 rounded-md" required />
-                        </div>
-                        <button type="button" id="nextButton1" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600" onclick="nextStep(1)" disabled>
-                            Suivant
-                        </button>
-                    </div>
-
-                    <!-- Étape 2 -->
-                    <div class="register-step hidden" id="registerStep2">
-                        <div class="mb-4">
-                            <label class="block text-gray-700">Âge</label>
-                            <select type="text" id="age" class="w-full p-2 border border-gray-300 rounded-md">
-                                <option value="" disabled selected>-- Sélectionner --</option>    
-                                <option value="0 - 10 ans">0 - 10 ans</option>
-                                <option value="11 - 20 ans">11 - 20 ans</option>
-                                <option value="21 - 30 ans">21 - 30 ans</option>
-                                <option value="31 - 40 ans">31 - 40 ans</option>
-                                <option value="41 - 50 ans">41 - 50 ans</option>
-                                <option value="51 - 60 ans">51 - 60 ans</option>
-                                <option value="61 - 70 ans">61 - 70 ans</option>
-                                <option value="+ 70 ans">+ 70 ans</option>
-                            </select>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700">Genre</label>
-                            <select id="gender" class="w-full p-2 border border-gray-300 rounded-md">
-                                <option value="" disabled selected>-- Sélectionner --</option>    
-                                <option value="Homme">Homme</option>
-                                <option value="Femme">Femme</option>
-                                <option value="Autre">Autre</option>
-                            </select>
-                        </div>
-                        <button type="button" class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600" onclick="prevStep(2)">Retour</button>
-                        <button type="button" class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600" onclick="nextStep(2)">Suivant</button>
-                    </div>
-
-                    <!-- Étape 3 -->
-                    <div class="register-step hidden" id="registerStep3">
-                        <div class="mb-4">
-                            <label class="block text-gray-700">Catégorie</label>
-                            <select type="text" id="cat_socio_pro" class="w-full p-2 border border-gray-300 rounded-md">
-                                <option value="" disabled selected>-- Sélectionner --</option>    
-                                <option value="Étudiant(e)">Étudiant(e)</option>
-                                <option value="Employés">Employés</option>
-                                <option value="Ouvriers">Ouvriers</option>
-                                <option value="Agriculteurs exploitants">Agriculteurs exploitants</option>
-                                <option value="Artisans. commerçants. chefs entreprise">Artisans. commerçants. chefs entreprise</option>
-                                <option value="Cadres et professions intellectuelles supérieures">Cadres et professions intellectuelles supérieures</option>
-                                <option value="Professions intermédiaires">Professions intermédiaires</option>
-                                <option value="Retraités">Retraités</option>
-                                <option value="Autres personnes sans activité professionnelle">Autres personnes sans activité professionnelle</option>
-                            </select>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700">Habitation</label>
-                            <select id="lieu_habitation" class="w-full p-2 border border-gray-300 rounded-md">
-                                <option value="" disabled selected>-- Sélectionner --</option>
-                                <option value="Grande Ville (+ 50 000 habitants)">Grande Ville (+ 50 000 habitants)</option>
-                                <option value="Moyenne ville (20 000 - 50 000 habitants)">Moyenne ville (20 000 - 50 000 habitants)</option>
-                                <option value="Petite ville (- 20 000 habitants)">Petite ville (- 20 000 habitants)</option>
-                                <option value="Milieu urbain">Milieu urbain</option>
-                                <option value="Campagne">Campagne</option>
-                                <option value="Bord de mer">Bord de mer</option>
-                                <option value="Montagne">Montagne</option>
-                            </select>
-                        </div>
-                        <button type="button" class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600" onclick="prevStep(3)">Retour</button>
-                        <button type="button" class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600" onclick="nextStep(3)">Suivant</button>
-                    </div>
-
-                    <!-- Étape 4 -->
-                    <div class="register-step hidden" id="registerStep4">
-                        <div class="mb-4">
-                            <label class="block text-gray-700">Avez-vous des enfants ?</label>
-                            <div class="flex space-x-4">
-                                <label class="flex items-center">
-                                    <input type="radio" name="child" value="true" class="mr-2" >
-                                    Oui
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="radio" name="child" value="false" class="mr-2" checked>
-                                    Non
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="block text-gray-700">Fréquence de lecture ?</label>
-                            <select id="frequency" class="w-full p-2 border border-gray-300 rounded-md">
-                                <option value="" disabled selected>-- Sélectionner --</option>
-                                <option value="Tous les jours">Tous les jours</option>
-                                <option value="Plusieurs fois par semaine">Plusieurs fois par semaine</option>
-                                <option value="Une fois par semaine">Une fois par semaine</option>
-                                <option value="Quelques fois par mois">Quelques fois par mois</option>
-                                <option value="Rarement">Rarement</option>
-                            </select>
-                        </div>
-                        <button type="button" class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600" onclick="prevStep(4)">Retour</button>
-                        <button type="button" class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600" onclick="nextStep(4)">Suivant</button>
-                    </div>
-
-                    <!-- Étape 5 -->
-                    <div class="register-step hidden" id="registerStep5">
-                        <div class="mb-4">
-                            <label class="block text-gray-700">Taille préféré des livres ?</label>
-                            <select id="book_size" class="w-full p-2 border border-gray-300 rounded-md">
-                                <option value="" disabled selected>-- Sélectionner --</option>
-                                <option value="0 - 100 pages">0 - 100 pages</option>
-                                <option value="101 - 200 pages">101 - 200 pages</option>
-                                <option value="201 - 300 pages">201 - 300 pages</option>
-                                <option value="301 - 400 pages">301 - 400 pages</option>
-                                <option value="401 - 500 pages">401 - 500 pages</option>
-                                <option value="+ 500 pages">+ 500 pages</option>
-                            </select>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700">Date de naissance?</label>
-                            <input type="date" id="birth_date" class="w-full p-2 border border-gray-300 rounded-md" required />
-                        </div>
-                        <button type="button" class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600" onclick="prevStep(5)">Retour</button>
-                        <button type="submit" class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600">
-                            Créer son compte
-                        </button>
-                    </div>
-                </form>
-                <div class="mt-4 text-center">
-                <p class="text-sm">Déjà un compte ? 
-                    <a href="#" onclick="switchToLogin()" class="text-blue-500 hover:underline">
-                    Se connecter
-                    </a>
-                </p>
-                </div>
+            <div class="mb-4">
+              <label class="block text-gray-700">Mot de passe</label>
+              <input
+                type="password"
+                id="password"
+                class="w-full p-2 border border-gray-300 rounded-md"
+                required
+              />
             </div>
-
+            <button
+              type="submit"
+              class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
+            >
+              Se connecter
+            </button>
+          </form>
+          <div class="mt-4 text-center">
+            <p class="text-sm">
+              Pas de compte ?
+              <a
+                href="#"
+                onclick="switchToRegister()"
+                class="text-blue-500 hover:underline"
+              >
+                Créer un compte
+              </a>
+            </p>
+          </div>
         </div>
-        
+
+        <!-- Modale (Créer un compte) -->
+        <div id="registerForm" class="modaleForHide hidden">
+          <h2 class="text-xl font-bold mb-4 flex justify-between">
+            Créer un compte
+            <button
+              onclick="closeModal()"
+              class="relative -top-4 -right-4 text-red-600"
+            >
+              X
+            </button>
+          </h2>
+          <form id="registerFormElement">
+            <!-- Étape 1 -->
+            <div class="register-step" id="registerStep1">
+              <div class="mb-4">
+                <label class="block text-gray-700">Identifiant</label>
+                <input
+                  type="text"
+                  id="newUsername"
+                  class="w-full p-2 border border-gray-300 rounded-md"
+                  required
+                />
+              </div>
+              <div class="mb-4">
+                <label class="block text-gray-700">Mot de passe</label>
+                <input
+                  type="password"
+                  id="newPassword"
+                  class="w-full p-2 border border-gray-300 rounded-md"
+                  required
+                />
+              </div>
+              <button
+                type="button"
+                id="nextButton1"
+                class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
+                onclick="nextStep(1)"
+                disabled
+              >
+                Suivant
+              </button>
+            </div>
+
+            <!-- Étape 2 -->
+            <div class="register-step hidden" id="registerStep2">
+              <div class="mb-4">
+                <label class="block text-gray-700">Âge</label>
+                <select
+                  type="text"
+                  id="age"
+                  class="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="" disabled selected>-- Sélectionner --</option>
+                  <option value="0 - 10 ans">0 - 10 ans</option>
+                  <option value="11 - 20 ans">11 - 20 ans</option>
+                  <option value="21 - 30 ans">21 - 30 ans</option>
+                  <option value="31 - 40 ans">31 - 40 ans</option>
+                  <option value="41 - 50 ans">41 - 50 ans</option>
+                  <option value="51 - 60 ans">51 - 60 ans</option>
+                  <option value="61 - 70 ans">61 - 70 ans</option>
+                  <option value="+ 70 ans">+ 70 ans</option>
+                </select>
+              </div>
+              <div class="mb-4">
+                <label class="block text-gray-700">Genre</label>
+                <select
+                  id="gender"
+                  class="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="" disabled selected>-- Sélectionner --</option>
+                  <option value="Homme">Homme</option>
+                  <option value="Femme">Femme</option>
+                  <option value="Autre">Autre</option>
+                </select>
+              </div>
+              <button
+                type="button"
+                class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600"
+                onclick="prevStep(2)"
+              >
+                Retour
+              </button>
+              <button
+                type="button"
+                class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
+                onclick="nextStep(2)"
+              >
+                Suivant
+              </button>
+            </div>
+
+            <!-- Étape 3 -->
+            <div class="register-step hidden" id="registerStep3">
+              <div class="mb-4">
+                <label class="block text-gray-700">Catégorie</label>
+                <select
+                  type="text"
+                  id="cat_socio_pro"
+                  class="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="" disabled selected>-- Sélectionner --</option>
+                  <option value="Étudiant(e)">Étudiant(e)</option>
+                  <option value="Employés">Employés</option>
+                  <option value="Ouvriers">Ouvriers</option>
+                  <option value="Agriculteurs exploitants">
+                    Agriculteurs exploitants
+                  </option>
+                  <option value="Artisans. commerçants. chefs entreprise">
+                    Artisans. commerçants. chefs entreprise
+                  </option>
+                  <option
+                    value="Cadres et professions intellectuelles supérieures"
+                  >
+                    Cadres et professions intellectuelles supérieures
+                  </option>
+                  <option value="Professions intermédiaires">
+                    Professions intermédiaires
+                  </option>
+                  <option value="Retraités">Retraités</option>
+                  <option
+                    value="Autres personnes sans activité professionnelle"
+                  >
+                    Autres personnes sans activité professionnelle
+                  </option>
+                </select>
+              </div>
+              <div class="mb-4">
+                <label class="block text-gray-700">Habitation</label>
+                <select
+                  id="lieu_habitation"
+                  class="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="" disabled selected>-- Sélectionner --</option>
+                  <option value="Grande Ville (+ 50 000 habitants)">
+                    Grande Ville (+ 50 000 habitants)
+                  </option>
+                  <option value="Moyenne ville (20 000 - 50 000 habitants)">
+                    Moyenne ville (20 000 - 50 000 habitants)
+                  </option>
+                  <option value="Petite ville (- 20 000 habitants)">
+                    Petite ville (- 20 000 habitants)
+                  </option>
+                  <option value="Milieu urbain">Milieu urbain</option>
+                  <option value="Campagne">Campagne</option>
+                  <option value="Bord de mer">Bord de mer</option>
+                  <option value="Montagne">Montagne</option>
+                </select>
+              </div>
+              <button
+                type="button"
+                class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600"
+                onclick="prevStep(3)"
+              >
+                Retour
+              </button>
+              <button
+                type="button"
+                class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
+                onclick="nextStep(3)"
+              >
+                Suivant
+              </button>
+            </div>
+
+            <!-- Étape 4 -->
+            <div class="register-step hidden" id="registerStep4">
+              <div class="mb-4">
+                <label class="block text-gray-700"
+                  >Avez-vous des enfants ?</label
+                >
+                <div class="flex space-x-4">
+                  <label class="flex items-center">
+                    <input
+                      type="radio"
+                      name="child"
+                      value="true"
+                      class="mr-2"
+                    />
+                    Oui
+                  </label>
+                  <label class="flex items-center">
+                    <input
+                      type="radio"
+                      name="child"
+                      value="false"
+                      class="mr-2"
+                      checked
+                    />
+                    Non
+                  </label>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label class="block text-gray-700"
+                  >Fréquence de lecture ?</label
+                >
+                <select
+                  id="frequency"
+                  class="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="" disabled selected>-- Sélectionner --</option>
+                  <option value="Tous les jours">Tous les jours</option>
+                  <option value="Plusieurs fois par semaine">
+                    Plusieurs fois par semaine
+                  </option>
+                  <option value="Une fois par semaine">
+                    Une fois par semaine
+                  </option>
+                  <option value="Quelques fois par mois">
+                    Quelques fois par mois
+                  </option>
+                  <option value="Rarement">Rarement</option>
+                </select>
+              </div>
+              <button
+                type="button"
+                class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600"
+                onclick="prevStep(4)"
+              >
+                Retour
+              </button>
+              <button
+                type="button"
+                class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
+                onclick="nextStep(4)"
+              >
+                Suivant
+              </button>
+            </div>
+
+            <!-- Étape 5 -->
+            <div class="register-step hidden" id="registerStep5">
+              <div class="mb-4">
+                <label class="block text-gray-700"
+                  >Taille préféré des livres ?</label
+                >
+                <select
+                  id="book_size"
+                  class="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="" disabled selected>-- Sélectionner --</option>
+                  <option value="0 - 100 pages">0 - 100 pages</option>
+                  <option value="101 - 200 pages">101 - 200 pages</option>
+                  <option value="201 - 300 pages">201 - 300 pages</option>
+                  <option value="301 - 400 pages">301 - 400 pages</option>
+                  <option value="401 - 500 pages">401 - 500 pages</option>
+                  <option value="+ 500 pages">+ 500 pages</option>
+                </select>
+              </div>
+              <div class="mb-4">
+                <label class="block text-gray-700">Date de naissance?</label>
+                <input
+                  type="date"
+                  id="birth_date"
+                  class="w-full p-2 border border-gray-300 rounded-md"
+                  required
+                />
+              </div>
+              <button
+                type="button"
+                class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600"
+                onclick="prevStep(5)"
+              >
+                Retour
+              </button>
+              <button
+                type="submit"
+                class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600"
+              >
+                Créer son compte
+              </button>
+            </div>
+          </form>
+          <div class="mt-4 text-center">
+            <p class="text-sm">
+              Déjà un compte ?
+              <a
+                href="#"
+                onclick="switchToLogin()"
+                class="text-blue-500 hover:underline"
+              >
+                Se connecter
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
 
-    
-    
-
-    <main class="px-6 py-8 space-y-8" style="padding: 0;">
-        <section style="padding-bottom: 16px; background-image: url(/static/img/scattered-forcefields.svg);">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center space-x-2 text-lg font-semibold">
-                    <i class="fas fa-dice"></i>
-                    <span>Meilleurs livres</span>
-                </div>
-                <button class="flex items-center px-3 py-1 text-sm font-medium text-white bg-gray-800 rounded-md">
-                    <span>→</span>
-                </button>
-            </div>
-            <div class="slider">
-                <div class="slider-wrapper">
-                    <!-- Slides -->
-                    <div class="slide">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary"><a href="http://localhost:3000/livre?id=1">Voir plus</a></button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="slider-nav">
-                    <button class="prev">←</button>
-                    <button class="next">→</button>
-                </div>
-            </div>
-        </section>
-        <section style="padding-bottom: 16px;">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center space-x-2 text-lg font-semibold">
-                    <i class="fas fa-dice"></i>
-                    <span>TOP 10</span>
-                </div>
-                <button class="flex items-center px-3 py-1 text-sm font-medium text-white bg-gray-800 rounded-md">
-                    <span>→</span>
-                </button>
-            </div>
-            <div class="slider-top10">
-                <div class="slider-wrapper-top10">
-                    <!-- Slides -->
-                    <div class="slide-top10">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide-top10">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide-top10">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide-top10">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide-top10">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide-top10">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide-top10">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide-top10">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide-top10">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide-top10">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide-top10">
-                        <div class="book">
-                            <!-- Book Image -->
-                            <img src="/static/img/book-cover.webp" alt="Another Book">
-                            <!-- Book Details (Hover) -->
-                            <div class="book-details">
-                                <h3>Another Book</h3>
-                                <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                                <div class="tags">
-                                    <span class="tag">TAG A</span>
-                                    <span class="tag">TAG B</span>
-                                </div>
-                                <div class="actions">
-                                    <button class="primary">Voir plus</button>
-                                    <button class="secondary">J'aime</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                </div>
-                <div class="slider-nav-top10">
-                    <button class="prev-top10">←</button>
-                    <button class="next-top10">→</button>
-                </div>
-            </div>
-        </section>
-        <section class="book-section">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center space-x-2 text-lg font-semibold">
-                    <i class="fas fa-dice"></i>
-                    <span>RECOMMANDATION</span>
-                </div>
-                <button class="flex items-center px-3 py-1 text-sm font-medium text-white bg-gray-800 rounded-md">
-                    <span>→</span>
-                </button>
-            </div>
-            <div class="book-list">
-            <!-- Book Item -->
-            <div class="book">
-                <!-- Book Image -->
-                <img src="/static/img/book-cover.webp" alt="Fantastic Mr. Fox">
-                <!-- Book Details (Hover) -->
-                <div class="book-details">
-                    <h3>Fantastic Mr. Fox</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-                    <div class="tags">
-                        <span class="tag">TAG 1</span>
-                        <span class="tag">TAG 2</span>
-                        <span class="tag">TAG 3</span>
-                    </div>
-                    <div class="actions">
-                        <button class="primary">Voir plus</button>
-                        <button class="secondary">J'aime</button>
-                    </div>
-                </div>
-            </div>
-            <!-- Repeat for each book -->
-            <div class="book">
-                <!-- Book Image -->
-                <img src="/static/img/book-cover.webp" alt="Another Book">
-                <!-- Book Details (Hover) -->
-                <div class="book-details">
-                    <h3>Another Book</h3>
-                    <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                    <div class="tags">
-                        <span class="tag">TAG A</span>
-                        <span class="tag">TAG B</span>
-                    </div>
-                    <div class="actions">
-                        <button class="primary">Voir plus</button>
-                        <button class="secondary">J'aime</button>
-                    </div>
-                </div>
-            </div>
-            <div class="book">
-                <!-- Book Image -->
-                <img src="/static/img/book-cover.webp" alt="Another Book">
-                <!-- Book Details (Hover) -->
-                <div class="book-details">
-                    <h3>Another Book</h3>
-                    <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                    <div class="tags">
-                        <span class="tag">TAG A</span>
-                        <span class="tag">TAG B</span>
-                    </div>
-                    <div class="actions">
-                        <button class="primary">Voir plus</button>
-                        <button class="secondary">J'aime</button>
-                    </div>
-                </div>
-            </div>
-            <div class="book">
-                <!-- Book Image -->
-                <img src="/static/img/book-cover.webp" alt="Another Book">
-                <!-- Book Details (Hover) -->
-                <div class="book-details">
-                    <h3>Another Book</h3>
-                    <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                    <div class="tags">
-                        <span class="tag">TAG A</span>
-                        <span class="tag">TAG B</span>
-                    </div>
-                    <div class="actions">
-                        <button class="primary">Voir plus</button>
-                        <button class="secondary">J'aime</button>
-                    </div>
-                </div>
-            </div>
-            <div class="book">
-                <!-- Book Image -->
-                <img src="/static/img/book-cover.webp" alt="Another Book">
-                <!-- Book Details (Hover) -->
-                <div class="book-details">
-                    <h3>Another Book</h3>
-                    <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                    <div class="tags">
-                        <span class="tag">TAG A</span>
-                        <span class="tag">TAG B</span>
-                    </div>
-                    <div class="actions">
-                        <button class="primary">Voir plus</button>
-                        <button class="secondary">J'aime</button>
-                    </div>
-                </div>
-            </div>
-            <div class="book">
-                <!-- Book Image -->
-                <img src="/static/img/book-cover.webp" alt="Another Book">
-                <!-- Book Details (Hover) -->
-                <div class="book-details">
-                    <h3>Another Book</h3>
-                    <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                    <div class="tags">
-                        <span class="tag">TAG A</span>
-                        <span class="tag">TAG B</span>
-                    </div>
-                    <div class="actions">
-                        <button class="primary">Voir plus</button>
-                        <button class="secondary">J'aime</button>
-                    </div>
-                </div>
-            </div>
-            <div class="book">
-                <!-- Book Image -->
-                <img src="/static/img/book-cover.webp" alt="Another Book">
-                <!-- Book Details (Hover) -->
-                <div class="book-details">
-                    <h3>Another Book</h3>
-                    <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                    <div class="tags">
-                        <span class="tag">TAG A</span>
-                        <span class="tag">TAG B</span>
-                    </div>
-                    <div class="actions">
-                        <button class="primary">Voir plus</button>
-                        <button class="secondary">J'aime</button>
-                    </div>
-                </div>
-            </div>
-            <div class="book">
-                <!-- Book Image -->
-                <img src="/static/img/book-cover.webp" alt="Another Book">
-                <!-- Book Details (Hover) -->
-                <div class="book-details">
-                    <h3>Another Book</h3>
-                    <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                    <div class="tags">
-                        <span class="tag">TAG A</span>
-                        <span class="tag">TAG B</span>
-                    </div>
-                    <div class="actions">
-                        <button class="primary">Voir plus</button>
-                        <button class="secondary">J'aime</button>
-                    </div>
-                </div>
-            </div>
-            <div class="book">
-                <!-- Book Image -->
-                <img src="/static/img/book-cover.webp" alt="Another Book">
-                <!-- Book Details (Hover) -->
-                <div class="book-details">
-                    <h3>Another Book</h3>
-                    <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                    <div class="tags">
-                        <span class="tag">TAG A</span>
-                        <span class="tag">TAG B</span>
-                    </div>
-                    <div class="actions">
-                        <button class="primary">Voir plus</button>
-                        <button class="secondary">J'aime</button>
-                    </div>
-                </div>
-            </div>
-            <div class="book">
-                <!-- Book Image -->
-                <img src="/static/img/book-cover.webp" alt="Another Book">
-                <!-- Book Details (Hover) -->
-                <div class="book-details">
-                    <h3>Another Book</h3>
-                    <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                    <div class="tags">
-                        <span class="tag">TAG A</span>
-                        <span class="tag">TAG B</span>
-                    </div>
-                    <div class="actions">
-                        <button class="primary">Voir plus</button>
-                        <button class="secondary">J'aime</button>
-                    </div>
-                </div>
-            </div>
-            <div class="book">
-                <!-- Book Image -->
-                <img src="/static/img/book-cover.webp" alt="Another Book">
-                <!-- Book Details (Hover) -->
-                <div class="book-details">
-                    <h3>Another Book</h3>
-                    <p>Une autre œuvre captivante remplie d'aventures et d'émotions.</p>
-                    <div class="tags">
-                        <span class="tag">TAG A</span>
-                        <span class="tag">TAG B</span>
-                    </div>
-                    <div class="actions">
-                        <button class="primary">Voir plus</button>
-                        <button class="secondary">J'aime</button>
-                    </div>
-                </div>
-            </div>
+    <main class="px-6 py-8 space-y-8 bg-red" >
+        <div class="flex items-center gap-2 border border-black px-5 py-2 rounded-full">
+            <!-- Icône de cœur -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6l1.2 1.2L12 21l7.6-7.6 1.2-1.2a5.4 5.4 0 0 0 0-7.6z"/>
+            </svg>
+            <span class="font-bold">TOP</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                <path d="M5 12h14m-7-7l7 7-7 7"/>
+            </svg>
         </div>
-        </section>
+      <div class="w-full">
+        <div class="swiper centered-slide-carousel relative h-100">
+          <div class="swiper-wrapper">
+            <!-- Les slides seront ajoutés dynamiquement -->
+          </div>
+          <!-- Flèches de navigation -->
+          <div class="swiper-button-prev"></div>
+          <div class="swiper-button-next"></div>
+        </div>
+      </div>
+
+      <!-- Pop-up pour afficher les détails du livre -->
+      <div
+        id="book-popup"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden"
+      >
+        <div class="bg-white rounded-lg p-8 max-w-4xl w-full mx-4 relative">
+          <div id="first_part_book">
+            <button
+              id="close-popup"
+              class="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+            <div class="flex flex-col md:flex-row gap-6">
+              <div class="w-full md:w-1/3">
+                <img
+                  class="w-full h-auto rounded-lg shadow-md object-cover"
+                  id="book-cover"
+                  alt="Couverture du livre"
+                />
+              </div>
+              <div
+                class="w-full md:w-2/3 flex flex-col gap-4"
+                id="description_left"
+              >
+                <h2 class="text-3xl font-bold text-[#B3B3B3]" id="book-title">
+                  Titre du livre
+                </h2>
+                <a
+                  class="text-xl text-[#B3B3B3] hover:underline"
+                  id="book-author"
+                  >Auteur</a
+                >
+                <div class="flex gap-2 flex-wrap" id="book-genres"></div>
+                <div class="flex gap-2 flex-wrap" id="book-awards"></div>
+                <div
+                  class="bg-[#2C2C2C] p-4 rounded-lg border border-[#B3B3B3]"
+                >
+                  <h3 class="text-xl font-bold text-[#B3B3B3] mb-2">
+                    Description
+                  </h3>
+                  <p id="book-description" class="text-[#B3B3B3]">
+                    Description du livre...
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="flex flex-col md:flex-row justify-between gap-6 text-gray-400 mt-6"
+            >
+              <div class="flex gap-2">
+                <h3>Nombre de page:</h3>
+                <p id="book-page">Nombre de pages</p>
+              </div>
+              <div class="flex gap-2">
+                <h3>Éditeur:</h3>
+                <p id="book-publisher">Éditeur :</p>
+              </div>
+              <div class="flex gap-2">
+                <h3>ISBN:</h3>
+                <p id="book-isbn">ISBN :</p>
+              </div>
+            </div>
+          </div>
+          <div id="second_part_book">
+            <!-- Les éléments supplémentaires seront ajoutés dynamiquement -->
+            <h2 class="text-3xl font-bold text-[#B3B3B3]" id="title-section">
+              Livres similaires
+            </h2>
+            <div
+              id="similar-books-container"
+              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6"
+            >
+              <!-- Les livres similaires seront ajoutés dynamiquement ici -->
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/static/js/carrousel.js"></script>
     <script src="/static/js/body-scripts.js"></script>
-
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    
+  </body>
 </html>
