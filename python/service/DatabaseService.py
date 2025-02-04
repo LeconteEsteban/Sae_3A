@@ -222,7 +222,8 @@ class DatabaseService:
             if query.strip().lower().startswith("select"):
                 results = self.cursor.fetchall()
                 return results
-            
+            if query.strip().lower().startswith("with"):
+                return self.cursor.fetchall()
             # Pour les autres requêtes (DELETE, INSERT, etc.)
             self.connection.commit()
             #print("Commande SQL exécutée avec succès.")

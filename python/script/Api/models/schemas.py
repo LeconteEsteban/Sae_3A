@@ -6,7 +6,6 @@ from typing import List, Optional
 class BookResponse(BaseModel):
     id: int
     title: str
-    isbn: Optional[str] = None
     isbn13: Optional[str] = None
     author_name: Optional[str] = None
     description: Optional[str] = None
@@ -14,7 +13,6 @@ class BookResponse(BaseModel):
     publisher_name: Optional[str] = None
     genre_names: Optional[List[Optional[str]]] = None
     award_names: Optional[List[Optional[str]]] = None
-    rating_count: Optional[int] = None
     average_rating: Optional[float] = None
     url: Optional[str] = None
 
@@ -27,6 +25,12 @@ class RecommendationReponse(BaseModel):
 class AuthorReponse(BaseModel):
     id: int
     name: str
-    birth_date: Optional[date] = None
-    biography: Optional[str] = None
+    birthplace: Optional[str] = None
+    authorRating: Optional[float] = None
+    BooksWritten: Optional[List[Optional[int]]] = None
+    
 
+class SeriesReponse(BaseModel):
+    id: int
+    name: Optional[str] = None
+    BooksSeries: Optional[List[Optional[int]]] = None

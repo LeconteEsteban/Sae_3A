@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from typing import List
 from models.schemas import RecommendationReponse
 from services.servicebdd import bddservice, recommendation_service, recommendation_hybride
-
+import random
 router = APIRouter()
 
 # Fonction utilitaire pour récupérer les genres d'un livre
@@ -61,3 +61,4 @@ def get_book_recommendations_user(id_user: int, nbook: int):
         {"id": book[0], "title": book[1][0], "genres": get_book_genres(book[0])}
         for book in recommend_books_for_user
     ]
+
