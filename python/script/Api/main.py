@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import recommendations, books, authors, series
+from routers import recommendations, books, authors, series, users
 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -20,6 +20,7 @@ app.include_router(recommendations.router, prefix="/recommandations")
 app.include_router(books.router, prefix="/books")
 app.include_router(authors.router, prefix="/authors")
 app.include_router(series.router, prefix="/series")
+app.include_router(users.router)
 # Monter le dossier des fichiers statiques (HTML, CSS, JS, images)
 app.mount("/static", StaticFiles(directory="../../../frontend/public"), name="static")
 

@@ -138,7 +138,7 @@ document.addEventListener("DOMContentLoaded", function () {
         showLoading(); // Afficher l'indicateur de chargement
 
         try {
-            const response = await fetch(`http://localhost:8000/books/search?query=${encodeURIComponent(query)}&skip=0&limit=20`);
+            const response = await fetch(`/books/search?query=${encodeURIComponent(query)}&skip=0&limit=20`);
             
             if (!response.ok) {
                 const errorText = await response.text();

@@ -3,7 +3,7 @@ async function fetchBooks() {
   console.log("Debut fetch");
 
   try {
-    const response = await fetch("http://127.0.0.1:8000/books/topbook/30");
+    const response = await fetch("/books/topbook/30");
     booksData = await response.json();
     console.log("Données récupérées :", booksData); // Affiche les données récupérées
   } catch (error) {
