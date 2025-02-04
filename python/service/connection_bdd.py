@@ -29,7 +29,7 @@ def connectdb():
     try:
         print("Tentative de connexion classique...")
         connection = connect_postgress()
-        print("Connexion classique réussie.")
+        print(f"Connexion classique réussie à : {host}")
         return connection
     except Exception as e1:
         print("Échec de la connexion classique. Tentative avec Kerberos...")
