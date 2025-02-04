@@ -9,6 +9,15 @@ router = APIRouter()
 def get_book_genres(book_id: int) -> List[str]:
     """
     Récupère les genres associés à un livre donné.
+
+    Cette fonction exécute une requête SQL pour récupérer les genres associés à un livre
+    en utilisant son identifiant (book_id). Elle retourne une liste de noms de genres.
+
+    Args:
+        book_id (int): L'identifiant du livre.
+
+    Returns:
+        List[str]: Une liste de noms de genres associés au livre.
     """
     query = f"""
     SELECT g.name
@@ -24,6 +33,18 @@ def get_book_genres(book_id: int) -> List[str]:
 def get_recommendations(id_user: int, nbook: int):
     """
     Endpoint pour obtenir des recommandations pour un utilisateur.
+
+    Cette fonction prend en paramètre l'identifiant d'un utilisateur (id_user) et le nombre
+    de recommandations souhaitées (nbook). Elle utilise un service de recommandation hybride
+    pour obtenir des recommandations personnalisées pour l'utilisateur. Si aucune recommandation
+    n'est trouvée, une exception HTTP 404 est levée.
+
+    Args:
+        id_user (int): L'identifiant de l'utilisateur.
+        nbook (int): Le nombre de recommandations souhaitées.
+
+    Returns:
+        List[RecommendationReponse]: Une liste de recommandations de livres pour l'utilisateur.
     """
     recommandations = recommendation_hybride.recommandation_hybride(id_user, nbook)
     if not recommandations:
@@ -38,6 +59,18 @@ def get_recommendations(id_user: int, nbook: int):
 def get_book_recommendations(id_book: int, nbook: int):
     """
     Endpoint pour obtenir des recommandations de livres similaires.
+
+    Cette fonction prend en paramètre l'identifiant d'un livre (id_book) et le nombre
+    de recommandations souhaitées (nbook). Elle utilise un service de recommandation pour
+    obtenir des livres similaires au livre donné. Si aucun livre similaire n'est trouvé,
+    une exception HTTP 404 est levée.
+
+    Args:
+        id_book (int): L'identifiant du livre.
+        nbook (int): Le nombre de recommandations souhaitées.
+
+    Returns:
+        List[RecommendationReponse]: Une liste de livres similaires au livre donné.
     """
     similar_books = recommendation_service.get_similar_books(id_book, nbook)
     if not similar_books:
@@ -52,6 +85,18 @@ def get_book_recommendations(id_book: int, nbook: int):
 def get_book_recommendations_user(id_user: int, nbook: int):
     """
     Endpoint pour obtenir des recommandations de livres pour un utilisateur.
+
+    Cette fonction prend en paramètre l'identifiant d'un utilisateur (id_user) et le nombre
+    de recommandations souhaitées (nbook). Elle utilise un service de recommandation pour
+    obtenir des recommandations de livres pour l'utilisateur. Si aucune recommandation
+    n'est trouvée, une exception HTTP 404 est levée.
+
+    Args:
+        id_user (int): L'identifiant de l'utilisateur.
+        nbook (int): Le nombre de recommandations souhaitées.
+
+    Returns:
+        List[RecommendationReponse]: Une liste de recommandations de livres pour l'utilisateur.
     """
     recommend_books_for_user = recommendation_service.recommend_books_for_user(id_user, nbook)
     if not recommend_books_for_user:

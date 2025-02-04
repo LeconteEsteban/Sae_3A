@@ -34,3 +34,21 @@ class SeriesReponse(BaseModel):
     id: int
     name: Optional[str] = None
     BooksSeries: Optional[List[Optional[int]]] = None
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    age: str
+    child: bool
+    familial_situation: str
+    gender: str
+    cat_socio_pro: str
+    lieu_habitation: str
+    frequency: str
+    book_size: str
+    birth_date: str
+
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
