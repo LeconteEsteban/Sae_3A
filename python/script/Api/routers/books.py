@@ -102,7 +102,7 @@ def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10):
     if not query:
         raise HTTPException(status_code=400, detail="Query parameter is required")
 
-    logging.debug(f"Search query: {query}")
+    #logging.debug(f"Search query: {query}")
 
     query_sql = """
         SELECT
@@ -122,7 +122,7 @@ def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10):
 
     books = bddservice.cmd_sql(query_sql, (query, limit, skip))
     
-    logging.debug(f"Books found: {books}")
+    #logging.debug(f"Books found: {books}")
 
     if not books:
         raise HTTPException(status_code=404, detail="No books found matching the query")
@@ -251,16 +251,16 @@ def get_top_books(nbook: int):
             bv.average_rating;
     """
 
-    print("Executing query...")
+    #print("Executing query...")
     top_books = bddservice.cmd_sql(query)
-    print(f"Query executed. {len(top_books)} top books found.")
+    #print(f"Query executed. {len(top_books)} top books found.")
 
     if not top_books:
         raise HTTPException(status_code=404, detail="No top books found in the database")
 
     # Sélection aléatoire des livres
     sampled_books = random.sample(top_books, min(nbook, len(top_books)))
-    print(f"Sampled {len(sampled_books)} books.")
+    #print(f"Sampled {len(sampled_books)} books.")
 
     # Transformation des données pour correspondre au schéma BookResponse
     books_data = [
@@ -280,5 +280,5 @@ def get_top_books(nbook: int):
         for book in sampled_books
     ]
 
-    print(f"Returning {len(books_data)} books.")
+    #print(f"Returning {len(books_data)} books.")
     return books_data
