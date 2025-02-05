@@ -27,3 +27,7 @@ app.mount("/static", StaticFiles(directory="../../../frontend/public"), name="st
 @app.get("/")
 def home():
     return FileResponse("../../../frontend/public/index.html")
+
+@app.get("/install")
+def home():
+    return FileResponse("../../../frontend/public/install.html")

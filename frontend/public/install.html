@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation du Projet ESCAPE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+    <!-- Conteneur principal -->
+    <div class="max-w-4xl mx-auto p-6">
+        
+        <!-- Titre -->
+        <h1 class="text-3xl font-bold text-center mb-6">Installation du Projet ESCAPE</h1>
+
+        <!-- Avertissement -->
+        <section class="mb-6 bg-white p-4 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-2">Disclamer</h2>
+            <p>Nous considérons que nous nous adressons un informaticien, donc nous ne détaillerons pas l'intégralité de l'installation, par exemple nous ne détaillerons pas l'installation de POSTGRESQL. Nous considérons que seule une personne compétente lira notre guide.</p>
+            <p>Penser à lire notre README</p>
+            <p>Pour optimiser les performances, nous mettont en cache beaucoups de data</p>
+        </section>
+
+        <section class="mb-6 bg-white p-4 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-2">Pré-requis</h2>
+            <p>- Une connexion à internet</p>
+            <p>- POSTGRESQL avec l'extension VECTOR.</p>
+            <p>- Taille du projet. Minimum : 100mo; Maximum : 10go (dépend de l'installation complète des requirements, importation des modèles d'embedding )</p>
+            <p>- Taille de la bdd: ~250mo</p>
+            <p></p>
+
+        </section>
+
+        <!-- Étape 1 : Cloner le projet -->
+        <section class="mb-6 bg-white p-4 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-2">1. Cloner le dépôt</h2>
+            <p>Clonez le projet depuis GitHub :</p>
+            <pre class="bg-gray-200 p-3 rounded"><code>git clone https://github.com/LeconteEsteban/Sae_3A.git</code></pre>
+        </section>
+
+        
+        <section class="mb-6 bg-white p-4 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-2">2. Installer les dépendances</h2>
+            <p>requirements.txt se situe dans python/worker</p>
+            <pre class="bg-gray-200 p-3 rounded"><code>pip install -r requirements.txt</code></pre>
+        </section>
+
+        <section class="mb-6 bg-white p-4 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-2">3. Configurer la connexion à la base de donnée POSTGRESQL</h2>
+            <p>Il faut créer un fichier ".env" à partir du fichier ".env_exemple"</p>
+            <pre class="bg-gray-200 p-3 rounded">
+                <code>DB_HOST=localhost
+                DB_PORT=port
+                DB_NAME=nom_bdd
+                DB_USER=mon_utilisateur
+                DB_PASSWORD=mon_mot_de_passe</code></pre>
+        </section>
+
+        <section class="mb-6 bg-white p-4 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-2">4. Mettre en place le back python</h2>
+            <p>Il faut executer python/db_create_fill.py , ce script permet de créer la base de données, et de la remplir</p>
+            <pre class="bg-gray-200 p-3 rounded"><code>uvicorn main:app --reload</code></pre>
+        </section>
+        
+        <section class="mb-6 bg-white p-4 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-2">5. Démarrer le serveur</h2>
+            <pre class="bg-gray-200 p-3 rounded"><code>uvicorn main:app --reload</code></pre>
+            <p>Accédez à votre API sur <a href="http://127.0.0.1:8000/docs" class="text-blue-500">http://127.0.0.1:8000/docs</a></p>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center text-gray-600 mt-8">
+            &copy; 2024 Mon Projet FastAPI
+        </footer>
+    </div>
+
+</body>
+</html>
