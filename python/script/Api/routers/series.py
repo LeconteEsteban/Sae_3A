@@ -15,6 +15,12 @@ router = APIRouter()
 def get_all_series():
     """
     Endpoint pour obtenir toutes les séries de la base de données.
+
+    Cette fonction exécute une requête SQL pour récupérer toutes les séries avec les livres
+    associés. Si aucune série n'est trouvée, une exception HTTP 404 est levée.
+
+    Returns:
+        List[SeriesReponse]: Une liste de toutes les séries avec leurs livres associés.
     """
 
     query = """SELECT
@@ -51,6 +57,16 @@ def get_all_series():
 def get_serie(id_serie: int):
     """
     Endpoint pour obtenir les informations d'une série donnée.
+
+    Cette fonction prend en paramètre l'identifiant d'une série (id_serie) et exécute une
+    requête SQL pour récupérer les informations de la série ainsi que les livres associés.
+    Si la série n'est pas trouvée, une exception HTTP 404 est levée.
+
+    Args:
+        id_serie (int): L'identifiant de la série.
+
+    Returns:
+        List[SeriesReponse]: Les informations de la série avec les livres associés.
     """
 
     query = f"""SELECT
