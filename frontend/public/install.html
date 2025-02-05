@@ -65,13 +65,17 @@
         
         <section class="mb-6 bg-white p-4 rounded-lg shadow">
             <h2 class="text-xl font-semibold mb-2">5. Démarrer le serveur</h2>
+            <p>Se placer dans /python/script/Api</p>
             <pre class="bg-gray-200 p-3 rounded"><code>uvicorn main:app --reload</code></pre>
             <p>Accédez à votre API sur <a href="http://127.0.0.1:8000/docs" class="text-blue-500">http://127.0.0.1:8000/docs</a></p>
+            <p>Ou pour mettre en ligne :</p>
+            <pre class="bg-gray-200 p-3 rounded"><code>uvicorn main:app --host 0.0.0.0 --port 8000</code></pre>
+            <p>Accédez au site en ligne avec votre address ip public, si vous avez configuré un NAT</p>
         </section>
 
         <!-- Footer -->
         <footer class="text-center text-gray-600 mt-8">
-            &copy; 2024 Mon Projet FastAPI
+            &copy; 2024 ESCAPE
         </footer>
     </div>
 
