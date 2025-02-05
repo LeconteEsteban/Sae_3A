@@ -31,3 +31,7 @@ def home():
 @app.get("/install")
 def home():
     return FileResponse("../../../frontend/public/install.html")
+
+@app.get("/favicon.ico")
+def home():
+    return FileResponse("../../../frontend/public/favicon.ico")
