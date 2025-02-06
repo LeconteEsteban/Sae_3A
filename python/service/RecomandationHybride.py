@@ -345,7 +345,7 @@ class RecomandationHybride:
         Recommande les N livres les plus populaires basés sur les utilisateurs les plus similaires à un utilisateur donné.
         """
         # Récupérer les utilisateurs similaires à l'utilisateur donné
-        similar_users = self.get_similar_users(user_id, n=n_recommendations)
+        similar_users = self.get_similar_users(user_id, n=5)
 
         # Récupérer les livres que l'utilisateur a aimés ou consultés
         user_books = self.recommandation_service.get_user_books(user_id)
@@ -432,7 +432,7 @@ class RecomandationHybride:
             #print(f"Recommandations basées sur l'utilisateur : Livre ID {book_id}")
             
             # Récupérer les livres similaires à ce livre (item-based)
-            similar_books = self.recommandation_service.get_similar_books_hybrid(book_id, n=n_recommendations)  # Remplacez par votre fonction d'obtention des livres similaires
+            similar_books = self.recommandation_service.get_similar_books_hybrid(book_id, n=n_recommendations)
             
             
 

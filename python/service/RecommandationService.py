@@ -19,7 +19,7 @@ class RecommendationService:
     """
     EN DEVELLOPEMENT 
     """
-    def __init__(self, bddservice, csvservice, embeddingservice):
+    def __init__(self, bddservice = None, csvservice=None, embeddingservice=None):
         self.bddservice = bddservice
         self.csvservice = csvservice
         self.embedding_service = embeddingservice
@@ -168,7 +168,7 @@ class RecommendationService:
         SELECT
             id,
             title,
-            1 - (vector000(SELECT vector FROM library.book_vector WHERE id = {book_id})) AS similarity
+            1 - (vector <=> (SELECT vector FROM library.book_vector WHERE id = {book_id})) AS similarity
         FROM
             library.book_vector
         WHERE
@@ -211,14 +211,14 @@ class RecommendationService:
         Faire un mode exploration, pour plus de diversité
         """
         # Récupérer les livres que l'utilisateur a aimés ou consultés
-        user_books = self.get_user_books(user_id)  # Fonction que tu devras implémenter pour obtenir les livres d'un utilisateur
+        user_books = self.get_user_books(user_id) 
         
         # Dictionnaire pour stocker les livres recommandés et leur score de similarité total
         recommendations = {}
 
         for book in user_books:
             similar_books = self.get_similar_books(book['book_id'], n=n_recommendations)
-            
+ 
             for similar_book in similar_books:
                 book_id = similar_book[0]
                 
@@ -263,25 +263,26 @@ class RecommendationService:
             # Vérifie si le livre aléatoire est déjà lu
             if idalea in user_books:
                 continue 
-            scoreAlea = random.uniform(0.5,1)
+            scoreAlea = random.uniform(0.3,0.8)
+            #scoreAlea = random.uniform(2,4)
             if idalea not in recommendations:
-                recommendations[idalea] = [self.get_book(idalea), scoreAlea, 1]
+                recommendations[idalea] = [self.get_book(idalea)[0][0], scoreAlea, 1]
             else:
                 recommendations[idalea][1] += scoreAlea
                 recommendations[idalea][2] += 1
 
         for reco in recommendations:
-            recommendations[reco][1] = recommendations[reco][1]/recommendations[reco][2]
+            recommendations[reco][1] = recommendations[reco][1]/(recommendations[reco][2]/2+0.5)
 
         max_score = max([rec[1][1] for rec in recommendations.items()])
         if max_score > 0:
             for reco in recommendations:
                 recommendations[reco][1] /= max_score
 
-
         # Trier les recommandations par score décroissant
         sorted_recommendations = sorted(recommendations.items(), key=lambda x: x[1][1], reverse=True)
         # Retourner les N meilleurs
+        # print(f"s_recommandation : {sorted_recommendations}")
         return sorted_recommendations[:n_recommendations]
 
     def get_user_books(self, user_id):
@@ -307,6 +308,7 @@ class RecommendationService:
         SELECT title
         FROM library.book
         WHERE book_id={book_id} 
+        limit 1;
         """
         book_title = self.bddservice.cmd_sql(query)
         return book_title

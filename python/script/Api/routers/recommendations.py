@@ -33,6 +33,7 @@ def get_book_genres(book_id: int) -> List[str]:
 def get_recommendations(id_user: int, nbook: int):
     """
     Hybride
+
     Endpoint pour obtenir des recommandations pour un utilisateur.
 
     Cette fonction prend en paramètre l'identifiant d'un utilisateur (id_user) et le nombre
@@ -60,6 +61,7 @@ def get_recommendations(id_user: int, nbook: int):
 def get_book_recommendations(id_book: int, nbook: int):
     """
     Livre Similaire
+
     Endpoint pour obtenir des recommandations de livres similaires.
 
     Cette fonction prend en paramètre l'identifiant d'un livre (id_book) et le nombre
@@ -87,6 +89,7 @@ def get_book_recommendations(id_book: int, nbook: int):
 def get_book_recommendations_user(id_user: int, nbook: int):
     """
     Item-based
+
     Endpoint pour obtenir des recommandations de livres pour un utilisateur.
 
     Cette fonction prend en paramètre l'identifiant d'un utilisateur (id_user) et le nombre
@@ -104,6 +107,8 @@ def get_book_recommendations_user(id_user: int, nbook: int):
     recommend_books_for_user = recommendation_service.recommend_books_for_user(id_user, nbook)
     if not recommend_books_for_user:
         raise HTTPException(status_code=404, detail="No recommendations found for the given user")
+
+    #print(recommend_books_for_user)
 
     return [
         {"id": book[0], "title": book[1][0], "genres": get_book_genres(book[0])}

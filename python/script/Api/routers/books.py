@@ -162,43 +162,28 @@ def get_book(id_book: int):
     query = f"""SELECT
                 bv.book_id,
                 bv.title,
-                bv.isbn,
                 bv.isbn13,
-                bv.author_name,
-                bv.description,
-                bv.number_of_pages,
-                bv.publisher_name,
-                array_agg(DISTINCT bv.genre_name) AS genre_names,
-                array_agg(DISTINCT bv.award_name) AS award_names,
-                bv.rating_count,
-                bv.average_rating
+                bv.description
             FROM
-                library.book_view bv
+                library.book bv
             WHERE
-                bv.book_id = {id_book}
-            GROUP BY
-                bv.book_id, bv.title, bv.isbn, bv.isbn13,
-                bv.author_name, bv.description, bv.number_of_pages,
-                bv.publisher_name, bv.rating_count, bv.average_rating;"""
+                bv.book_id = {id_book}"""
     
-    # Exécution de la requête (en supposant que tu utilises une méthode pour ça)
+    # Exécution de la requête
     book = bddservice.cmd_sql(query)
     
     if not book:
         raise HTTPException(status_code=404, detail="No book found in the database")
 
+    #print(book)
+    #print(book[0][0])
+
     book_data = book[0]
     response_data = {
-        "id": book[0],
-            "title": book[1],
-            "isbn13": book[2],
-            "author_name": book[3],
-            "description": book[4],
-            "number_of_pages": book[5],
-            "publisher_name": book[6],
-            "genre_names": book[7],
-            "award_names": book[8],
-            "average_rating": book[9],
+            "id": book_data[0],
+            "title": book_data[1],
+            "isbn13": book_data[2],
+            "description": book_data[3],
     }
     
     return response_data

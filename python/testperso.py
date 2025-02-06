@@ -52,12 +52,12 @@ def test_data(bdd):
 if __name__ == "__main__":
     #cache_service  = CacheService()
     bddservice = DatabaseService()
-    csv_service = CSVService()
+    #csv_service = CSVService()
     #parseservice = ParsingService()
-    embservice = EmbeddingService()
+    #embservice = EmbeddingService()
     #peuplement1 = peuplement(bddservice, csv_service, parseservice)
     #traitement1 = traitement(bddservice, csv_service)
-    recommandation1 = RecommendationService(bddservice, csv_service, embservice)
+    #recommandation1 = RecommendationService(bddservice, csv_service, embservice)
 
     try:
         # Initialiser la connexion à garder
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         # bddservice.cmd_sql("TRUNCATE TABLE library.user_liked_genre RESTART IDENTITY CASCADE;")
         # bddservice.cmd_sql("TRUNCATE TABLE library._Users RESTART IDENTITY CASCADE;")
 
-        # test_data(bddservice)
+        test_data(bddservice)
         # peuplement1.table_user()
         #recommandation1.create_book_vector()
 
