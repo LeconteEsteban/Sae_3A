@@ -32,6 +32,7 @@ def get_book_genres(book_id: int) -> List[str]:
 @router.get("/user/{id_user}/{nbook}", response_model=List[RecommendationReponse])
 def get_recommendations(id_user: int, nbook: int):
     """
+    Hybride
     Endpoint pour obtenir des recommandations pour un utilisateur.
 
     Cette fonction prend en paramètre l'identifiant d'un utilisateur (id_user) et le nombre
@@ -58,6 +59,7 @@ def get_recommendations(id_user: int, nbook: int):
 @router.get("/book/{id_book}/{nbook}", response_model=List[RecommendationReponse])
 def get_book_recommendations(id_book: int, nbook: int):
     """
+    Livre Similaire
     Endpoint pour obtenir des recommandations de livres similaires.
 
     Cette fonction prend en paramètre l'identifiant d'un livre (id_book) et le nombre
@@ -84,6 +86,7 @@ def get_book_recommendations(id_book: int, nbook: int):
 @router.get("/user/book/{id_user}/{nbook}", response_model=List[RecommendationReponse])
 def get_book_recommendations_user(id_user: int, nbook: int):
     """
+    Item-based
     Endpoint pour obtenir des recommandations de livres pour un utilisateur.
 
     Cette fonction prend en paramètre l'identifiant d'un utilisateur (id_user) et le nombre
