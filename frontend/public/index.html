@@ -20,7 +20,36 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
+    <style>
+      #book-popup {
+        transition: opacity 0.3s ease-in-out;
+        height: 100%;
+        z-index: 1000;
+      }
+
+      #book-popup.show {
+        display: flex;
+        opacity: 1;
+      }
+
+      #book-popup.hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #description_left {
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 10px;
+      }
+
+      #similar-books-container {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+    </style>
   </head>
+
   <body class="bg-gray-50">
     <header
       class="flex items-center justify-between px-6 py-4 bg-white shadow-md"
@@ -437,16 +466,16 @@
     </div>
 
     <main class="px-6 py-8 space-y-8 bg-red" >
-        <div class="flex items-center gap-2 border border-black px-5 py-2 rounded-full">
-            <!-- Icône de cœur -->
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
-                <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6l1.2 1.2L12 21l7.6-7.6 1.2-1.2a5.4 5.4 0 0 0 0-7.6z"/>
-            </svg>
-            <span class="font-bold">Meilleurs Livres<sspan>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-                <path d="M5 12h14m-7-7l7 7-7 7"/>
-            </svg>
-        </div>
+        <div class="flex items-center  gap-2 border border-black px-2 py-2 rounded-full h-10 max-w-[200px]">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+              <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6l1.2 1.2L12 21l7.6-7.6 1.2-1.2a5.4 5.4 0 0 0 0-7.6z"/>
+          </svg>
+          <span class="font-bold text-center">Meilleurs Livres</span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+              <path d="M5 12h14m-7-7l7 7-7 7"/>
+          </svg>
+      </div>
+    
       <div class="w-full">
         <div class="swiper centered-slide-carousel relative h-100">
           <div class="swiper-wrapper">
@@ -483,23 +512,23 @@
                 class="w-full md:w-2/3 flex flex-col gap-4"
                 id="description_left"
               >
-                <h2 class="text-3xl font-bold text-[#B3B3B3]" id="book-title">
+                <h2 class="text-3xl font-bold text-black" id="book-title">
                   Titre du livre
                 </h2>
                 <a
-                  class="text-xl text-[#B3B3B3] hover:underline"
+                  class="text-xl text-black hover:underline"
                   id="book-author"
                   >Auteur</a
                 >
                 <div class="flex gap-2 flex-wrap" id="book-genres"></div>
                 <div class="flex gap-2 flex-wrap" id="book-awards"></div>
                 <div
-                  class="bg-[#2C2C2C] p-4 rounded-lg border border-[#B3B3B3]"
+                  class=" p-4 rounded-lg border border-black"
                 >
-                  <h3 class="text-xl font-bold text-[#B3B3B3] mb-2">
+                  <h3 class="text-xl font-bold text-black mb-2">
                     Description
                   </h3>
-                  <p id="book-description" class="text-[#B3B3B3]">
+                  <p id="book-description" class="text-black">
                     Description du livre...
                   </p>
                 </div>
@@ -524,7 +553,7 @@
           </div>
           <div id="second_part_book">
             <!-- Les éléments supplémentaires seront ajoutés dynamiquement -->
-            <h2 class="text-3xl font-bold text-[#B3B3B3]" id="title-section">
+            <h2 class="text-3xl font-bold text-black" id="title-section">
               Livres similaires
             </h2>
             <div
