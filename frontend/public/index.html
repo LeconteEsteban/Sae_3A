@@ -61,7 +61,7 @@
           type="text"
           id="search-input"
           placeholder="Recherche"
-          class="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none"
+          class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none"
         />
         <!-- Pop-up des résultats -->
         <div
@@ -75,11 +75,11 @@
       <!-- Bouton de Connexion -->
       <button
         id="loginButton"
-        class="flex items-center px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+        class="flex items-center px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors duration-300"
         onclick="openModal()"
       >
-        <i class="robot icon"></i>
-        <span>Connexion</span>
+        <i class="fas fa-user mr-2"></i>
+        <span class="font-semibold">Connexion</span>
       </button>
       <button
         id="usernameHeader"
@@ -89,34 +89,35 @@
 
       <!-- Menu Burger -->
       <div
-        id="menuBurger"
-        class="hidden fixed rounded top-16 right-6 flex flex-col items-stretch bg-opacity cursor-pointer"
+      id="menuBurger"
+      class="hidden fixed rounded-lg top-16 right-6 flex flex-col items-stretch bg-white shadow-lg border border-gray-200 cursor-pointer"
       >
-        <div
-          id="WishListeButton"
-          class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300"
-          onclick="wishListe()"
-        >
-          <i class="robot icon"></i>
-          <span>Wish Liste</span>
-        </div>
-        <div
-          id="LivreListeButton"
-          class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300"
-          onclick="livreLuListe()"
-        >
-          <i class="robot icon"></i>
-          <span>Livre lu</span>
-        </div>
-        <div
-          id="logoutButton"
-          class="flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 hover:text-red-600"
-          onclick="handleLogout()"
-        >
-          <i class="robot icon"></i>
-          <span>Déconnexion</span>
-        </div>
+      <div
+        id="WishListeButton"
+        class="flex items-center px-4 py-3 hover:bg-gray-100 transition-colors duration-300 cursor-pointer"
+        onclick="wishListe()"
+      >
+        <i class="fas fa-heart mr-2 text-red-500"></i>
+        <span class="font-semibold">Wish Liste</span>
       </div>
+      <div
+        id="LivreListeButton"
+        class="flex items-center px-4 py-3 hover:bg-gray-100 transition-colors duration-300 cursor-pointer"
+        onclick="livreLuListe()"
+      >
+        <i class="fas fa-book-open mr-2 text-blue-500"></i>
+        <span class="font-semibold">Livre lu</span>
+      </div>
+      <div
+        id="logoutButton"
+        class="flex items-center px-4 py-3 hover:bg-gray-100 hover:text-red-600 transition-colors duration-300 cursor-pointer"
+        onclick="handleLogout()"
+      >
+        <i class="fas fa-sign-out-alt mr-2 text-gray-600"></i>
+        <span class="font-semibold">Déconnexion</span>
+      </div>
+      </div>
+
     </header>
 
     <!-- Modale -->
