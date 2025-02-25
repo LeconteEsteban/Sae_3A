@@ -61,6 +61,8 @@ if __name__ == "__main__":
         peuplement1.peuplementTotal()
         #Effectue les traitements: vue matérialisé, pré-traitement, ...
         traitement1.traitementTotal()
+        #Remplie les cover link a partir du csv
+        bddservice.fill_book_cover_from_csv(csv_file_path="books_with_cover.csv")
         #fait les vecteurs des book et les stock en bdd
         recommandationItemBased.create_book_vector()
         #pareille avec les vecteurs des users

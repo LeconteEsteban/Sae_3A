@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import psycopg2
+import csv
 import os
 import pandas as pd
 from .connection_bdd import host, port, user, password, database, connectdb
 import requests
 from fastapi import HTTPException
+
 
 class DatabaseService:
     """
@@ -358,6 +360,74 @@ class DatabaseService:
         except Exception as e:
             print(f"Erreur lors de la récupération ou de l'insertion de la couverture: {e}")
             raise HTTPException(status_code=500, detail="Erreur lors de la récupération ou de l'insertion de la couverture")
+        
+    def fill_book_cover_from_csv(self, csv_file_path: str = "books_with_cover.csv"):
+        """
+        Remplit la base de données avec les URLs des couvertures à partir d'un fichier CSV.
+        
+        Args:
+            csv_file_path (str): Chemin du fichier CSV contenant les URLs des couvertures.
+        """
+        try:
+            # Lire le fichier CSV avec pandas
+            df = pd.read_csv(csv_file_path, dtype={'isbn13': str})  # Forcer isbn13 en type str
+            
+            # Parcourir chaque ligne du DataFrame
+            for index, row in df.iterrows():
+                isbn13 = row['isbn13']  # Récupérer l'ISBN13 du livre
+                cover_link = row['cover_link']  # Récupérer l'URL de la couverture
+                
+                # Vérifier si isbn13 est nul (NaN ou chaîne vide)
+                if pd.isna(isbn13) or isbn13.strip() == "":
+                    #print(f"ISBN13 manquant ou invalide à la ligne {index + 1}. Ignorer cette ligne.")
+                    continue  # Passer à la ligne suivante
+                
+                # Récupérer le book_id correspondant à l'isbn13
+                book_id_query = """
+                    SELECT book_id
+                    FROM library.Book
+                    WHERE isbn13 = %s;
+                """
+                book_id_res = self.execute_query(book_id_query, (isbn13,))
+
+                if not book_id_res:
+                    #print(f"Aucun livre trouvé avec l'ISBN13 {isbn13}.")
+                    continue  # Passer à la ligne suivante
+
+                book_id = book_id_res[0][0]  # Récupérer le book_id
+
+                # Vérifier si une couverture existe déjà dans la base de données
+                cover_query = """
+                    SELECT cover_url
+                    FROM library.Book_Cover
+                    WHERE book_id = %s;
+                """
+                cover_res = self.execute_query(cover_query, (book_id,))
+
+                # Si une couverture existe et qu'elle n'est pas égale à "-1", passer à la ligne suivante
+                if cover_res and cover_res[0][0] and cover_res[0][0] != "-1":
+                    print(f"Couverture déjà existante pour le livre {book_id} avec ISBN13 {isbn13}.")
+                    continue
+
+                # Vérifier si cover_link est NaN
+                if pd.isna(cover_link) or cover_link.strip() == "":
+                    cover_url = "-1"  # Si cover_link est NaN ou vide, utiliser "-1"
+                else:
+                    cover_url = cover_link  # Sinon, utiliser l'URL du CSV
+
+                # Insérer ou mettre à jour l'URL de la couverture dans la base de données
+                insert_query = """
+                    INSERT INTO library.Book_Cover (book_id, isbn13, cover_url)
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT (book_id) 
+                    DO UPDATE SET cover_url = %s;
+                """
+                self.execute_update(insert_query, (book_id, isbn13, cover_url, cover_url))
+
+                #print(f"Couverture mise à jour pour le livre avec ISBN13 {isbn13} : {cover_url}")
+        
+        except Exception as e:
+            print(f"Erreur lors de la mise à jour de la base de données à partir du fichier CSV : {e}")
 
 
 # Exemple d'utilisation
