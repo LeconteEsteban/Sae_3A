@@ -70,14 +70,15 @@ function addSimilarBooks(books) {
     const genres = book.genre_names.slice(0, 2); // Limite à 2 genres
 
     bookCard.innerHTML = `
-      <div class="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center relative w-50 h-80">
+      <div id=${book.id} class="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center relative w-50 h-80">
         <img src="${
           book.url !== "-1" ? book.url : "/static/notfound.jpg"
         }" alt="Couverture de ${
       book.title
     }" class="w-32 h-44 object-cover rounded transition-transform duration-300">
         <h3 class="text-lg font-bold text-gray-800 mt-2 text-center">${
-          book.title
+          book.title,
+          book.id
         }</h3>
 
         <!-- Infos visibles au hover -->
