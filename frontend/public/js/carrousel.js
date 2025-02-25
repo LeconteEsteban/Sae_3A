@@ -5,13 +5,44 @@ async function fetchBooks() {
   try {
     const response = await fetch("/books/topbook/30");
     booksData = await response.json();
-    console.log("Données récupérées :", booksData); // Affiche les données récupérées
+    console.log("Données récupérées :", booksData);
   } catch (error) {
     console.error("Erreur lors de la récupération des données :", error);
   }
 
   console.log("fin fetch");
-  return booksData; // Retourner les données pour les utiliser ailleurs
+  return booksData;
+}
+
+async function fetchSimilarBooks(bookId, nBooks = 20) {
+  try {
+    const recResponse = await fetch(`/recommandations/book/${bookId}/${nBooks}`);
+    const recommendedBooks = await recResponse.json();
+    
+    console.log("Structure des recommandations:", recommendedBooks);
+
+  
+    const ids = recommendedBooks.map(item => {
+    
+      return item.id 
+    });
+
+    console.log("IDs extraits:", ids);
+
+  
+    const booksPromises = ids.map(async (id) => {
+      const bookResponse = await fetch(`/books/${id}`);
+      console.log("Réponse pour le livre", id, ":", bookResponse);
+      return bookResponse.json();
+    });
+    
+
+
+    return await Promise.all(booksPromises);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des recommandations:", error);
+    return [];
+  }
 }
 
 function truncateDescription(description, maxLength) {
@@ -22,88 +53,55 @@ function truncateDescription(description, maxLength) {
 }
 
 function updatePopup(book) {
-  document.getElementById("book-cover").src =
-    book.url !== "-1" ? book.url : "/static/notfound.jpg";
+  document.getElementById("book-cover").src = book.url !== "-1" ? book.url : "/static/notfound.jpg";
   document.getElementById("book-title").textContent = book.title;
   document.getElementById("book-author").textContent = book.author_name;
-  document.getElementById("book-description").textContent = book.description
-    ? book.description.replaceAll("#virgule", ",")
-    : "Pas de description";
-  document.getElementById("book-genres").innerHTML = book.genre_names
-    ? book.genre_names
-        .map(
-          (genre) =>
-            `<span class="bg-gray-300 text-black px-2 py-1 text-xs rounded">${genre}</span>`
-        )
-        .join("")
-    : "";
-  document.getElementById("book-page").textContent =
-    book.number_of_pages || "N/A";
-  document.getElementById("book-publisher").textContent =
-    book.publisher_name || "N/A";
+  document.getElementById("book-description").textContent = book.description ?
+    book.description.replaceAll("#virgule", ",") : "Pas de description";
+  document.getElementById("book-genres").innerHTML = book.genre_names ?
+    book.genre_names.map(genre =>
+      `<span class="bg-gray-300 text-black px-2 py-1 text-xs rounded">${genre}</span>`
+    ).join("") : "";
+  document.getElementById("book-page").textContent = book.number_of_pages || "N/A";
+  document.getElementById("book-publisher").textContent = book.publisher_name || "N/A";
   document.getElementById("book-isbn").textContent = book.isbn13 || "N/A";
 }
 
+let currentSimilarBooks = []; // Stockage des livres similaires actuels
+
 function addSimilarBooks(books) {
-  const similarBooksContainer = document.getElementById(
-    "similar-books-container"
-  );
+  const similarBooksContainer = document.getElementById("similar-books-container");
   similarBooksContainer.innerHTML = "";
+  
   books.forEach((book) => {
     const bookCard = document.createElement("div");
-    bookCard.classList.add(
-      "similar-book-card",
-      "bg-white",
-      "rounded-lg",
-      "relative",
-      "group",
-      "transition-transform",
-      "duration-300",
-      "zoom-hover"
-    );
+    bookCard.classList.add("similar-book-card", "bg-white", "rounded-lg", "relative", "group", "transition-transform", "duration-300", "zoom-hover");
+    
     const truncatedDescription = truncateDescription(
-      book.description
-        ? book.description.replaceAll("#virgule", ",")
-        : "Pas de description",
+      book.description?.replaceAll("#virgule", ",") || "Pas de description",
       110
     );
-    const genres = book.genre_names.slice(0, 2); // Limite à 2 genres
 
     bookCard.innerHTML = `
-      <div id=${book.id} class="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center relative w-50 h-80">
-        <img src="${
-          book.url !== "-1" ? book.url : "/static/notfound.jpg"
-        }" alt="Couverture de ${
-      book.title
-    }" class="w-32 h-44 object-cover rounded transition-transform duration-300">
-        <h3 class="text-lg font-bold text-gray-800 mt-2 text-center">${
-          book.title,
-          book.id
-        }</h3>
+      <div data-book-id="${book.id}" class="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center relative w-50 h-80">
+        <img src="${book.url !== "-1" ? book.url : "/static/notfound.jpg"}" 
+             alt="Couverture de ${book.title}" 
+             class="w-32 h-44 object-cover rounded transition-transform duration-300">
+        <h3 class="text-lg font-bold text-gray-800 mt-2 text-center">${book.title}</h3>
 
-        <!-- Infos visibles au hover -->
         <div class="absolute inset-0 bg-white bg-opacity-95 flex flex-col text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg p-4">
           <h3 class="text-lg text-black font-bold mb-1">${book.title}</h3>
-          <p class="text-xs text-black font-semibold mb-1">${
-            book.author_name || "Auteur inconnu"
-          }</p>
+          <p class="text-xs text-black font-semibold mb-1">${book.author_name || "Auteur inconnu"}</p>
           <p class="text-xs text-black mb-2">${truncatedDescription}</p>
-
-          <!-- Genres -->
           <ul class="flex gap-2 mb-3">
-            ${genres
-              .map(
-                (genre) =>
-                  `<li class="bg-white text-black border border-black px-2 py-1 text-xs rounded">${genre}</li>`
-              )
-              .join("")}
+            ${(book.genre_names?.slice(0, 2) || []).map(genre =>
+              `<li class="bg-white text-black border border-black px-2 py-1 text-xs rounded">${genre}</li>`
+            ).join("")}
           </ul>
-
-          <!-- Actions -->
           <div class="flex gap-2 mt-auto justify-between w-full">
-            <i class="fas fa-heart text-gray-500 text-2xl cursor-pointer transition-transform duration-200 hover:scale-110 like-button"></i>
-            <i class="fas fa-plus text-gray-500 text-2xl cursor-pointer transition-transform duration-200 hover:scale-110 plus-button"></i>
-            <i class="fas fa-eye text-gray-500 text-2xl cursor-pointer transition-transform duration-200 hover:scale-110 eye-button"></i>
+            <i class="fas fa-heart text-gray-500 text-2xl cursor-pointer like-button"></i>
+            <i class="fas fa-plus text-gray-500 text-2xl cursor-pointer plus-button"></i>
+            <i class="fas fa-eye text-gray-500 text-2xl cursor-pointer eye-button"></i>
           </div>
         </div>
       </div>
@@ -114,81 +112,53 @@ function addSimilarBooks(books) {
 
 async function initializeCarousel() {
   const booksData = await fetchBooks();
+  const popup = document.getElementById("book-popup");
+  const closePopupButton = document.getElementById("close-popup");
 
-  if (!booksData || booksData.length === 0) {
+  if (!booksData?.length) {
     console.error("Aucune donnée récupérée");
     return;
   }
 
+  // Initialisation du carousel
   const swiperWrapper = document.querySelector(".swiper-wrapper");
+  swiperWrapper.innerHTML = "";
 
-  booksData.forEach((book) => {
+  booksData.forEach(book => {
     const slide = document.createElement("div");
-    slide.classList.add(
-      "swiper-slide",
-      "relative",
-      "group",
-      "transition-transform",
-      "duration-300",
-      "zoom-hover"
-    );
-
-    const genres = book.genre_names.slice(0, 2);
+    slide.classList.add("swiper-slide", "relative", "group", "transition-transform", "duration-300", "zoom-hover");
+    
     slide.innerHTML = `
-            <div id=${book.id} class="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center justify-center relative w-50 h-80">
-                 <img src="${
-                   book.url !== "-1" ? book.url : "/static/notfound.jpg"
-                 }" alt="Couverture de ${
-      book.title
-    }" class="w-32 h-44 object-cover rounded transition-transform duration-300">
-                <h3 class="text-lg font-bold text-gray-800 mt-2 text-center">${
-                  book.title,
-                  book.id
-                }</h3>
-            
-                <!-- Infos visibles au hover -->
-                <div class="absolute inset-0 bg-white bg-opacity-95 flex flex-col text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg p-4">
-                    <h3 class="text-lg text-black font-bold mb-1">${
-                      book.title
-                    }</h3>
-                    <p class="text-xs text-black font-semibold mb-1">
-  ${book.author_name || "Auteur inconnu"}
-</p>
-
-                    <p class="text-xs text-black mb-2">
-                    ${
-                      book.description
-                        ? truncateDescription(
-                            book.description.replaceAll("#virgule", ","),
-                            250
-                          )
-                        : "Pas de description"
-                    }
-                    </p>
-
-                    <ul class="flex gap-2 mb-3">
-                        ${genres
-                          .map(
-                            (genre) =>
-                              `<li class="bg-white text-black border border-black px-2 py-1 text-xs rounded">${genre}</li>`
-                          )
-                          .join("")}
-                    </ul>
-                    
-
-                    <div class="flex gap-2 mt-auto justify-between w-full">
-                        <i class="fas fa-heart text-gray-500 text-2xl cursor-pointer transition-transform duration-200 hover:scale-110 like-button"></i>
-                        <i class="fas fa-plus text-gray-500 text-2xl cursor-pointer transition-transform duration-200 hover:scale-110 plus-button"></i>
-                        <i class="fas fa-eye text-gray-500 text-2xl cursor-pointer transition-transform duration-200 hover:scale-110 eye-button"></i>
-                    </div>
-                </div>
-            </div>
-        `;
+      <div data-book-id="${book.id}" class="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center justify-center relative w-50 h-80">
+        <img src="${book.url !== "-1" ? book.url : "/static/notfound.jpg"}" 
+             alt="Couverture de ${book.title}" 
+             class="w-32 h-44 object-cover rounded transition-transform duration-300">
+        <h3 class="text-lg font-bold text-gray-800 mt-2 text-center">${book.title}</h3>
+        
+        <div class="absolute inset-0 bg-white bg-opacity-95 flex flex-col text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg p-4">
+          <h3 class="text-lg text-black font-bold mb-1">${book.title}</h3>
+          <p class="text-xs text-black font-semibold mb-1">${book.author_name || "Auteur inconnu"}</p>
+          <p class="text-xs text-black mb-2">
+            ${truncateDescription(book.description?.replaceAll("#virgule", ",") || "Pas de description", 250)}
+          </p>
+          <ul class="flex gap-2 mb-3">
+            ${(book.genre_names?.slice(0, 2) || []).map(genre =>
+              `<li class="bg-white text-black border border-black px-2 py-1 text-xs rounded">${genre}</li>`
+            ).join("")}
+          </ul>
+          <div class="flex gap-2 mt-auto justify-between w-full">
+            <i class="fas fa-heart text-gray-500 text-2xl cursor-pointer like-button"></i>
+            <i class="fas fa-plus text-gray-500 text-2xl cursor-pointer plus-button"></i>
+            <i class="fas fa-eye text-gray-500 text-2xl cursor-pointer eye-button"></i>
+          </div>
+        </div>
+      </div>
+    `;
     swiperWrapper.appendChild(slide);
   });
 
-  // Initialiser Swiper après avoir ajouté les slides
-  var swiper = new Swiper(".centered-slide-carousel", {
+  // Initialisation Swiper
+  const swiper = new Swiper(".centered-slide-carousel", {
     centeredSlides: true,
     loop: true,
     spaceBetween: 10,
@@ -198,41 +168,46 @@ async function initializeCarousel() {
       prevEl: ".swiper-button-prev",
     },
     breakpoints: {
-      1920: { slidesPerView: 8, spaceBetween: 10 },
-      1028: { slidesPerView: 8, spaceBetween: 10 },
-      768: { slidesPerView: 8, spaceBetween: 10 },
-      480: { slidesPerView: 1, spaceBetween: 10 },
-    },
+      1920: { slidesPerView: 8 },
+      1028: { slidesPerView: 6 },
+      768: { slidesPerView: 4 },
+      480: { slidesPerView: 1 }
+    }
   });
 
-  // Ajouter les écouteurs d'événements pour les boutons
-  const likeButtons = document.querySelectorAll(".like-button");
-  const eyeButtons = document.querySelectorAll(".eye-button");
-  const popup = document.getElementById("book-popup");
-  const closePopupButton = document.getElementById("close-popup");
-
-  likeButtons.forEach((button) => {
-    button.addEventListener("click", function () {
-      button.classList.toggle("text-red-500");
-    });
-  });
-
-  eyeButtons.forEach((button) => {
-    button.addEventListener("click", function () {
-      const slide = button.closest(".swiper-slide");
-      const book = booksData.find(
-        (book) => book.title === slide.querySelector("h3").textContent
-      );
+  // Gestion des événements
+  document.addEventListener("click", async (event) => {
+    // Gestion du clic sur l'oeil
+    if (event.target.closest(".eye-button")) {
+      const slideDiv = event.target.closest('[data-book-id]');
+      const bookId = slideDiv.dataset.bookId;
+      const book = booksData.find(b => b.id == bookId);
+      
       if (book) {
         updatePopup(book);
-        addSimilarBooks(booksData);
+        currentSimilarBooks = await fetchSimilarBooks(bookId);
+        addSimilarBooks(currentSimilarBooks);
         popup.classList.remove("hidden");
         popup.classList.add("show");
       }
-    });
+    }
+
+    // Gestion du clic sur les livres similaires
+    if (event.target.closest(".similar-book-card")) {
+      const cardDiv = event.target.closest('[data-book-id]');
+      const bookId = cardDiv.dataset.bookId;
+      const book = currentSimilarBooks.find(b => b.id == bookId);
+      
+      if (book) {
+        updatePopup(book);
+        currentSimilarBooks = await fetchSimilarBooks(bookId);
+        addSimilarBooks(currentSimilarBooks);
+      }
+    }
   });
 
-  closePopupButton.addEventListener("click", function () {
+  // Fermeture de la popup
+  closePopupButton.addEventListener("click", () => {
     popup.classList.remove("show");
     popup.classList.add("hide");
     setTimeout(() => {
@@ -241,7 +216,7 @@ async function initializeCarousel() {
     }, 300);
   });
 
-  popup.addEventListener("click", function (event) {
+  popup.addEventListener("click", (event) => {
     if (event.target === popup) {
       popup.classList.remove("show");
       popup.classList.add("hide");
@@ -249,18 +224,6 @@ async function initializeCarousel() {
         popup.classList.add("hidden");
         popup.classList.remove("hide");
       }, 300);
-    }
-  });
-
-  // Ajouter un événement de clic pour les livres similaires
-  document.addEventListener("click", function (event) {
-    if (event.target.closest(".similar-book-card")) {
-      const bookCard = event.target.closest(".similar-book-card");
-      const bookTitle = bookCard.querySelector("h3").textContent;
-      const book = booksData.find((book) => book.title === bookTitle);
-      if (book) {
-        updatePopup(book);
-      }
     }
   });
 }

@@ -27,32 +27,42 @@ def get_all_books():
     """
     query = f"""
         WITH book_data AS (
-            SELECT 
-                b.book_id,
-                b.title,
-                b.isbn,
-                b.isbn13,
-                a.name AS author_name,
-                b.description,
-                b.number_of_pages,
-                p.name AS publisher_name,
-                array_agg(DISTINCT g.name) AS genre_names,
-                array_agg(DISTINCT aw.name) AS award_names,
-                rb.rating_count,
-                rb.average_rating
-            FROM library.book b
-            JOIN library.wrote w ON b.book_id = w.book_id
-            JOIN library.author a ON w.author_id = a.author_id
-            JOIN library.publisher p ON b.publisher_id = p.publisher_id
-            left join library.genre_and_vote Gav on b.book_id = Gav.book_id
-            LEFT JOIN library.genre g ON Gav.genre_id = g.genre_id
-            LEFT JOIN library.Award_of_book ba ON b.book_id = ba.book_id
-            LEFT JOIN library.award aw ON ba.award_id = aw.award_id
-            left join library.rating_book rb on b.book_id = rb.book_id
-            GROUP BY b.book_id, b.title, b.isbn, b.isbn13, a.name, b.description,
-                     b.number_of_pages, p.name, rb.rating_count, rb.average_rating
-        )
-        SELECT * FROM book_data;
+    SELECT 
+        b.book_id,
+        b.title,
+        b.isbn,
+        b.isbn13,
+        array_agg(DISTINCT a.name) AS author_names,  -- Agrège les noms d'auteurs
+        b.description,
+        b.number_of_pages,
+        p.name AS publisher_name,
+        array_agg(DISTINCT g.name) AS genre_names,
+        array_agg(DISTINCT aw.name) AS award_names,
+        rb.rating_count,
+        rb.average_rating
+    FROM library.book b
+    -- Utilise LEFT JOIN pour inclure tous les livres, même sans données associées
+    LEFT JOIN library.wrote w ON b.book_id = w.book_id
+    LEFT JOIN library.author a ON w.author_id = a.author_id
+    LEFT JOIN library.publisher p ON b.publisher_id = p.publisher_id
+    LEFT JOIN library.genre_and_vote Gav ON b.book_id = Gav.book_id
+    LEFT JOIN library.genre g ON Gav.genre_id = g.genre_id
+    LEFT JOIN library.Award_of_book ba ON b.book_id = ba.book_id
+    LEFT JOIN library.award aw ON ba.award_id = aw.award_id
+    LEFT JOIN library.rating_book rb ON b.book_id = rb.book_id
+    -- Regroupe par les colonnes de livre, sans les relations "many-to-many"
+    GROUP BY 
+        b.book_id, 
+        b.title, 
+        b.isbn, 
+        b.isbn13, 
+        b.description,
+        b.number_of_pages, 
+        p.name, 
+        rb.rating_count, 
+        rb.average_rating
+)
+SELECT * FROM book_data;
     """
     books = bddservice.cmd_sql(query)
     if not books:
@@ -159,34 +169,56 @@ def get_book(id_book: int):
         BookResponse: Les détails du livre.
     """
     # Formattage direct de la requête avec l'id_book
-    query = f"""SELECT
-                bv.book_id,
-                bv.title,
-                bv.isbn13,
-                bv.description
-            FROM
-                library.book bv
-            WHERE
-                bv.book_id = {id_book}"""
+    query = f"""WITH book_data AS (
+            SELECT 
+                b.book_id,
+                b.title,
+                b.isbn,
+                b.isbn13,
+                a.name AS author_name,
+                b.description,
+                b.number_of_pages,
+                p.name AS publisher_name,
+                array_agg(DISTINCT g.name) AS genre_names,
+                array_agg(DISTINCT aw.name) AS award_names,
+                rb.rating_count,
+                rb.average_rating
+            FROM library.book b
+            JOIN library.wrote w ON b.book_id = w.book_id
+            JOIN library.author a ON w.author_id = a.author_id
+            JOIN library.publisher p ON b.publisher_id = p.publisher_id
+            left join library.genre_and_vote Gav on b.book_id = Gav.book_id
+            LEFT JOIN library.genre g ON Gav.genre_id = g.genre_id
+            LEFT JOIN library.Award_of_book ba ON b.book_id = ba.book_id
+            LEFT JOIN library.award aw ON ba.award_id = aw.award_id
+            left join library.rating_book rb on b.book_id = rb.book_id
+            WHERE b.book_id = {id_book}
+            GROUP BY b.book_id, b.title, b.isbn, b.isbn13, a.name, b.description,
+                     b.number_of_pages, p.name, rb.rating_count, rb.average_rating
+        )
+        SELECT * FROM book_data;
+           """
     
-    # Exécution de la requête
-    book = bddservice.cmd_sql(query)
-    
-    if not book:
-        raise HTTPException(status_code=404, detail="No book found in the database")
+    books = bddservice.cmd_sql(query)
+    if not books:
+        raise HTTPException(status_code=404, detail="Livre non trouvé")
 
-    #print(book)
-    #print(book[0][0])
+    book = books[0]  # Récupère le premier (et seul) résultat
 
-    book_data = book[0]
-    response_data = {
-            "id": book_data[0],
-            "title": book_data[1],
-            "isbn13": book_data[2],
-            "description": book_data[3],
+    return {
+        "id": book[0],
+        "title": book[1],
+        "isbn13": book[3],  
+        "author_name": book[4],
+        "description": book[5],
+        "number_of_pages": book[6],
+        "publisher_name": book[7],
+        "genre_names": book[8],
+        "award_names": book[9],
+        "rating_count": book[10],
+        "average_rating": book[11],  
+        "url": bddservice.get_book_cover_url(book[0], book[3]),
     }
-    
-    return response_data
 
 
 @router.get("/topbook/{nbook}", response_model=List[BookResponse])
