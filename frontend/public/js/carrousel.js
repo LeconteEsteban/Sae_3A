@@ -13,35 +13,32 @@ async function fetchBooks() {
   console.log("fin fetch");
   return booksData;
 }
-async function fetchSimilarBooks(bookId, nBooks = 60) {
+
+async function fetchSimilarBooks(bookId, nBooks = 20) {
   try {
     const recResponse = await fetch(`/recommandations/book/${bookId}/${nBooks}`);
     const recommendedBooks = await recResponse.json();
     
-    console.log("Structure des recommandations:", JSON.stringify(recommendedBooks, null, 2));
+    console.log("Structure des recommandations:", recommendedBooks);
 
-    const ids = recommendedBooks.map(item => item.id); 
-    console.log("IDs extraits:", ids);
-
-    const booksPromises = ids.map(async (id) => {
-      try {
-        const bookResponse = await fetch(`/books/${id}`);
-        if (!bookResponse.ok) throw new Error(`HTTP ${bookResponse.status}`);
-        return await bookResponse.json();
-      } catch (error) {
-        console.error(`Échec sur le livre ${id}:`, error.message);
-        return null;
-      }
+  
+    const ids = recommendedBooks.map(item => {
+    
+      return item.id 
     });
 
-    const booksResults = await Promise.allSettled(booksPromises);
-    const successfulBooks = booksResults
-      .filter(result => result.status === 'fulfilled' && result.value)
-      .map(result => result.value);
+    console.log("IDs extraits:", ids);
 
-    console.log("Livres similaires récupérés:", successfulBooks);
-    return successfulBooks;
+  
+    const booksPromises = ids.map(async (id) => {
+      const bookResponse = await fetch(`/books/${id}`);
+      console.log("Réponse pour le livre", id, ":", bookResponse);
+      return bookResponse.json();
+    });
+    
 
+
+    return await Promise.all(booksPromises);
   } catch (error) {
     console.error("Erreur lors de la récupération des recommandations:", error);
     return [];
