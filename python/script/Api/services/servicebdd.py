@@ -9,7 +9,7 @@ from service.CSVService import CSVService
 from service.EmbeddingService import EmbeddingService
 from service.RecommandationService import RecommendationService
 from service.RecomandationHybride import RecomandationHybride
-
+from service.decodageFormatage import DecodageFormatage
 
 
 bddservice = DatabaseService()
@@ -18,4 +18,4 @@ embservice = EmbeddingService()
 bddservice.initialize_connection()
 recommendation_service = RecommendationService(bddservice, csv_service, embservice)
 recommendation_hybride = RecomandationHybride(bddservice, csv_service, embservice, recommendation_service)
-
+decodeur = DecodageFormatage()

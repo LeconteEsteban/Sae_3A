@@ -3,7 +3,7 @@ from fastapi import Query
 from typing import List
 from typing import Optional
 from models.schemas import BookResponse
-from services.servicebdd import bddservice, recommendation_service, recommendation_hybride
+from services.servicebdd import bddservice, recommendation_service, recommendation_hybride, decodeur
 from datetime import date
 import random
 
@@ -241,7 +241,7 @@ def get_top_books(nbook: int):
     #print(f"Query executed. {len(top_books)} top books found.")
 
     if not top_books:
-        raise HTTPException(status_code=404, detail="No top books found in the database")
+        raise HTTPException(status_code=901, detail="No top books found in the database")
 
     # Sélection aléatoire des livres
     sampled_books = random.sample(top_books, min(nbook, len(top_books)))
@@ -251,10 +251,10 @@ def get_top_books(nbook: int):
     books_data = [
         {
             "id": book[0],
-            "title": book[1],
+            "title": decodeur.decode(book[1]),
             "isbn13": book[2],
-            "author_name": book[3],
-            "description": book[4],
+            "author_name": decodeur.decode(book[3]),
+            "description": decodeur.decode(book[4]),
             "number_of_pages": book[5],
             "publisher_name": book[6],
             "genre_names": book[7],
