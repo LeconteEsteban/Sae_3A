@@ -1,4 +1,7 @@
 import chardet
+import logging
+
+logging.getLogger("chardet.charsetprober").setLevel(logging.WARNING)
 
 class DecodageFormatage:
     """
@@ -15,7 +18,7 @@ class DecodageFormatage:
         Vérifie si le texte contient des caractères suspects indiquant un problème d'encodage.
         Exemples : "Ø", "Ù", "Ã©", "â€“", "ï»¿"
         """
-        corrupted_chars = ["Ø", "Ù", "Ã", "â", "ï", "¿", "�"]  # Caractères fréquents en cas de mauvais encodage
+        corrupted_chars = ["Ø", "Ù", "Ã", "â", "ï", "¿", "�", ""]  # Caractères fréquents en cas de mauvais encodage
         return any(char in text for char in corrupted_chars)
 
     def decode(self, text):
@@ -23,6 +26,9 @@ class DecodageFormatage:
         Détecte l'encodage du texte et applique un reformatage si nécessaire.
         """
         try:
+            if text is None or text.strip() == "":
+                return text
+
             # Détection de l'encodage probable
             detected = chardet.detect(text.encode())
             encoding = detected.get('encoding')
