@@ -69,7 +69,8 @@ if __name__ == "__main__":
             print(f"Erreur dans le main : {e}")
     finally:
         # Fermer la connexion
-        bddservice.close_connection()
+        # bddservice.close_connection()
+        print("fin")
 
 
 
@@ -77,6 +78,6 @@ def test_data():
      """
      remplie la bdd de donnée de testpour la recommandation
      """
-     
+     return 0
 
      
