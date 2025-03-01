@@ -32,7 +32,7 @@ def get_all_books():
         b.title,
         b.isbn,
         b.isbn13,
-        array_agg(DISTINCT a.name) AS author_names,  -- Agrège les noms d'auteurs
+        a.name AS author_name,
         b.description,
         b.number_of_pages,
         p.name AS publisher_name,
@@ -54,6 +54,7 @@ def get_all_books():
     GROUP BY 
         b.book_id, 
         b.title, 
+        author_name,
         b.isbn, 
         b.isbn13, 
         b.description,
@@ -82,6 +83,7 @@ SELECT * FROM book_data;
             "award_names": book[9],  
             "rating_count": book[10],
             "average_rating": book[11],
+            "url": bddservice.get_book_cover_url(book[0], book[2])
         }
         for book in books
     ]
@@ -168,7 +170,7 @@ def get_book(id_book: int):
     Returns:
         BookResponse: Les détails du livre.
     """
-    # Formattage direct de la requête avec l'id_book
+   
     query = f"""SELECT 
                 book_id,
                 title,
@@ -191,9 +193,9 @@ def get_book(id_book: int):
     
     books = bddservice.cmd_sql(query)
     if not books:
-        raise HTTPException(status_code=404, detail="Livre non trouvé")
+        raise HTTPException(status_code=901, detail="Livre non trouvé")
 
-    book = books[0]  # Récupère le premier (et seul) résultat
+    book = books[0] 
 
     return {
         "id": book[0],

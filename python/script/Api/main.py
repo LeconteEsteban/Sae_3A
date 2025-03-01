@@ -44,7 +44,7 @@ request_log = {}
 blocked_ips = set()
 
 # Paramètres de limitation
-RATE_LIMIT = 200  # Nombre max de requêtes
+RATE_LIMIT = 20000  # Nombre max de requêtes
 TIME_WINDOW = 60  # En secondes
 BLOCK_DURATION = 60  # Temps de blocage en secondes
 

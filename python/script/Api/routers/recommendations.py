@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
-from models.schemas import RecommendationReponse
+from models.schemas import RecommendationReponse, BookResponse
 from services.servicebdd import bddservice, recommendation_service, recommendation_hybride
 import random
 router = APIRouter()
@@ -57,7 +57,7 @@ def get_recommendations(id_user: int, nbook: int):
         for rec in recommandations
     ]
 
-@router.get("/book/{id_book}/{nbook}", response_model=List[RecommendationReponse])
+@router.get("/book/{id_book}/{nbook}", response_model=List[BookResponse])
 def get_book_recommendations(id_book: int, nbook: int):
     """
     Livre Similaire
@@ -79,11 +79,57 @@ def get_book_recommendations(id_book: int, nbook: int):
     similar_books = recommendation_service.get_similar_books(id_book, nbook)
     if not similar_books:
         raise HTTPException(status_code=404, detail="No similar books found for the given book ID")
+    
+    books_data = []  # Liste pour stocker les livres
 
-    return [
-        {"id": book[0], "title": book[1], "genres": get_book_genres(book[0])}
-        for book in similar_books
-    ]
+    for b in similar_books:
+        query = f"""
+            SELECT 
+                book_id,
+                title,
+                isbn,
+                isbn13,
+                STRING_AGG(DISTINCT author_name, ', ') FILTER (WHERE author_name IS NOT NULL) AS author_name,
+                description,
+                number_of_pages,
+                publisher_name,
+                array_agg(DISTINCT genre_name) FILTER (WHERE genre_name IS NOT NULL) AS genre_names,
+                array_agg(DISTINCT award_name) FILTER (WHERE award_name IS NOT NULL) AS award_names,
+                rating_count,
+                average_rating
+            FROM library.book_view
+            WHERE book_id = {b[0]}
+            GROUP BY 
+                book_id, title, isbn, isbn13, description, 
+                number_of_pages, publisher_name, rating_count, average_rating;
+        """
+    
+        books = bddservice.cmd_sql(query)
+        if not books:
+            continue  # Ignore si le livre n'est pas trouvé
+        
+        for book in books:
+            books_data.append({
+                "id": book[0],
+                "title": book[1],
+                "isbn": book[2],
+                "isbn13": book[3],
+                "author_name": book[4],
+                "description": book[5],
+                "number_of_pages": book[6],
+                "publisher_name": book[7],
+                "genre_names": book[8],
+                "award_names": book[9],  
+                "rating_count": book[10],
+                "average_rating": book[11],
+                "url": bddservice.get_book_cover_url(book[0], book[2])
+            })
+
+    if not books_data:
+        raise HTTPException(status_code=901, detail="Aucun livre trouvé")
+    
+    return books_data
+
 
 @router.get("/user/book/{id_user}/{nbook}", response_model=List[RecommendationReponse])
 def get_book_recommendations_user(id_user: int, nbook: int):
