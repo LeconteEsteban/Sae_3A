@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
 from models.schemas import RecommendationReponse, BookResponse
-from services.servicebdd import bddservice, recommendation_service, recommendation_hybride
+from services.servicebdd import bddservice, recommendation_service, recommendation_hybride, decodeur
 import random
 router = APIRouter()
 
@@ -111,13 +111,13 @@ def get_book_recommendations(id_book: int, nbook: int):
         for book in books:
             books_data.append({
                 "id": book[0],
-                "title": book[1],
+                "title": decodeur.decode(book[1]),
                 "isbn": book[2],
                 "isbn13": book[3],
-                "author_name": book[4],
-                "description": book[5],
+                "author_name": decodeur.decode(book[4]),
+                "description": decodeur.decode(book[5]),
                 "number_of_pages": book[6],
-                "publisher_name": book[7],
+                "publisher_name": decodeur.decode(book[7]),
                 "genre_names": book[8],
                 "award_names": book[9],  
                 "rating_count": book[10],

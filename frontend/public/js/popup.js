@@ -12,7 +12,7 @@ async function fetchSimilarBooks(bookId, nBooks = 30) {
       book?.id && book?.title && book?.url
     );
     
-    console.log("Livres similaires validés:", validBooks);
+    //console.log("Livres similaires validés:", validBooks);
     return validBooks;
 
   } catch (error) {
