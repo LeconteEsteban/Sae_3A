@@ -38,7 +38,7 @@ export function initializeCarousel(data, carouselId) {
           </ul>
           <div class="flex gap-2 mt-auto justify-between w-full">
             <i class="fas fa-heart text-gray-500 text-2xl cursor-pointer like-button"></i>
-            <i class="fas fa-plus text-gray-500 text-2xl cursor-pointer plus-button"></i>
+            <i class="fas fa-plus text-gray-500 text-2xl cursor-pointer plus-button" data-book-id="${book.id}"></i>
             <i class="fas fa-eye text-gray-500 text-2xl cursor-pointer eye-button"></i>
           </div>
         </div>
@@ -65,3 +65,32 @@ export function initializeCarousel(data, carouselId) {
     }
   });
 }
+
+document.addEventListener("click", async (event) => {
+  if (event.target.classList.contains("plus-button")) {
+    const bookId = event.target.getAttribute("data-book-id");
+
+    if (!bookId || event.target.classList.contains("disabled")) return; // Empêche le spam
+
+    event.target.classList.add("disabled", "cursor-not-allowed"); // Désactive le bouton avant l'envoi
+
+    try {
+      const response = await fetch("/api/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ book_id: bookId }),
+      });
+
+      if (response.ok) {
+        event.target.classList.replace("text-gray-500", "text-red-500"); 
+      } else {
+        console.error("Erreur lors de l'ajout à la wishlist");
+        event.target.classList.remove("disabled", "cursor-not-allowed"); // Réactive le bouton en cas d'échec
+      }
+    } catch (error) {
+      console.error("Erreur réseau :", error);
+      event.target.classList.remove("disabled", "cursor-not-allowed"); // Réactive le bouton
+    }
+  }
+});
+
