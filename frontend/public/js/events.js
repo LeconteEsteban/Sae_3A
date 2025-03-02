@@ -1,27 +1,25 @@
 import { showPopup } from './popup.js';
-import { getBookById } from './carousel.js';
 
-console.log('events.js loaded');
+
 
 document.addEventListener('click', async (event) => {
   if (event.target.closest('.eye-button')) {
     const slideDiv = event.target.closest('[data-book-id]');
     const bookId = slideDiv.dataset.bookId;
-    const book = getBookById(bookId);
-    if (book) showPopup(book);
+    try {
+      const response = await fetch(`/books/${bookId}`);
+      if (!response.ok) throw new Error(`Erreur HTTP! statut: ${response.status}`);
+      const book = await response.json();
+      showPopup(book);
+    } catch (error) {
+      console.error("Erreur lors de la récupération du livre:", error);
+      alert("Impossible de charger les détails du livre");
+    }
   }
 });
 
 
 
-document.addEventListener('click', (event) => {
-  if (event.target.closest('.similar-book-card')) {
-    const cardDiv = event.target.closest('[data-book-id]');
-    const bookId = cardDiv.dataset.bookId;
-
-    if (book) showPopup(book);
-  }
-});
 
 
 document.addEventListener('click', (event) => {

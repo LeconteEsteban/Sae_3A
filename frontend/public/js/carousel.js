@@ -1,35 +1,23 @@
 import { truncateDescription } from './utils.js';
+export function initializeCarousel(data, carouselId) {
+  const swiperWrapper = document.querySelector(`#${carouselId}`);
 
-export let booksData = [];
-
-async function fetchBooks() {
-  console.log("Debut fetch");
-  try {
-    const response = await fetch("/books/topbook/30");
-    booksData = await response.json();
-    console.log("Données récupérées :", booksData);
-  } catch (error) {
-    console.error("Erreur lors de la récupération des données :", error);
+  if (!swiperWrapper) {
+    console.error(`Aucun élément trouvé pour l'ID ${carouselId}`);
+    return;
   }
-  console.log("fin fetch");
-  return booksData;
-}
 
-async function initializeCarousel() {
-  await fetchBooks();
-  const swiperWrapper = document.querySelector(".swiper-wrapper");
-
-  if (!booksData?.length) {
-    console.error("Aucune donnée récupérée");
+  if (!data?.length) {
+    console.error(`Aucune donnée récupérée pour ${carouselId}`);
     return;
   }
 
   swiperWrapper.innerHTML = "";
 
-  booksData.forEach(book => {
+  data.forEach(book => {
     const slide = document.createElement("div");
     slide.classList.add("swiper-slide", "relative", "group", "transition-transform", "duration-300", "zoom-hover");
-    
+
     slide.innerHTML = `
       <div data-book-id="${book.id}" class="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center justify-center relative w-50 h-80">
         <img src="${book.url !== "-1" ? book.url : "/static/notfound.jpg"}" 
@@ -56,17 +44,18 @@ async function initializeCarousel() {
         </div>
       </div>
     `;
+
     swiperWrapper.appendChild(slide);
   });
 
-  new Swiper(".centered-slide-carousel", {
+  new Swiper(swiperWrapper.closest(".swiper"), {
     centeredSlides: true,
     loop: true,
     spaceBetween: 10,
     slideToClickedSlide: true,
     navigation: {
-      nextEl: ".swiper-button-next",
-      prevEl: ".swiper-button-prev",
+      nextEl: swiperWrapper.closest(".swiper").querySelector(".swiper-button-next"),
+      prevEl: swiperWrapper.closest(".swiper").querySelector(".swiper-button-prev"),
     },
     breakpoints: {
       1920: { slidesPerView: 8 },
@@ -76,9 +65,3 @@ async function initializeCarousel() {
     }
   });
 }
-
-export function getBookById(bookId) {
-  return booksData.find(b => b.id == bookId);
-}
-
-initializeCarousel();

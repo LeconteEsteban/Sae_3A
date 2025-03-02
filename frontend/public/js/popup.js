@@ -99,17 +99,4 @@ export function showPopup(book) {
 }
 
 
-const similarBooksContainer = document.getElementById("similar-books-container");
-
-
-similarBooksContainer.addEventListener("click", (event) => {
-  const card = event.target.closest('.similar-book-card');
-  if (card) {
-    const bookId = card.dataset.bookId;
-    const book = currentSimilarBooks.find(b => b.id == bookId);
-    if (book) showPopup(book);
-  }
-});
-
-
 
