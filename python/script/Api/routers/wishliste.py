@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from typing import List
 from models.schemas import BookResponse
 from services.servicebdd import bddservice
@@ -22,14 +22,15 @@ def add_to_wishlist(user_id: int, book_id: int):
 @router.get("/wishlist/{user_id}", response_model=List[BookResponse])
 def get_wishlist(user_id: int):
     """
-    Récupère la wishlist d'un utilisateur.
+    Récupère la wishlist d'un utilisateur avec une seule entrée par livre.
     """
     query = """
-        SELECT b.book_id, b.title, b.isbn13, a.name AS author_name, b.description
+        SELECT DISTINCT ON (b.book_id) 
+               b.book_id, b.title, b.isbn13, a.name AS author_name, b.description
         FROM WishListe w
         JOIN Book b ON w.book_id = b.book_id
-        JOIN Wrote wr ON b.book_id = wr.book_id
-        JOIN Author a ON wr.author_id = a.author_id
+        LEFT JOIN Wrote wr ON b.book_id = wr.book_id
+        LEFT JOIN Author a ON wr.author_id = a.author_id
         WHERE w.user_id = %s;
     """
     books = bddservice.cmd_sql(query, (user_id,))
@@ -42,9 +43,9 @@ def get_wishlist(user_id: int):
             "id": book[0],
             "title": book[1],
             "isbn13": book[2],
-            "author_name": book[3],
-            "description": book[4],
-            "url": bddservice.get_book_cover_url(book[0], book[2])
+            "author_name": book[3] if book[3] else "Auteur inconnu",
+            "description": book[4] if book[4] else "Pas de description",
+            "url": bddservice.get_book_cover_url(book[0], book[2])  # Récupération de l'URL de l'image
         }
         for book in books
     ]
