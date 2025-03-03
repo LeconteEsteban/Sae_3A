@@ -71,6 +71,8 @@ svg {
 :root {
     --background-color: white;
     --text-color: black;
+    --background-color2: white;
+    --background-color3: white;
 }
 
 .dark-mode {
