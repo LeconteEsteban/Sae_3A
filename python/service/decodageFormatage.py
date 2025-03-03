@@ -18,7 +18,7 @@ class DecodageFormatage:
         Vérifie si le texte contient des caractères suspects indiquant un problème d'encodage.
         Exemples : "Ø", "Ù", "Ã©", "â€“", "ï»¿"
         """
-        corrupted_chars = ["Ø", "Ù", "Ã", "â", "ï", "¿", "�", "", "¦", "Ð", "", "Î"]  # Caractères fréquents en cas de mauvais encodage
+        corrupted_chars = ["Ø", "Ù", "Ã", "â","á", "å", "ã", "ï", "¿", "�", "", "¦", "Ð", "", "Î"]  # Caractères fréquents en cas de mauvais encodage
         return any(char in text for char in corrupted_chars)
 
     def decode(self, text):

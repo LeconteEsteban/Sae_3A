@@ -32,4 +32,51 @@ button:hover {
 /* Ajout pour que le contenu en dessous ne soit pas masqué par le header */
 body {
     padding-top: 70px; /* Ajustez la valeur en fonction de la hauteur du header */
+    background-color: var(--background-color) !important;
+    color: var(--text-color) !important;
+}
+
+header {
+    background-color: var(--background-color2) !important;
+    color: var(--text-color) !important;
+}
+
+.bg-white {
+    background-color: var(--background-color2) !important;
+    color: var(--text-color) !important;
+}
+
+.text-black {
+    background-color: var(--background-color2) !important;
+    color: var(--text-color) !important;
+}
+
+.text-gray-800 {
+    background-color: var(--background-color2) !important;
+    color: var(--text-color) !important;
+}
+.border-gray-300 {
+    background-color: var(--background-color3) !important;
+    color: var(--text-color) !important;
+}
+
+.border-black {
+    border-color: var(--text-color) !important;
+}
+
+svg {
+    stroke: var(--text-color) !important;
+}
+
+:root {
+    --background-color: white;
+    --text-color: black;
+}
+
+.dark-mode {
+    --bg-black: black;
+    --background-color: #181A1B;
+    --background-color2: #383d3f;
+    --background-color3: #636464;
+    --text-color: white;
 }
