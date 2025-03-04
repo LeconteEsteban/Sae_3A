@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/static/css/styles.css" />
     <link rel="stylesheet" href="/static/css/body-styles.css" />
     <link rel="stylesheet" href="static/css/carrousel.css">
+    <link rel="stylesheet" href="/static/css/toggleDarkMode.css">
     <link rel="icon" type="image/x-icon" href="static/favicon.ico">
     <link
       href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
@@ -71,7 +72,14 @@
           <!-- Les résultats seront injectés ici par JavaScript -->
         </div>
       </div>
-      <button id="toggleDarkMode">🌙 Mode sombre</button>
+      <div>
+        <input type="checkbox" class="checkbox" id="chk" />
+        <label class="label" for="chk">
+          <i class="fas fa-moon"></i>
+          <i class="fas fa-sun"></i>
+          <div class="ball"></div>
+        </label>
+      </div>
       <!-- Bouton de Connexion -->
       <button
         id="loginButton"

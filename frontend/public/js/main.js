@@ -26,19 +26,20 @@ async function init() {
 init();
 
 document.addEventListener("DOMContentLoaded", function () {
-  const toggleButton = document.getElementById("toggleDarkMode");
+  const chk = document.getElementById("chk");
   const body = document.body;
 
-  // Vérifier si l'utilisateur a déjà activé le mode sombre
+
   if (localStorage.getItem("dark-mode") === "enabled") {
       body.classList.add("dark-mode");
+      chk.checked = true; 
   }
 
-  toggleButton.addEventListener("click", function () {
-      console.log("x");
+  
+  chk.addEventListener("change", function () {
       body.classList.toggle("dark-mode");
 
-      // Sauvegarde l'état dans le stockage local
+      // Sauvegarde de l'état dans le stockage local
       if (body.classList.contains("dark-mode")) {
           localStorage.setItem("dark-mode", "enabled");
       } else {
