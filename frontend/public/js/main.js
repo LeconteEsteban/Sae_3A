@@ -17,7 +17,6 @@ async function init() {
   const [topBooks] = await Promise.all([
     fetchBooks("/books/topbook/30"),
   ]);
-
   initializeCarousel(topBooks, "Topcarousel");
   initializeCarousel(topBooks, "Newcarousel");
   initializeCarousel(topBooks, "Newcarousel1");

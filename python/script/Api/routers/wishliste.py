@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Cookie
 from typing import List
 from models.schemas import BookResponse
 from services.servicebdd import bddservice
@@ -6,8 +6,14 @@ from datetime import date
 
 router = APIRouter()
 
-@router.post("/wishlist/add/{user_id}/{book_id}")
-def add_to_wishlist(user_id: int, book_id: int):
+# Fonction pour obtenir le user_id depuis le cookie
+def get_user_id_from_cookie(user_id: int = Cookie(None)):
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Utilisateur non authentifié")
+    return user_id
+
+@router.post("/wishlist/add/{book_id}")
+def add_to_wishlist(book_id: int, user_id: int = Depends(get_user_id_from_cookie)):
     """
     Ajoute un livre à la wishlist d'un utilisateur.
     """
@@ -19,8 +25,8 @@ def add_to_wishlist(user_id: int, book_id: int):
     bddservice.cmd_sql(query, (user_id, book_id, date.today()))
     return {"message": "Livre ajouté à la wishlist"}
 
-@router.get("/wishlist/{user_id}", response_model=List[BookResponse])
-def get_wishlist(user_id: int):
+@router.get("/wishlist", response_model=List[BookResponse])
+def get_wishlist(user_id: int = Depends(get_user_id_from_cookie)):
     """
     Récupère la wishlist d'un utilisateur avec une seule entrée par livre.
     """
@@ -50,8 +56,8 @@ def get_wishlist(user_id: int):
         for book in books
     ]
 
-@router.delete("/wishlist/remove/{user_id}/{book_id}")
-def remove_from_wishlist(user_id: int, book_id: int):
+@router.delete("/wishlist/remove/{book_id}")
+def remove_from_wishlist(book_id: int, user_id: int = Depends(get_user_id_from_cookie)):
     """
     Supprime un livre de la wishlist d'un utilisateur.
     """

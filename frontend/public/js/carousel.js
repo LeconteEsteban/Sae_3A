@@ -66,31 +66,45 @@ export function initializeCarousel(data, carouselId) {
   });
 }
 
+document.addEventListener("DOMContentLoaded", async () => {
+  // Vérifie si l'utilisateur est connecté (si l'user_id est dans les cookies)
+  const isUserAuthenticated = document.cookie.includes('user_id=');
+
+  // Si l'utilisateur n'est pas connecté, désactiver les boutons "plus"
+  if (!isUserAuthenticated) {
+    const plusButtons = document.querySelectorAll(".plus-button");
+    plusButtons.forEach(button => {
+      button.classList.add("cursor-not-allowed", "disabled");
+      button.setAttribute("title", "Veuillez vous connecter pour ajouter des livres à votre wishlist");
+    });
+  }
+});
+
 document.addEventListener("click", async (event) => {
   if (event.target.classList.contains("plus-button")) {
     const bookId = event.target.getAttribute("data-book-id");
 
-    if (!bookId || event.target.classList.contains("disabled")) return; // Empêche le spam
+    if (event.target.classList.contains("disabled")) return;
 
-    event.target.classList.add("disabled", "cursor-not-allowed"); // Désactive le bouton avant l'envoi
+    event.target.classList.add("disabled", "cursor-not-allowed");
 
     try {
-      const response = await fetch("/api/wishlist", {
+      const response = await fetch(`/wishlist/add/${bookId}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ book_id: bookId }),
+        headers: {
+          "Content-Type": "application/json",
+        }
       });
 
       if (response.ok) {
         event.target.classList.replace("text-gray-500", "text-red-500"); 
       } else {
         console.error("Erreur lors de l'ajout à la wishlist");
-        event.target.classList.remove("disabled", "cursor-not-allowed"); // Réactive le bouton en cas d'échec
+        event.target.classList.remove("disabled", "cursor-not-allowed");
       }
     } catch (error) {
       console.error("Erreur réseau :", error);
-      event.target.classList.remove("disabled", "cursor-not-allowed"); // Réactive le bouton
+      event.target.classList.remove("disabled", "cursor-not-allowed");
     }
   }
 });
-
