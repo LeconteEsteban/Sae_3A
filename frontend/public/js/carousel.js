@@ -1,4 +1,14 @@
 import { truncateDescription } from './utils.js';
+
+
+function getIdAccount() {
+  const userCookie = getCookie('user');
+  if (userCookie) {
+      const user = JSON.parse(userCookie);
+      return user;
+  }
+}
+
 export function initializeCarousel(data, carouselId) {
   const swiperWrapper = document.querySelector(`#${carouselId}`);
 
@@ -85,14 +95,15 @@ document.addEventListener("click", async (event) => {
     const bookId = event.target.getAttribute("data-book-id");
 
     if (event.target.classList.contains("disabled")) return;
-
+    
     event.target.classList.add("disabled", "cursor-not-allowed");
-
+    console.log("idAccount", getIdAccount());
+    console.log("Ajout du livre à la wishlist", bookId);
     try {
-      const response = await fetch(`/wishlist/add/${bookId}`, {
+      const response = await fetch(`/wishlist/add/${bookId}/${getIdAccount()}`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         }
       });
 

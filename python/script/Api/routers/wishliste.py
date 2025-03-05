@@ -6,37 +6,35 @@ from datetime import date
 
 router = APIRouter()
 
-# Fonction pour obtenir le user_id depuis le cookie
-def get_user_id_from_cookie(user_id: int = Cookie(None)):
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Utilisateur non authentifié")
-    return user_id
-
-@router.post("/wishlist/add/{book_id}")
-def add_to_wishlist(book_id: int, user_id: int = Depends(get_user_id_from_cookie)):
+@router.post("/wishlist/add/{book_id}/{user_id}")
+def add_to_wishlist(book_id: int, user_id: int):
     """
     Ajoute un livre à la wishlist d'un utilisateur.
     """
     query = """
-        INSERT INTO WishListe (user_id, book_id, add_date)
-        VALUES (%s, %s, %s)
-        ON CONFLICT (user_id, book_id) DO NOTHING;
+        INSERT INTO library.WishListe (user_id, book_id, add_date)
+        SELECT %s, %s, %s
+        WHERE NOT EXISTS (
+            SELECT 1 FROM library.WishListe WHERE user_id = %s AND book_id = %s
+        );
+
     """
-    bddservice.cmd_sql(query, (user_id, book_id, date.today()))
+    bddservice.cmd_sql(query, (user_id, book_id, date.today(), user_id, book_id))
+
     return {"message": "Livre ajouté à la wishlist"}
 
-@router.get("/wishlist", response_model=List[BookResponse])
-def get_wishlist(user_id: int = Depends(get_user_id_from_cookie)):
+@router.get("/wishlist/{user_id}", response_model=List[BookResponse])
+def get_wishlist(user_id: int):
     """
     Récupère la wishlist d'un utilisateur avec une seule entrée par livre.
     """
     query = """
         SELECT DISTINCT ON (b.book_id) 
                b.book_id, b.title, b.isbn13, a.name AS author_name, b.description
-        FROM WishListe w
-        JOIN Book b ON w.book_id = b.book_id
-        LEFT JOIN Wrote wr ON b.book_id = wr.book_id
-        LEFT JOIN Author a ON wr.author_id = a.author_id
+        FROM library.WishListe w
+        JOIN library.Book b ON w.book_id = b.book_id
+        LEFT JOIN library.Wrote wr ON b.book_id = wr.book_id
+        LEFT JOIN library.Author a ON wr.author_id = a.author_id
         WHERE w.user_id = %s;
     """
     books = bddservice.cmd_sql(query, (user_id,))
@@ -56,13 +54,13 @@ def get_wishlist(user_id: int = Depends(get_user_id_from_cookie)):
         for book in books
     ]
 
-@router.delete("/wishlist/remove/{book_id}")
-def remove_from_wishlist(book_id: int, user_id: int = Depends(get_user_id_from_cookie)):
+@router.delete("/wishlist/remove/{book_id}/{user_id}")
+def remove_from_wishlist(book_id: int, user_id: int):
     """
     Supprime un livre de la wishlist d'un utilisateur.
     """
     query = """
-        DELETE FROM WishListe WHERE user_id = %s AND book_id = %s;
+        DELETE FROM library.WishListe WHERE user_id = %s AND book_id = %s;
     """
     bddservice.cmd_sql(query, (user_id, book_id))
     return {"message": "Livre retiré de la wishlist"}
