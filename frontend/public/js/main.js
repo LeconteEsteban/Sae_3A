@@ -14,13 +14,15 @@ async function fetchBooks(url) {
 }
 
 async function init() {
-  const [topBooks] = await Promise.all([
+  const [topBooks, topBooks1, topBooks2] = await Promise.all([
+    fetchBooks("/books/topbook/30"),
+    fetchBooks("/books/topbook/30"),
     fetchBooks("/books/topbook/30"),
   ]);
 
   initializeCarousel(topBooks, "Topcarousel");
-  initializeCarousel(topBooks, "Newcarousel");
-  initializeCarousel(topBooks, "Newcarousel1");
+  initializeCarousel(topBooks1, "Newcarousel");
+  initializeCarousel(topBooks2, "Newcarousel1");
 }
 
 init();

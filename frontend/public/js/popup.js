@@ -29,6 +29,7 @@ function truncateDescription(description, maxLength) {
 }
 
 function updatePopup(book) {
+  document.getElementById("similar-books-container").scrollTop = 0;
   document.getElementById("book-cover").src = book.url !== "-1" ? book.url : "/static/notfound.jpg";
   document.getElementById("book-title").textContent = book.title;
   document.getElementById("book-author").textContent = book.author_name;
