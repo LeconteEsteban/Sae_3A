@@ -95,7 +95,6 @@
       <div
         id="WishListeButton"
         class="flex items-center px-4 py-3 hover:bg-gray-100 transition-colors duration-300 cursor-pointer"
-        onclick="wishListe()"
       >
         <i class="fas fa-heart mr-2 text-red-500"></i>
         <span class="font-semibold">Wish Liste</span>
@@ -598,6 +597,15 @@
         </div>
       </div>
     </main>
+    <!-- La Popup wish liste -->
+    <div id="noBooksPopup" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
+      <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+        <h2 class="text-xl font-semibold">Aucun livre dans votre wishlist</h2>
+        <p class="mt-2">Vous n'avez encore ajouté aucun livre à votre wishlist.</p>
+        <button id="closePopup" class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Fermer</button>
+      </div>
+    </div>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="/static/js/carousel.js"></script>
     <script type="module" src="/static/js/popup.js"></script>
