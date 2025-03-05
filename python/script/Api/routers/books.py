@@ -125,8 +125,8 @@ def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10):
             a.name        
         FROM
             library.book bv
-        JOIN library.wrote w ON bv.book_id = w.book_id 
-        JOIN library.author a ON w.author_id = a.author_id 
+        LEFT JOIN library.wrote w ON bv.book_id = w.book_id 
+        LEFT JOIN library.author a ON w.author_id = a.author_id 
         WHERE
             bv.title ILIKE CONCAT('%%', %s, '%%')  
         LIMIT %s OFFSET %s;

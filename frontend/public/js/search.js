@@ -48,9 +48,15 @@ document.addEventListener("DOMContentLoaded", function () {
         resultsPopup.classList.remove('hidden');
     }
 
+    // Variable globale pour stocker la requête actuelle
+    let currentQuery = '';
     // Fonction pour effectuer la recherche via l'API
     async function performSearch() {
+
+        
+
         const query = searchInput.value.trim();
+        currentQuery = query; // Mettre à jour la requête en cours
 
         if (query.length < 2) {
             resultsPopup.classList.add('hidden');
@@ -73,7 +79,10 @@ document.addEventListener("DOMContentLoaded", function () {
             
 
             // Afficher les résultats dans la pop-up
-            displayResults(books);
+            if (query === searchInput.value.trim() && query === currentQuery) {
+                displayResults(books); // Passer la requête pour le tri
+            }
+            
         } catch (error) {
             console.error('Erreur lors de la recherche:', error);
             // Ajouter un délai avant d'afficher l'erreur
@@ -88,7 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
     searchInput.addEventListener('input', () => {
         clearTimeout(searchTimeout); // Annuler le délai précédent
         clearTimeout(errorTimeout); // Annuler le délai d'erreur précédent
-        searchTimeout = setTimeout(performSearch, 500); // Délai de 100 ms
+        searchTimeout = setTimeout(performSearch, 300); // Délai de 300 ms
     });
 
     // Réafficher la pop-up des résultats lorsqu'on clique dans la barre de recherche
