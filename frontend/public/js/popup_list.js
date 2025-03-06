@@ -106,7 +106,7 @@ async function showWishlistPopup() {
         </div>
         <div class="actions">
           <button class="primary like-button"><i class="fas fa-heart"></i></button>
-          <button class="secondary plus-button"><i class="fas fa-plus"></i></button>
+          <button class="secondary moins-button"><i class="fas fa-minus"></i></button>
           <button class="secondary eye-button"><i class="fas fa-eye"></i></button>
         </div>
       </div>
@@ -124,16 +124,6 @@ document.addEventListener("DOMContentLoaded", () => {
     overlay.addEventListener("click", closeWishlistPopup);
   }
 });
-
-function closePopup() {
-  const popup = document.getElementById("wishlist-popup");
-  popup.classList.remove("show");
-  popup.classList.add("hide");
-  setTimeout(() => {
-    popup.classList.add("hidden");
-    popup.classList.remove("hide");
-  }, 300);
-}
 
 function addSimilarBooks(books) {
   const similarBooksContainer = document.getElementById("similar-books-container");
@@ -175,5 +165,31 @@ function addSimilarBooks(books) {
     similarBooksContainer.appendChild(bookCard);
   });
 }
+
+document.addEventListener("click", async (event) => {
+  if (event.target.classList.contains("moins-button")) {
+    const bookId = event.target.getAttribute("data-book-id");
+
+    if (event.target.classList.contains("disabled")) return;
+    
+    event.target.classList.add("disabled", "cursor-not-allowed");
+    console.log("idAccount", getIdAccount());
+    console.log("Ajout du livre à la wishlist", bookId);
+    try {
+      const response = await fetch(`/wishlist/remove/${bookId}/${getIdAccount()}`);
+
+      if (response.ok) {
+        event.target.classList.replace("text-gray-500", "text-red-500"); 
+      } else {
+        console.error("Erreur lors de la suppresion à la wishlist");
+        event.target.classList.remove("disabled", "cursor-not-allowed");
+      }
+    } catch (error) {
+      console.error("Erreur réseau :", error);
+      event.target.classList.remove("disabled", "cursor-not-allowed");
+    }
+  }
+});
+
 
 window.showWishlistPopup = showWishlistPopup
