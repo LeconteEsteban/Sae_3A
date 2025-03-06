@@ -1,3 +1,5 @@
+import { truncateDescription } from './utils.js';
+
 let currentSimilarBooks = [];
 
 async function fetchSimilarBooks(bookId, nBooks = 30) {
@@ -58,7 +60,7 @@ function createPopupStructure() {
   if (!popup) {
     popup = document.createElement("div");
     popup.id = "wishlist-popup";
-    popup.classList.add("popup-container", "hidden");
+    popup.classList.add("fixed", "flex", "items-center", "justify-center", "z-[999]","inset-0", "hidden");
     
     popup.innerHTML = `
       <div class="popup-content">
@@ -81,12 +83,12 @@ async function showWishlistPopup() {
   
   overlay.classList.add("show");
   popup.classList.add("show");
+  overlay.classList.remove("hidden");
+  popup.classList.remove("hidden");
 
   const wishlistContainer = document.getElementById("wishlist-container");
-  const recommendationsContainer = document.getElementById("recommendations-container");
 
   wishlistContainer.innerHTML = "Chargement...";
-  recommendationsContainer.innerHTML = "";
 
   const wishlist = await fetchWishlist();
   wishlistContainer.innerHTML = wishlist.length ? wishlist.map(book => `
@@ -112,7 +114,7 @@ async function showWishlistPopup() {
   `).join("") : "<p>Votre wishlist est vide.</p>";
 
   const recommendations = await fetchRecommendations(wishlist);
-  addSimilarBooks(recommendations, recommendationsContainer);
+  addSimilarBooks(recommendations);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -133,28 +135,45 @@ function closePopup() {
   }, 300);
 }
 
-function addSimilarBooks(books, container) {
-  container.innerHTML = books.length ? books.map(book => `
-    <div data-book-id="${book.id}" class="book">
-      <img src="${book.url !== "-1" ? book.url : "/static/notfound.jpg"}" 
-           alt="Couverture de ${book.title}">
-      <div class="book-details">
-        <h3>${book.title}</h3>
-        <p>${book.author_name || "Auteur inconnu"}</p>
-        <p>${book.description ? book.description.slice(0, 100) + "..." : "Pas de description disponible."}</p>
-        <div class="tags">
-          ${(book.genre_names?.slice(0, 2) || []).map(genre =>
-            `<span class="tag">${genre}</span>`
-          ).join("")}
-        </div>
-        <div class="actions">
-          <button class="primary like-button"><i class="fas fa-heart"></i></button>
-          <button class="secondary plus-button"><i class="fas fa-plus"></i></button>
-          <button class="secondary eye-button"><i class="fas fa-eye"></i></button>
+function addSimilarBooks(books) {
+  const similarBooksContainer = document.getElementById("similar-books-container");
+  similarBooksContainer.innerHTML = "";
+  
+  books.forEach((book) => {
+    const bookCard = document.createElement("div");
+    bookCard.classList.add("similar-book-card", "bg-white", "rounded-lg", "relative", "group", "transition-transform", "duration-300", "zoom-hover");
+    
+    const truncatedDescription = truncateDescription(
+      book.description?.replaceAll("#virgule", ",") || "Pas de description",
+      110
+    );
+
+    bookCard.innerHTML = `
+      <div data-book-id="${book.id}" class="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center relative w-50 h-80">
+        <img src="${book.url !== "-1" ? book.url : "/static/notfound.jpg"}" 
+             alt="Couverture de ${book.title}" 
+             class="w-32 h-44 object-cover rounded transition-transform duration-300">
+        <h3 class="text-lg font-bold text-gray-800 mt-2 text-center">${book.title}</h3>
+
+        <div class="absolute inset-0 bg-white bg-opacity-95 flex flex-col text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg p-4">
+          <h3 class="text-lg text-black font-bold mb-1">${book.title}</h3>
+          <p class="text-xs text-black font-semibold mb-1">${book.author_name || "Auteur inconnu"}</p>
+          <p class="text-xs text-black mb-2">${truncatedDescription}</p>
+          <ul class="flex gap-2 mb-3">
+            ${(book.genre_names?.slice(0, 2) || []).map(genre =>
+              `<li class="bg-white text-black border border-black px-2 py-1 text-xs rounded">${genre}</li>`
+            ).join("")}
+          </ul>
+          <div class="flex gap-2 mt-auto justify-between w-full">
+            <i class="fas fa-heart text-gray-500 text-2xl cursor-pointer like-button"></i>
+            <i class="fas fa-plus text-gray-500 text-2xl cursor-pointer plus-button"></i>
+            <i class="fas fa-eye text-gray-500 text-2xl cursor-pointer eye-button"></i>
+          </div>
         </div>
       </div>
-    </div>
-  `).join("") : "<p>Aucune recommandation disponible.</p>";
+    `;
+    similarBooksContainer.appendChild(bookCard);
+  });
 }
 
 window.showWishlistPopup = showWishlistPopup
