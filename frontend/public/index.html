@@ -71,7 +71,7 @@
           <!-- Les résultats seront injectés ici par JavaScript -->
         </div>
       </div>
-
+      <button id="toggleDarkMode">🌙 Mode sombre</button>
       <!-- Bouton de Connexion -->
       <button
         id="loginButton"
@@ -95,6 +95,7 @@
       <div
         id="WishListeButton"
         class="flex items-center px-4 py-3 hover:bg-gray-100 transition-colors duration-300 cursor-pointer"
+        onclick="showWishlistPopup()"
       >
         <i class="fas fa-heart mr-2 text-red-500"></i>
         <span class="font-semibold">Wish Liste</span>
@@ -469,7 +470,7 @@
         
     
       <div class="w-full">
-        <div class="flex items-center  gap-2 border border-black px-2 py-2 rounded-full h-10 max-w-[200px]">
+        <div class="flex items-center  gap-2 border border-black px-2 py-2 rounded-full h-10 max-w-[200px] mb-5">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
               <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6l1.2 1.2L12 21l7.6-7.6 1.2-1.2a5.4 5.4 0 0 0 0-7.6z"/>
           </svg>
@@ -486,7 +487,7 @@
       </div>
       
       <div class="w-full mt-8">
-        <div class="flex items-center  gap-2 border border-black px-2 py-2 rounded-full h-10 max-w-[200px]">
+        <div class="flex items-center  gap-2 border border-black px-2 py-2 rounded-full h-10 max-w-[200px] mb-5">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
               <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6l1.2 1.2L12 21l7.6-7.6 1.2-1.2a5.4 5.4 0 0 0 0-7.6z"/>
           </svg>
@@ -502,7 +503,7 @@
         </div>
       </div>
       <div class="w-full mt-8">
-        <div class="flex items-center  gap-2 border border-black px-2 py-2 rounded-full h-10 max-w-[200px]">
+        <div class="flex items-center  gap-2 border border-black px-2 py-2 rounded-full h-10 max-w-[200px] mb-5">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
               <path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6l1.2 1.2L12 21l7.6-7.6 1.2-1.2a5.4 5.4 0 0 0 0-7.6z"/>
           </svg>
@@ -597,23 +598,15 @@
         </div>
       </div>
     </main>
-    <!-- La Popup wish liste -->
-    <div id="noBooksPopup" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 hidden">
-      <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-        <h2 class="text-xl font-semibold">Aucun livre dans votre wishlist</h2>
-        <p class="mt-2">Vous n'avez encore ajouté aucun livre à votre wishlist.</p>
-        <button id="closePopup" class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Fermer</button>
-      </div>
-    </div>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="/static/js/carousel.js"></script>
     <script type="module" src="/static/js/popup.js"></script>
+    <script type="module" src="/static/js/popup_list.js"></script>
     <script type="module" src="/static/js/events.js"></script>
     <script type="module" src="/static/js/search.js"></script>
     <script type="module" src="/static/js/main.js"></script>
     <script src="/static/js/auth.js"></script>
-    <script type="module" src="/static/js/wishliste.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     
   </body>
