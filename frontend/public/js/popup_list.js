@@ -2,7 +2,7 @@ import { truncateDescription } from './utils.js';
 
 let currentSimilarBooks = [];
 
-async function fetchSimilarBooks(bookId, nBooks = 30) {
+async function fetchSimilarBooks(bookId, nBooks = 5) {
   try {
     const recResponse = await fetch(`/recommandations/book/${bookId}/${nBooks}`);
     if (!recResponse.ok) throw new Error(`HTTP ${recResponse.status}`);
@@ -40,7 +40,7 @@ async function fetchWishlist() {
 async function fetchRecommendations(wishlist) {
   let allRecommendations = [];
   for (const book of wishlist) {
-    const recommendations = await fetchSimilarBooks(book.id, 3); // 3 recommandations par livre
+    const recommendations = await fetchSimilarBooks(book.id, 3);
     allRecommendations = [...allRecommendations, ...recommendations];
   }
   return allRecommendations;
@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function addSimilarBooks(books) {
-  const similarBooksContainer = document.getElementById("similar-books-container");
+  const similarBooksContainer = document.getElementById("recommendations-container");
   similarBooksContainer.innerHTML = "";
   
   books.forEach((book) => {
@@ -168,20 +168,24 @@ function addSimilarBooks(books) {
 
 document.addEventListener("click", async (event) => {
   if (event.target.classList.contains("moins-button")) {
-    const bookId = event.target.getAttribute("data-book-id");
+    const slideDiv = event.target.closest('[data-book-id]');
+    const bookId = slideDiv.dataset.bookId;
 
     if (event.target.classList.contains("disabled")) return;
     
     event.target.classList.add("disabled", "cursor-not-allowed");
     console.log("idAccount", getIdAccount());
-    console.log("Ajout du livre à la wishlist", bookId);
+    console.log("Suppression du livre de la wishlist", bookId);
+    
     try {
-      const response = await fetch(`/wishlist/remove/${bookId}/${getIdAccount()}`);
+      const response = await fetch(`/wishlist/remove/${bookId}/${getIdAccount()}`, {
+        method: "DELETE"
+      });
 
       if (response.ok) {
-        event.target.classList.replace("text-gray-500", "text-red-500"); 
+        slideDiv.remove();
       } else {
-        console.error("Erreur lors de la suppresion à la wishlist");
+        console.error("Erreur lors de la suppression de la wishlist");
         event.target.classList.remove("disabled", "cursor-not-allowed");
       }
     } catch (error) {
@@ -190,6 +194,7 @@ document.addEventListener("click", async (event) => {
     }
   }
 });
+
 
 
 window.showWishlistPopup = showWishlistPopup

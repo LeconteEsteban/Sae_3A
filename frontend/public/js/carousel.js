@@ -92,7 +92,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 document.addEventListener("click", async (event) => {
   if (event.target.classList.contains("plus-button")) {
-    const bookId = event.target.getAttribute("data-book-id");
+    const slideDiv = event.target.closest('[data-book-id]');
+    const bookId = slideDiv.dataset.bookId;
 
     if (event.target.classList.contains("disabled")) return;
     
