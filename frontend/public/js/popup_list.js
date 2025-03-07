@@ -65,7 +65,7 @@ function createPopupStructure() {
     popup.innerHTML = `
       <div class="popup-content">
         <button
-            id="close-popup"
+            id="close-wishlist-popup"
             class="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
           >
             <i class="fas fa-times"></i>
@@ -78,6 +78,7 @@ function createPopupStructure() {
     `;
     
     document.body.appendChild(popup);
+    document.getElementById('close-wishlist-popup').addEventListener('click', closeWishlistPopup);
   }
 }
 
@@ -223,5 +224,15 @@ document.addEventListener("click", async (event) => {
     }
   }
 });
+
+function closeWishlistPopup() {
+  const popup = document.getElementById("wishlist-popup");
+  popup.classList.remove("show");
+  popup.classList.add("hide");
+  setTimeout(() => {
+    popup.classList.add("hidden");
+    popup.classList.remove("hide");
+  }, 300);
+}
 
 window.showWishlistPopup = showWishlistPopup
