@@ -287,16 +287,16 @@
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    width: 52rem;
     overflow-y: auto;
     height: 20em;
+    justify-content: space-around;
 }
 
 #wishlist-container{
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    width: 52rem;
     overflow-y: auto;
     height: 20em;
+    justify-content: space-between;
 }
