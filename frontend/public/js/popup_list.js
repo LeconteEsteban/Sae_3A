@@ -2,7 +2,7 @@ import { truncateDescription } from './utils.js';
 
 let currentSimilarBooks = [];
 
-async function fetchSimilarBooks(bookId, nBooks = 30) {
+async function fetchSimilarBooks(bookId, nBooks = 3) {
   try {
     const recResponse = await fetch(`/recommandations/book/${bookId}/${nBooks}`);
     if (!recResponse.ok) throw new Error(`HTTP ${recResponse.status}`);
@@ -64,11 +64,16 @@ function createPopupStructure() {
     
     popup.innerHTML = `
       <div class="popup-content">
+        <button
+            id="close-popup"
+            class="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+          >
+            <i class="fas fa-times"></i>
+        </button>
         <h2>Ma Wishlist</h2>
         <div id="wishlist-container">Chargement...</div>
         <h2>Recommandations</h2>
         <div id="recommendations-container">Chargement...</div>
-        <button onclick="closePopup()">Fermer</button>
       </div>
     `;
     
@@ -117,16 +122,8 @@ async function showWishlistPopup() {
   addSimilarBooks(recommendations);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const overlay = document.getElementById("popup-overlay-wishlist");
-
-  if (overlay) {
-    overlay.addEventListener("click", closeWishlistPopup);
-  }
-});
-
 function addSimilarBooks(books) {
-  const similarBooksContainer = document.getElementById("similar-books-container");
+  const similarBooksContainer = document.getElementById("recommendations-container");
   similarBooksContainer.innerHTML = "";
   
   books.forEach((book) => {
@@ -191,5 +188,34 @@ document.addEventListener("click", async (event) => {
   }
 });
 
+document.addEventListener("click", async (event) => {
+  if (event.target.classList.contains("plus-button")) {
+    const bookId = event.target.getAttribute("data-book-id");
+
+    if (event.target.classList.contains("disabled")) return;
+    
+    event.target.classList.add("disabled", "cursor-not-allowed");
+    console.log("idAccount", getIdAccount());
+    console.log("Ajout du livre à la wishlist", bookId);
+    try {
+      const response = await fetch(`/wishlist/add/${bookId}/${getIdAccount()}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (response.ok) {
+        event.target.classList.replace("text-gray-500", "text-red-500"); 
+      } else {
+        console.error("Erreur lors de l'ajout à la wishlist");
+        event.target.classList.remove("disabled", "cursor-not-allowed");
+      }
+    } catch (error) {
+      console.error("Erreur réseau :", error);
+      event.target.classList.remove("disabled", "cursor-not-allowed");
+    }
+  }
+});
 
 window.showWishlistPopup = showWishlistPopup
