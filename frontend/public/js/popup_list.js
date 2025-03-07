@@ -78,7 +78,7 @@ function createPopupStructure() {
     `;
     
     document.body.appendChild(popup);
-    document.getElementById('close-wishlist-popup').addEventListener('click', closeWishlistPopup);
+    document.getElementById('close-wishlist-popup')?.addEventListener('click', closeWishlistPopup);
   }
 }
 
@@ -86,6 +86,14 @@ async function showWishlistPopup() {
   createPopupStructure();
   const popup = document.getElementById("wishlist-popup");
   const overlay = document.getElementById("popup-overlay-wishlist");
+
+  if (popup) {
+    popup.style.display = "flex";
+  }
+
+  if (overlay) {
+    overlay.style.display = "flex"; 
+  }
   
   overlay.classList.add("show");
   popup.classList.add("show");
@@ -137,7 +145,7 @@ function addSimilarBooks(books) {
     );
 
     bookCard.innerHTML = `
-      <div data-book-id="${book.id}" book">
+      <div data-book-id="${book.id}" class="book">
         <img src="${book.url !== "-1" ? book.url : "/static/notfound.jpg"}" 
              alt="Couverture de ${book.title}" 
              class="w-32 h-44 object-cover rounded transition-transform duration-300">
@@ -182,6 +190,9 @@ document.addEventListener("click", async (event) => {
 
       if (response.ok) {
         slideDiv.remove();
+        const wishlist = await fetchWishlist();
+        const newRecommendations = await fetchRecommendations(wishlist);
+        addSimilarBooks(newRecommendations);
       } else {
         console.error("Erreur lors de la suppression de la wishlist");
         event.target.classList.remove("disabled", "cursor-not-allowed");
@@ -213,7 +224,9 @@ document.addEventListener("click", async (event) => {
       });
 
       if (response.ok) {
-        slideDiv.remove();
+        const wishlist = await fetchWishlist();
+        const newRecommendations = await fetchRecommendations(wishlist);
+        addSimilarBooks(newRecommendations);
       } else {
         console.error("Erreur lors de l'ajout à la wishlist");
         event.target.classList.remove("disabled", "cursor-not-allowed");
@@ -227,12 +240,19 @@ document.addEventListener("click", async (event) => {
 
 function closeWishlistPopup() {
   const popup = document.getElementById("wishlist-popup");
-  popup.classList.remove("show");
-  popup.classList.add("hide");
-  setTimeout(() => {
-    popup.classList.add("hidden");
-    popup.classList.remove("hide");
-  }, 300);
+  const overlay = document.getElementById("popup-overlay-wishlist");
+
+  if (popup) {
+      popup.classList.add("hidden");
+      popup.style.display = "none"; 
+  }
+
+  if (overlay) {
+      overlay.classList.add("hidden");
+      overlay.style.display = "none";
+  }
 }
+
+
 
 window.showWishlistPopup = showWishlistPopup
