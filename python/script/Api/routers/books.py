@@ -193,7 +193,7 @@ def get_book(id_book: int):
     
     books = bddservice.cmd_sql(query)
     if not books:
-        raise HTTPException(status_code=901, detail="Livre non trouvé")
+        raise HTTPException(status_code=500, detail="Livre non trouvé")
 
     book = books[0] 
 
@@ -264,8 +264,17 @@ def get_top_books(nbook: int):
     top_books = bddservice.cmd_sql(query)
     #print(f"Query executed. {len(top_books)} top books found.")
 
+    MAX_ATTEMPTS = 3
+    attempts = 0
+
+    while attempts < MAX_ATTEMPTS:
+        top_books = bddservice.cmd_sql(query)
+        if top_books:
+            break  # Sortie de la boucle si des livres sont trouvés
+        attempts += 1
+
     if not top_books:
-        raise HTTPException(status_code=901, detail="No top books found in the database")
+        raise HTTPException(status_code=500, detail="No top books found in the database")
 
     # Sélection aléatoire des livres
     sampled_books = random.sample(top_books, min(nbook, len(top_books)))
