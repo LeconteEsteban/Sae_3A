@@ -51,7 +51,7 @@
     </style>
   </head>
 
-  <body class="bg-gray-50">
+  <body class="bg-gray-50 flex flex-col min-h-screen">
     <header
       class="flex items-center justify-between px-6 py-4 bg-white shadow-md"
     >
@@ -474,7 +474,7 @@
       </div>
     </div>
 
-    <main class="px-6 py-8 space-y-8 bg-red" >
+    <main class="px-6 py-8 space-y-8 bg-red flex-grow" >
         
     
       <div class="w-full">
@@ -605,14 +605,27 @@
           </div>
         </div>
       </div>
+      
     </main>
+
+    <footer class="bg-gray-900 text-white py-6">
+      <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
+        <p class="text-sm">&copy; 2025 Escape. Tous droits réservés.</p>
+        <nav class="flex space-x-4 mt-2 md:mt-0">
+          <a href="/" class="hover:text-gray-400">Accueil</a>
+          <a href="install" class="hover:text-gray-400">Installation</a>
+          <a href="contact" class="hover:text-gray-400">Contact</a>
+        </nav>
+      </div>
+    </footer>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="/static/js/carousel.js"></script>
     <script type="module" src="/static/js/popup.js"></script>
     <script type="module" src="/static/js/events.js"></script>
     <script type="module" src="/static/js/search.js"></script>
     <script type="module" src="/static/js/main.js"></script>
-    <script src="/static/js/auth.js"></script>
+    <script type="module" src="/static/js/auth.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     
   </body>
