@@ -106,26 +106,30 @@ async function showWishlistPopup() {
 
   const wishlist = await fetchWishlist();
   wishlistContainer.innerHTML = wishlist.length ? wishlist.map(book => `
-    <div data-book-id="${book.id}" class="book">
+    <div data-book-id="${book.id}" class="book group relative">
       <img src="${book.url !== "-1" ? book.url : "/static/notfound.jpg"}" 
-           alt="Couverture de ${book.title}">
-      <div class="book-details">
-        <h3>${book.title}</h3>
-        <p>${book.author_name || "Auteur inconnu"}</p>
-        <p>${book.description ? book.description.slice(0, 100) + "..." : "Pas de description disponible."}</p>
-        <div class="tags">
+           alt="Couverture de ${book.title}" 
+           class="w-full h-64 object-cover rounded-lg shadow-md transition-transform duration-300">
+      
+      <div class="absolute inset-0 bg-white bg-opacity-95 flex flex-col opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg p-4">
+        <h3 class="text-lg font-bold text-gray-800 mb-1">${book.title}</h3>
+        <p class="text-sm text-gray-600 mb-1">${book.author_name || "Auteur inconnu"}</p>
+        <p class="text-xs text-gray-700 mb-2">${book.description ? book.description.slice(0, 100) + "..." : "Pas de description disponible."}</p>
+        
+        <ul class="flex flex-wrap gap-2 mb-3">
           ${(book.genre_names?.slice(0, 2) || []).map(genre =>
-            `<span class="tag">${genre}</span>`
+            `<li class="bg-gray-100 text-gray-700 px-2 py-1 text-xs rounded-full border border-gray-300">${genre}</li>`
           ).join("")}
-        </div>
-        <div class="actions">
-          <button class="primary like-button"><i class="fas fa-heart"></i></button>
-          <button class="secondary moins-button"><i class="fas fa-minus"></i></button>
-          <button class="secondary eye-button"><i class="fas fa-eye"></i></button>
-        </div>
+        </ul>
+        
+         <div class="flex gap-2 mt-auto justify-between w-full">
+            <i class="fas fa-heart text-gray-500 text-2xl hover:text-red cursor-pointer like-button"></i>
+            <i class="fas fa-minus text-gray-500 text-2xl hover:text-blue-600 cursor-pointer moins-button"></i>
+            <i class="fas fa-eye text-gray-500 text-2xl hover:text-green-600 cursor-pointer eye-button"></i>
+          </div>
       </div>
     </div>
-  `).join("") : "<p>Votre wishlist est vide.</p>";
+  `).join("") : "<p class='text-gray-500 text-center py-8'>Votre wishlist est vide.</p>";
 
   const recommendations = await fetchRecommendations(wishlist);
   addSimilarBooks(recommendations);
