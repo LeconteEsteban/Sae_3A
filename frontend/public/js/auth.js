@@ -1,5 +1,3 @@
-
-
 // Gestion des comptes
 function openModal() {
     document.getElementById('loginModal').classList.remove('hidden');

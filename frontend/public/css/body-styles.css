@@ -1,3 +1,11 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+
 .book-card img {
     width: 100%;
     height: auto;
@@ -174,6 +182,7 @@
 .actions {
     display: flex;
     gap: 0.5rem;
+    justify-content: space-between;
 }
 
 .actions button {
@@ -202,4 +211,137 @@
 
 .actions .secondary:hover {
     background-color: #d1d5db;
+}
+
+.popup-overlay-wishlist {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+.popup-overlay-wishlist.hidden {
+    display: none;
+}
+
+.popup-overlay-wishlist {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+.popup-overlay-wishlist.hidden {
+    display: none;
+}
+
+#wishlist-popup {
+    background: white;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    max-width: 800px;
+    width: 100%;
+    position: absolute;
+    height: 80%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.popup-content{
+    width: 90%;
+}
+
+#wishlist-popup h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    position: relative;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+#wishlist-popup h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: #3b82f6;
+    border-radius: 2px;
+}
+
+
+#wishlist-popup .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6b7280;
+}
+
+#wishlist-popup .close-btn:hover {
+    color: #374151;
+}
+
+#wishlist-content {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+#recommendations-container{
+    display: flex;
+    margin: 20px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    overflow-y: auto;
+    height: 20em;
+    justify-content: space-around;
+}
+
+#wishlist-container{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    overflow-y: auto;
+    height: 20em;
+    justify-content: space-between;
+}
+
+#wishlist-popup {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    max-width: 90vw;
+    width: 1000px;
+    height: 85vh;
+    overflow: hidden;
+}
+
+#popup-overlay-wishlist {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    transition: opacity 0.3s ease;
+}
+
+.popup-content {
+    width: 100%;
+    height: 100%;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }

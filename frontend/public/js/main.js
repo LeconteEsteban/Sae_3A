@@ -19,7 +19,6 @@ async function init() {
     fetchBooks("/books/topbook/30"),
     fetchBooks("/books/topbook/30"),
   ]);
-
   initializeCarousel(topBooks, "Topcarousel");
   initializeCarousel(topBooks1, "Newcarousel");
   initializeCarousel(topBooks2, "Newcarousel1");
