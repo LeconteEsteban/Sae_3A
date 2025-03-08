@@ -326,6 +326,9 @@ class DatabaseService:
 
     def get_book_cover_url(self, book_id: int, isbn: str):
         try:
+            if isbn is None or isbn.strip() == "":
+                return "-1"
+
             # Vérifier si une couverture existe déjà
             cover_query = """
                 SELECT cover_url

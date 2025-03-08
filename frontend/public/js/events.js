@@ -1,7 +1,5 @@
 import { showPopup } from './popup.js';
 
-
-
 document.addEventListener('click', async (event) => {
   if (event.target.closest('.eye-button')) {
     const slideDiv = event.target.closest('[data-book-id]');
@@ -17,10 +15,6 @@ document.addEventListener('click', async (event) => {
     }
   }
 });
-
-
-
-
 
 document.addEventListener('click', (event) => {
   if (event.target.closest('.like-button')) {

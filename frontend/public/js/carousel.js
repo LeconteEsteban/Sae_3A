@@ -1,4 +1,14 @@
 import { truncateDescription } from './utils.js';
+
+
+function getIdAccount() {
+  const userCookie = getCookie('user');
+  if (userCookie) {
+      const user = JSON.parse(userCookie);
+      return user;
+  }
+}
+
 export function initializeCarousel(data, carouselId) {
   const swiperWrapper = document.querySelector(`#${carouselId}`);
 
@@ -38,7 +48,7 @@ export function initializeCarousel(data, carouselId) {
           </ul>
           <div class="flex gap-2 mt-auto justify-between w-full">
             <i class="fas fa-heart text-gray-500 text-2xl cursor-pointer like-button"></i>
-            <i class="fas fa-plus text-gray-500 text-2xl cursor-pointer plus-button"></i>
+            <i class="fas fa-plus text-gray-500 text-2xl cursor-pointer plus-button" data-book-id="${book.id}"></i>
             <i class="fas fa-eye text-gray-500 text-2xl cursor-pointer eye-button"></i>
           </div>
         </div>
@@ -65,3 +75,48 @@ export function initializeCarousel(data, carouselId) {
     }
   });
 }
+
+document.addEventListener("DOMContentLoaded", async () => {
+  // Vérifie si l'utilisateur est connecté (si l'user_id est dans les cookies)
+  const isUserAuthenticated = document.cookie.includes('user_id=');
+
+  // Si l'utilisateur n'est pas connecté, désactiver les boutons "plus"
+  if (!isUserAuthenticated) {
+    const plusButtons = document.querySelectorAll(".plus-button");
+    plusButtons.forEach(button => {
+      button.classList.add("cursor-not-allowed", "disabled");
+      button.setAttribute("title", "Veuillez vous connecter pour ajouter des livres à votre wishlist");
+    });
+  }
+});
+
+document.addEventListener("click", async (event) => {
+  if (event.target.classList.contains("plus-button")) {
+    const slideDiv = event.target.closest('[data-book-id]');
+    const bookId = slideDiv.dataset.bookId;
+
+    if (event.target.classList.contains("disabled")) return;
+    
+    event.target.classList.add("disabled", "cursor-not-allowed");
+    console.log("idAccount", getIdAccount());
+    console.log("Ajout du livre à la wishlist", bookId);
+    try {
+      const response = await fetch(`/wishlist/add/${bookId}/${getIdAccount()}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (response.ok) {
+        event.target.classList.replace("text-gray-500", "text-red-500"); 
+      } else {
+        console.error("Erreur lors de l'ajout à la wishlist");
+        event.target.classList.remove("disabled", "cursor-not-allowed");
+      }
+    } catch (error) {
+      console.error("Erreur réseau :", error);
+      event.target.classList.remove("disabled", "cursor-not-allowed");
+    }
+  }
+});

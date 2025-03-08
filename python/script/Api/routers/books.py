@@ -259,7 +259,7 @@ def get_top_books(nbook: int):
             bv.publisher_name,
             bv.average_rating;
     """
-
+    bddservice.initialize_connection()
     #print("Executing query...")
     top_books = bddservice.cmd_sql(query)
     #print(f"Query executed. {len(top_books)} top books found.")
