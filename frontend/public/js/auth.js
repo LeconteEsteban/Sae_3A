@@ -57,10 +57,10 @@ document.getElementById('loginFormElement').addEventListener('submit', async (e)
                 //fetchBooks("/recommandations/item/2/30")
               ]);
             initializeCarousel(topBooks2, "Newcarousel1");
-            fetchBooks(`/recommandations/user/${data.user.user_id}/30`).then(topBooks1 => 
+            fetchBooks(`/recommandations/hybrid/${data.user.user_id}/30`).then(topBooks1 => 
                 initializeCarousel(topBooks1, "Newcarousel")
               ).catch(error => console.error("Error fetching Newcarousel:", error));
-            fetchBooks(`/recommandations/user/book/${data.user.user_id}/30`).then(topBooks2 => 
+            fetchBooks(`/recommandations/item/${data.user.user_id}/30`).then(topBooks2 => 
                 initializeCarousel(topBooks2, "Newcarousel1")
               ).catch(error => console.error("Error fetching Newcarousel1:", error));
         } else {
