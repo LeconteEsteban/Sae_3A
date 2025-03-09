@@ -22,6 +22,7 @@ def book_is_read(id_user:int , id_book:int):
     Returns:
         dict: Un message de confirmation.
     """
+    bddservice.initialize_connection()
     query = f"""
     INSERT INTO library.User_Book_Read (user_id, book_id, is_read, is_liked, is_favorite, reading_date, notation_id)
     VALUES ({id_user}, {id_book}, TRUE, FALSE, FALSE, CURRENT_DATE, NULL)
@@ -49,6 +50,7 @@ def post_review(id_user:int , id_book:int, note:int):
     Returns:
         dict: Un message de confirmation.
     """
+    bddservice.initialize_connection()
     query = f"""
     INSERT INTO library.User_Book_Notation (note, review_id, read_id)
     VALUES ({note}, NULL, (SELECT read_id FROM library.User_Book_Read WHERE user_id = {id_user} AND book_id = {id_book}))
@@ -59,6 +61,7 @@ def post_review(id_user:int , id_book:int, note:int):
     UPDATE library.User_Book_Read SET notation_id = (SELECT MAX(notation_id) FROM library.User_Book_Notation)
     WHERE user_id = {id_user} AND book_id = {id_book}
     """
+    bddservice.initialize_connection()
     bddservice.cmd_sql(query)
 
     return {"message": "Review added successfully."}

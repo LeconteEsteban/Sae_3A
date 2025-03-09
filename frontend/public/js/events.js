@@ -91,7 +91,7 @@ async function showPopupReview(bookId) {
       <img src="${book.url !== "-1" ? book.url : "/static/notfound.jpg"}" 
              alt="Couverture de ${book.title}" 
              class="w-32 h-44 object-cover rounded transition-transform duration-300">
-      <div class="flex flex-col items-start gap-2 flex-1 overflow-y-auto">
+      <div class="flex flex-col items-start gap-2 flex-1">
         <h2 class="text-lg font-bold text-gray-800">${book.title}</h2>
         <div class="stars flex space-x-1 mb-2">
           ${[1, 2, 3, 4, 5].map(i => `

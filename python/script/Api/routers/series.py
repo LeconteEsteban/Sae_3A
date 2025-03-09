@@ -35,6 +35,7 @@ def get_all_series():
             Serie.serie_id, Serie.name;
 
                 """
+    bddservice.initialize_connection()
     series = bddservice.cmd_sql(query)
 
     
@@ -82,6 +83,7 @@ def get_serie(id_serie: int):
             Serie.serie_id, Serie.name;
 
                 """
+    bddservice.initialize_connection()
     series = bddservice.cmd_sql(query)
     if not series:
         raise HTTPException(status_code=404, detail="No series found in the database")

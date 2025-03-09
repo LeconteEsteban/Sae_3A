@@ -63,6 +63,12 @@ header {
 .text-gray-800 {
     color: var(--text-color) !important;
 }
+.text-gray-600 {
+    color: var(--gray-600) !important;
+}
+.text-gray-500 {
+    color: var(--gray-500) !important;
+}
 .border-gray-300 {
     background-color: var(--background-color3) !important;
     color: var(--text-color) !important;
@@ -82,6 +88,8 @@ svg {
     --background-color2: white;
     --background-color3: white;
     --bg-grey-200:#e5e7eb;
+    --gray-600:#4b5563;
+    --gray-500:#6b7280;
 }
 
 .dark-mode {
@@ -89,6 +97,8 @@ svg {
     --background-color: #181A1B;
     --background-color2: #383d3f;
     --bg-grey-200: #181A1B;
+    --gray-600:#ffffff;
+    --gray-500:#ffffff;
     --background-color3: #636464;
     --text-color: white;
 }
