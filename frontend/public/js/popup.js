@@ -67,6 +67,7 @@ function addSimilarBooks(books) {
         <div class="absolute inset-0 bg-white bg-opacity-95 flex flex-col text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg p-4">
           <h3 class="text-lg text-black font-bold mb-1">${book.title}</h3>
           <p class="text-xs text-black font-semibold mb-1">${book.author_name || "Auteur inconnu"}</p>
+          
           <p class="text-xs text-black mb-2">${truncatedDescription}</p>
           <ul class="flex gap-2 mb-3">
             ${(book.genre_names?.slice(0, 2) || []).map(genre =>
