@@ -88,6 +88,7 @@ function addSimilarBooks(books) {
 
 export function showPopup(book) {
   const popup = document.getElementById("book-popup");
+  popup.setAttribute("data-book-id", book.id);
   updatePopup(book);
   
   fetchSimilarBooks(book.id)
