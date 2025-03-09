@@ -43,12 +43,14 @@ document.getElementById('loginFormElement').addEventListener('submit', async (e)
             document.getElementById('loginButton').classList.add('hidden');
             closeModal();
             const [topBooks1] = await Promise.all([
-                fetchBooks("/books/topbook/30")
+                fetchBooks(`/recommandations/user/${data.user.user_id}/30`)
+                //fetchBooks(`/recommandations/user/2/30`)
               ]);
             initializeCarousel(topBooks1, "Newcarousel");
             
             const [topBooks2] = await Promise.all([
-                fetchBooks("/books/topbook/30")
+                fetchBooks(`/recommandations/user/book/${data.user.user_id}/30`)
+                //fetchBooks("/recommandations/user/book/2/30")
               ]);
             initializeCarousel(topBooks2, "Newcarousel1");
         } else {
@@ -162,11 +164,20 @@ export function openBurgerHeader() {
 }
 
 // Gestion de la déconnexion
-export function handleLogout() {
+export async function handleLogout() {
     clearAllCookies(); // Supprime tous les cookies
     document.getElementById('loginButton').classList.remove('hidden');
     document.getElementById('usernameHeader').classList.add('hidden');
     document.getElementById('menuBurger').classList.add('hidden');
+    const [topBooks1] = await Promise.all([
+        fetchBooks("/books/topbook/30")
+      ]);
+      initializeCarousel(topBooks1, "Newcarousel");
+    
+      const [topBooks2] = await Promise.all([
+        fetchBooks("/books/topbook/30")
+      ]);
+      initializeCarousel(topBooks2, "Newcarousel1");
 }
 
 // Fonctions utilitaires pour les cookies
