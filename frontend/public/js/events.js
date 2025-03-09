@@ -1,16 +1,6 @@
 import { showPopup } from './popup.js';
 import { getCookie } from './auth.js';
 
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-      return decodeURIComponent(parts.pop().split(';').shift());
-  }
-  return null;
-}
-
-
 function getIdAccount() {
   const userCookie = getCookie('user');
   if (userCookie) {
