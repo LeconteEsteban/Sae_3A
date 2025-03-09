@@ -37,6 +37,10 @@ def home():
 def home():
     return FileResponse("../../../frontend/public/install.html")
 
+@app.get("/contact")
+def home():
+    return FileResponse("../../../frontend/public/contact.html")
+
 @app.get("/favicon.ico")
 def home():
     return FileResponse("../../../frontend/public/favicon.ico")

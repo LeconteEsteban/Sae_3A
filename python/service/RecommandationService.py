@@ -212,7 +212,6 @@ class RecommendationService:
         """
         # Récupérer les livres que l'utilisateur a aimés ou consultés
         user_books = self.get_user_books(user_id) 
-        
         # Dictionnaire pour stocker les livres recommandés et leur score de similarité total
         recommendations = {}
 
@@ -282,7 +281,7 @@ class RecommendationService:
         # Trier les recommandations par score décroissant
         sorted_recommendations = sorted(recommendations.items(), key=lambda x: x[1][1], reverse=True)
         # Retourner les N meilleurs
-        # print(f"s_recommandation : {sorted_recommendations}")
+        #print(f"s_recommandation : {sorted_recommendations}")
         return sorted_recommendations[:n_recommendations]
 
     def get_user_books(self, user_id):

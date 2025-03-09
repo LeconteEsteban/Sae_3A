@@ -29,7 +29,7 @@ def get_book_genres(book_id: int) -> List[str]:
     book_genres = bddservice.cmd_sql(query)
     return [genre[0] for genre in book_genres]
 
-@router.get("/user/{id_user}/{nbook}", response_model=List[RecommendationReponse])
+@router.get("/user/{id_user}/{nbook}", response_model=List[BookResponse])
 def get_recommendations(id_user: int, nbook: int):
     """
     Hybride
@@ -50,12 +50,60 @@ def get_recommendations(id_user: int, nbook: int):
     """
     recommandations = recommendation_hybride.recommandation_hybride(id_user, nbook)
     if not recommandations:
-        raise HTTPException(status_code=404, detail="No recommendations found for the given user")
+        raise HTTPException(status_code=500, detail="No recommendations found for the given user")
+    books_ids = [rec[0] for rec in recommandations]
 
-    return [
-        {"id": rec[0], "title": rec[1][0][0][0], "genres": get_book_genres(rec[0])}
-        for rec in recommandations
+    query = """
+        SELECT
+            bv.book_id,
+            bv.title,
+            bv.isbn13,
+            bv.author_name,
+            bv.description,
+            bv.number_of_pages,
+            bv.publisher_name,
+            array_agg(DISTINCT bv.genre_name) AS genre_names,
+            array_agg(DISTINCT bv.award_name) AS award_names,
+            bv.average_rating
+        FROM
+            library.book_view bv
+        WHERE
+            bv.book_id = ANY(%s)
+        GROUP BY
+            bv.book_id,
+            bv.title,
+            bv.isbn13,
+            bv.author_name,
+            bv.description,
+            bv.number_of_pages,
+            bv.publisher_name,
+            bv.average_rating;
+    """
+
+    bddservice.initialize_connection()
+    books = bddservice.cmd_sql(query, (books_ids,))  # Passage sécurisé des IDs
+
+    if not books:
+        raise HTTPException(status_code=500, detail="No books found for the given recommendations")
+
+
+    books_data = [
+        {
+            "id": book[0],
+            "title": decodeur.decode(book[1]),
+            "isbn13": book[2],
+            "author_name": decodeur.decode(book[3]),
+            "description": decodeur.decode(book[4]),
+            "number_of_pages": book[5],
+            "publisher_name": book[6],
+            "genre_names": book[7],
+            "award_names": book[8],
+            "average_rating": book[9],
+            "url": bddservice.get_book_cover_url(book[0], book[2])
+        }
+        for book in books
     ]
+    return books_data
 
 @router.get("/book/{id_book}/{nbook}", response_model=List[BookResponse])
 def get_book_recommendations(id_book: int, nbook: int):
@@ -131,7 +179,7 @@ def get_book_recommendations(id_book: int, nbook: int):
     return books_data
 
 
-@router.get("/user/book/{id_user}/{nbook}", response_model=List[RecommendationReponse])
+@router.get("/user/book/{id_user}/{nbook}", response_model=List[BookResponse])
 def get_book_recommendations_user(id_user: int, nbook: int):
     """
     Item-based
@@ -152,12 +200,59 @@ def get_book_recommendations_user(id_user: int, nbook: int):
     """
     recommend_books_for_user = recommendation_service.recommend_books_for_user(id_user, nbook)
     if not recommend_books_for_user:
-        raise HTTPException(status_code=404, detail="No recommendations found for the given user")
+        raise HTTPException(status_code=500, detail="No recommendations found for the given user")
 
-    #print(recommend_books_for_user)
+    books_ids = [rec[0] for rec in recommend_books_for_user]
 
-    return [
-        {"id": book[0], "title": book[1][0], "genres": get_book_genres(book[0])}
-        for book in recommend_books_for_user
+    query = """
+        SELECT
+            bv.book_id,
+            bv.title,
+            bv.isbn13,
+            bv.author_name,
+            bv.description,
+            bv.number_of_pages,
+            bv.publisher_name,
+            array_agg(DISTINCT bv.genre_name) AS genre_names,
+            array_agg(DISTINCT bv.award_name) AS award_names,
+            bv.average_rating
+        FROM
+            library.book_view bv
+        WHERE
+            bv.book_id = ANY(%s)
+        GROUP BY
+            bv.book_id,
+            bv.title,
+            bv.isbn13,
+            bv.author_name,
+            bv.description,
+            bv.number_of_pages,
+            bv.publisher_name,
+            bv.average_rating;
+    """
+
+    bddservice.initialize_connection()
+    books = bddservice.cmd_sql(query, (books_ids,))  # Passage sécurisé des IDs
+
+    if not books:
+        raise HTTPException(status_code=500, detail="No books found for the given recommendations")
+
+
+    books_data = [
+        {
+            "id": book[0],
+            "title": decodeur.decode(book[1]),
+            "isbn13": book[2],
+            "author_name": decodeur.decode(book[3]),
+            "description": decodeur.decode(book[4]),
+            "number_of_pages": book[5],
+            "publisher_name": book[6],
+            "genre_names": book[7],
+            "award_names": book[8],
+            "average_rating": book[9],
+            "url": bddservice.get_book_cover_url(book[0], book[2])
+        }
+        for book in books
     ]
+    return books_data
 

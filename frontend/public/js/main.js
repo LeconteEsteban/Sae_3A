@@ -13,14 +13,21 @@ async function fetchBooks(url) {
   }
 }
 
+//à opti ici
 async function init() {
-  const [topBooks, topBooks1, topBooks2] = await Promise.all([
-    fetchBooks("/books/topbook/30"),
-    fetchBooks("/books/topbook/30"),
-    fetchBooks("/books/topbook/30"),
+  const [topBooks] = await Promise.all([
+    fetchBooks("/books/topbook/30")
   ]);
   initializeCarousel(topBooks, "Topcarousel");
+
+  const [topBooks1] = await Promise.all([
+    fetchBooks("/books/topbook/30")
+  ]);
   initializeCarousel(topBooks1, "Newcarousel");
+
+  const [topBooks2] = await Promise.all([
+    fetchBooks("/books/topbook/30")
+  ]);
   initializeCarousel(topBooks2, "Newcarousel1");
 }
 

@@ -1,11 +1,24 @@
+import { initializeCarousel } from './carousel.js';
+
 // Gestion des comptes
-function openModal() {
+export function openModal() {
     document.getElementById('loginModal').classList.remove('hidden');
 }
 
-function closeModal() {
+export function closeModal() {
     document.getElementById('loginModal').classList.add('hidden');
 }
+
+async function fetchBooks(url) {  
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`Erreur lors de la récupération des données depuis ${url}:`, error);
+      return [];
+    }
+  }
 
 // Gestion du formulaire de connexion
 document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
@@ -29,6 +42,17 @@ document.getElementById('loginFormElement').addEventListener('submit', async (e)
             document.getElementById('usernameHeader').classList.remove('hidden');
             document.getElementById('loginButton').classList.add('hidden');
             closeModal();
+            const [topBooks1] = await Promise.all([
+                fetchBooks(`/recommandations/user/${data.user.user_id}/30`)
+                //fetchBooks(`/recommandations/user/2/30`)
+              ]);
+            initializeCarousel(topBooks1, "Newcarousel");
+            
+            const [topBooks2] = await Promise.all([
+                fetchBooks(`/recommandations/user/book/${data.user.user_id}/30`)
+                //fetchBooks("/recommandations/user/book/2/30")
+              ]);
+            initializeCarousel(topBooks2, "Newcarousel1");
         } else {
             alert('Identifiants incorrects');
         }
@@ -39,30 +63,30 @@ document.getElementById('loginFormElement').addEventListener('submit', async (e)
 });
 
 // Switcher entre Login/Register
-function switchToRegister() {
+export function switchToRegister() {
 document.getElementById('loginForm').classList.add('hidden');
 document.getElementById('registerForm').classList.remove('hidden');
 showStep(1);
 }
 
-function switchToLogin() {
+export function switchToLogin() {
     document.getElementById('registerForm').classList.add('hidden');
     document.getElementById('loginForm').classList.remove('hidden');
 }
 
 // Afficher une étape et cacher les autres
-function showStep(step) {
+export function showStep(step) {
     document.querySelectorAll('.register-step').forEach((el) => el.classList.add('hidden'));
     document.getElementById(`registerStep${step}`).classList.remove('hidden');
 }
 
 // Passer à l'étape suivante
-function nextStep(currentStep) {
+export function nextStep(currentStep) {
     showStep(currentStep + 1);
 }
 
 // Revenir à l'étape précédente
-function prevStep(currentStep) {
+export function prevStep(currentStep) {
     showStep(currentStep - 1);
 }
 
@@ -131,7 +155,7 @@ document.getElementById('registerFormElement').addEventListener('submit', async 
 });
 
 // Gestion du menu burger
-function openBurgerHeader() {
+export function openBurgerHeader() {
     if (document.getElementById('menuBurger').classList.contains('hidden')) {
         document.getElementById('menuBurger').classList.remove('hidden');
     } else {
@@ -140,11 +164,20 @@ function openBurgerHeader() {
 }
 
 // Gestion de la déconnexion
-function handleLogout() {
+export async function handleLogout() {
     clearAllCookies(); // Supprime tous les cookies
     document.getElementById('loginButton').classList.remove('hidden');
     document.getElementById('usernameHeader').classList.add('hidden');
     document.getElementById('menuBurger').classList.add('hidden');
+    const [topBooks1] = await Promise.all([
+        fetchBooks("/books/topbook/30")
+      ]);
+      initializeCarousel(topBooks1, "Newcarousel");
+    
+      const [topBooks2] = await Promise.all([
+        fetchBooks("/books/topbook/30")
+      ]);
+      initializeCarousel(topBooks2, "Newcarousel1");
 }
 
 // Fonctions utilitaires pour les cookies
@@ -184,3 +217,15 @@ function clearAllCookies() {
         deleteCookie(name);
     }
 }
+
+// Rendre les fonctions accessible globalement
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.handleLogout = handleLogout;
+window.openBurgerHeader = openBurgerHeader;
+window.prevStep = prevStep;
+window.nextStep = nextStep;
+window.showStep = showStep;
+window.switchToLogin = switchToLogin;
+window.switchToRegister = switchToRegister;
+
