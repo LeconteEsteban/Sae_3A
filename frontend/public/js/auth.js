@@ -47,14 +47,14 @@ document.getElementById('loginFormElement').addEventListener('submit', async (e)
             swiperWrapper = document.querySelector(`#Newcarousel1`);
             swiperWrapper.innerHTML = "";
             const [topBooks1] = await Promise.all([
-                fetchBooks(`/recommandations/user/${data.user.user_id}/30`)
-                //fetchBooks(`/recommandations/user/2/30`)
+                fetchBooks(`/recommandations/hybrid${data.user.user_id}/30`)
+                //fetchBooks(`/recommandations/hybrid2/30`)
               ]);
             initializeCarousel(topBooks1, "Newcarousel");
             
             const [topBooks2] = await Promise.all([
-                fetchBooks(`/recommandations/user/book/${data.user.user_id}/30`)
-                //fetchBooks("/recommandations/user/book/2/30")
+                fetchBooks(`/recommandations/item/${data.user.user_id}/30`)
+                //fetchBooks("/recommandations/item/2/30")
               ]);
             initializeCarousel(topBooks2, "Newcarousel1");
         } else {
@@ -71,7 +71,7 @@ export async function reload_hybrid() {
     swiperWrapper.innerHTML = "";
     if (getIdAccount() != -1) {
         const [topBooks1] = await Promise.all([
-            fetchBooks(`/recommandations/user/${getIdAccount()}/30`)
+            fetchBooks(`/recommandations/hybrid${getIdAccount()}/30`)
         ]);
         initializeCarousel(topBooks1, "Newcarousel");
     }else{
@@ -87,7 +87,7 @@ export async function reload_item() {
     swiperWrapper.innerHTML = "";
     if (getIdAccount() != -1) {
         const [topBooks2] = await Promise.all([
-            fetchBooks(`/recommandations/user/book/${getIdAccount()}/30`)
+            fetchBooks(`/recommandations/item/${getIdAccount()}/30`)
           ]);
         initializeCarousel(topBooks2, "Newcarousel1");
     } else {

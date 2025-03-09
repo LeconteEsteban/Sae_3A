@@ -2,7 +2,7 @@ let currentSimilarBooks = [];
 
 async function fetchSimilarBooks(bookId, nBooks = 30) {
   try {
-    const recResponse = await fetch(`/recommandations/book/${bookId}/${nBooks}`);
+    const recResponse = await fetch(`/recommandations/similar/${bookId}/${nBooks}`);
     if (!recResponse.ok) throw new Error(`HTTP ${recResponse.status}`);
     
     const recommendedBooks = await recResponse.json();
