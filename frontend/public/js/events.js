@@ -1,6 +1,16 @@
 import { showPopup } from './popup.js';
 import { getCookie } from './auth.js';
 
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+      return decodeURIComponent(parts.pop().split(';').shift());
+  }
+  return null;
+}
+
+
 function getIdAccount() {
   const userCookie = getCookie('user');
   if (userCookie) {
@@ -25,11 +35,7 @@ document.addEventListener('click', async (event) => {
   }
 });
 
-document.addEventListener('click', (event) => {
-  if (event.target.closest('.like-button')) {
-    event.target.classList.toggle('text-red-500');
-  }
-});
+
 
 document.getElementById('close-popup').addEventListener('click', closePopup);
 document.getElementById('book-popup').addEventListener('click', (event) => {
@@ -55,13 +61,18 @@ document.addEventListener('click', async (event) => {
     //console.log("userId", userId);
     //console.log("bookId", bookId);
     if (!userId) {
-      alert("Veuillez vous connecter pour liker un livre");
+      const plusButtons = document.querySelectorAll(".like-button");
+      plusButtons.forEach(button => {
+        button.classList.add("cursor-not-allowed", "disabled");
+        button.setAttribute("title", "Veuillez vous connecter pour liker un livre");
+      });
       return;
     }else{
       try {
         const response = await fetch(`/reviews/${userId}/${bookId}`, {
           method: 'POST'
         });
+        event.target.classList.toggle('text-red-500');
         showPopupReview(bookId);
 
         if (!response.ok) throw new Error(`Erreur HTTP! statut: ${response.status}`);
@@ -178,3 +189,4 @@ async function showPopupReview(bookId) {
     alert("Impossible de récupérer les informations du livre");
   }
 }
+

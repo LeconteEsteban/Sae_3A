@@ -1,6 +1,22 @@
 import { truncateDescription } from './utils.js';
 
-let currentSimilarBooks = [];
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+      return decodeURIComponent(parts.pop().split(';').shift());
+  }
+  return null;
+}
+
+function getIdAccount() {
+  const userCookie = getCookie('user');
+  if (userCookie) {
+      const user = JSON.parse(userCookie);
+      return user;
+  }
+}
 
 async function fetchSimilarBooks(bookId, nBooks = 5) {
   try {
@@ -141,7 +157,7 @@ function addSimilarBooks(books) {
   
   books.forEach((book) => {
     const bookCard = document.createElement("div");
-    bookCard.classList.add("similar-book-card", "bg-white", "rounded-lg", "relative", "group", "transition-transform", "duration-300", "zoom-hover");
+    bookCard.classList.add("similar-book-card", "bg-white", "rounded-lg", "relative", "group", "transition-transform", "duration-300", "zoom-hover", "mr-4", "mb-4");
     
     const truncatedDescription = truncateDescription(
       book.description?.replaceAll("#virgule", ",") || "Pas de description",

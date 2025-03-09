@@ -111,8 +111,6 @@
 
 .book {
     width: 200px;
-    margin-right: 16px;
-    margin-bottom: 16px;
     position: relative;
     overflow: hidden;
     border-radius: 0.5rem;
@@ -320,7 +318,6 @@
     flex-wrap: wrap;
     overflow-y: auto;
     height: 20em;
-    justify-content: space-between;
 }
 
 #wishlist-popup {
