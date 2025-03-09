@@ -69,6 +69,7 @@ function createPopupStructure() {
   if (!overlay) {
     overlay = document.createElement("div");
     overlay.id = "popup-overlay-wishlist";
+    overlay.style.zIndex = "9998";
     overlay.classList.add("popup-overlay-wishlist", "hidden");
     document.body.appendChild(overlay);
   }
@@ -76,7 +77,7 @@ function createPopupStructure() {
   if (!popup) {
     popup = document.createElement("div");
     popup.id = "wishlist-popup";
-    popup.classList.add("fixed", "flex", "items-center", "justify-center", "z-[999]","inset-0", "hidden");
+    popup.classList.add("fixed", "flex", "items-center", "justify-center", "z-[9999]","inset-0", "hidden");
     
     popup.innerHTML = `
       <div class="popup-content">
@@ -273,6 +274,13 @@ function closeWishlistPopup() {
   }
 }
 
+document.addEventListener("click", (event) => {
+  const overlay = document.getElementById("popup-overlay-wishlist");
+  const popup = document.getElementById("wishlist-popup");
 
+  if (event.target === overlay) {
+    closeWishlistPopup();
+  }
+});
 
 window.showWishlistPopup = showWishlistPopup
