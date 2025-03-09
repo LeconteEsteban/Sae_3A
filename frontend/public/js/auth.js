@@ -46,17 +46,12 @@ document.getElementById('loginFormElement').addEventListener('submit', async (e)
             swiperWrapper.innerHTML = "";
             swiperWrapper = document.querySelector(`#Newcarousel1`);
             swiperWrapper.innerHTML = "";
-            const [topBooks1] = await Promise.all([
-                fetchBooks(`/recommandations/user/${data.user.user_id}/30`)
-                //fetchBooks(`/recommandations/user/2/30`)
-              ]);
-            initializeCarousel(topBooks1, "Newcarousel");
-            
-            const [topBooks2] = await Promise.all([
-                fetchBooks(`/recommandations/user/book/${data.user.user_id}/30`)
-                //fetchBooks("/recommandations/user/book/2/30")
-              ]);
-            initializeCarousel(topBooks2, "Newcarousel1");
+            fetchBooks(`/recommandations/user/${data.user.user_id}/30`).then(topBooks1 => 
+                initializeCarousel(topBooks1, "Newcarousel")
+              ).catch(error => console.error("Error fetching Newcarousel:", error));
+            fetchBooks(`/recommandations/user/book/${data.user.user_id}/30`).then(topBooks2 => 
+                initializeCarousel(topBooks2, "Newcarousel1")
+              ).catch(error => console.error("Error fetching Newcarousel1:", error));
         } else {
             alert('Identifiants incorrects');
         }

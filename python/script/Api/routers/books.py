@@ -132,6 +132,7 @@ def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10):
         LIMIT %s OFFSET %s;
     """
 
+    bddservice.initialize_connection()
     books = bddservice.cmd_sql(query_sql, (query, limit, skip))
     
     #logging.debug(f"Books found: {books}")
@@ -191,6 +192,7 @@ def get_book(id_book: int):
                 number_of_pages, publisher_name, rating_count, average_rating;
            """
     
+    bddservice.initialize_connection()
     books = bddservice.cmd_sql(query)
     if not books:
         raise HTTPException(status_code=500, detail="Livre non trouvé")
@@ -264,10 +266,11 @@ def get_top_books(nbook: int):
     top_books = bddservice.cmd_sql(query)
     #print(f"Query executed. {len(top_books)} top books found.")
 
-    MAX_ATTEMPTS = 3
+    MAX_ATTEMPTS = 4
     attempts = 0
 
     while attempts < MAX_ATTEMPTS:
+        bddservice.initialize_connection()
         top_books = bddservice.cmd_sql(query)
         if top_books:
             break  # Sortie de la boucle si des livres sont trouvés

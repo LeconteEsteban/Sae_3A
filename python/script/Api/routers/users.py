@@ -29,7 +29,7 @@ def register(user: UserCreate):
         HTTPException: En cas d'erreur lors de la création de l'utilisateur.
     """
     try:
-        #bddservice.initialize_connection()
+        bddservice.initialize_connection()
         new_user = bddservice.create_user(user.model_dump())
         return {"message": "Utilisateur créé avec succès", "userId": new_user[0]}
     
@@ -64,7 +64,7 @@ def login(user: UserLogin):
         HTTPException: En cas d'erreur lors de l'authentification de l'utilisateur.
     """
     try:
-        #bddservice.initialize_connection()
+        bddservice.initialize_connection()
         authenticated_user = bddservice.authenticate_user(user.username, user.password)
         if authenticated_user:
             return {

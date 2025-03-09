@@ -19,6 +19,7 @@ def add_to_wishlist(book_id: int, user_id: int):
         );
 
     """
+    bddservice.initialize_connection()
     bddservice.cmd_sql(query, (user_id, book_id, date.today(), user_id, book_id))
 
     return {"message": "Livre ajouté à la wishlist"}
@@ -37,6 +38,7 @@ def get_wishlist(user_id: int):
         LEFT JOIN library.Author a ON wr.author_id = a.author_id
         WHERE w.user_id = %s;
     """
+    bddservice.initialize_connection()
     books = bddservice.cmd_sql(query, (user_id,))
     
     if not books:
@@ -62,5 +64,6 @@ def remove_from_wishlist(book_id: int, user_id: int):
     query = """
         DELETE FROM library.WishListe WHERE user_id = %s AND book_id = %s;
     """
+    bddservice.initialize_connection()
     bddservice.cmd_sql(query, (user_id, book_id))
     return {"message": "Livre retiré de la wishlist"}
