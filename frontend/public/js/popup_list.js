@@ -141,7 +141,7 @@ function addSimilarBooks(books) {
   
   books.forEach((book) => {
     const bookCard = document.createElement("div");
-    bookCard.classList.add("similar-book-card", "bg-white", "rounded-lg", "relative", "group", "transition-transform", "duration-300", "zoom-hover");
+    bookCard.classList.add("similar-book-card", "bg-white", "rounded-lg", "relative", "group", "transition-transform", "duration-300", "zoom-hover", "mr-4", "mb-4");
     
     const truncatedDescription = truncateDescription(
       book.description?.replaceAll("#virgule", ",") || "Pas de description",

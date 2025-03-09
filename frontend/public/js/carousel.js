@@ -50,7 +50,7 @@ export function initializeCarousel(data, carouselId) {
           </ul>
           <div class="flex gap-2 mt-auto justify-between w-full">
             <i class="fas fa-heart text-gray-500 text-2xl cursor-pointer like-button"></i>
-            <i class="fas fa-plus text-gray-500 text-2xl cursor-pointer plus-button" data-book-id="${book.id}"></i>
+            <i class="fas fa-plus text-gray-500 text-2xl cursor-pointer plus-button"></i>
             <i class="fas fa-eye text-gray-500 text-2xl cursor-pointer eye-button"></i>
           </div>
         </div>
