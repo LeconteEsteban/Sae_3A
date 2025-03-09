@@ -55,10 +55,19 @@ async function fetchWishlist() {
 
 async function fetchRecommendations(wishlist) {
   let allRecommendations = [];
+  const wishlistIds = new Set(wishlist.map(book => book.id));
+  const addedIds = new Set();
+
   for (const book of wishlist) {
     const recommendations = await fetchSimilarBooks(book.id, 3);
-    allRecommendations = [...allRecommendations, ...recommendations];
+    const filteredRecommendations = recommendations.filter(rec => 
+      !wishlistIds.has(rec.id) && !addedIds.has(rec.id)
+    );
+
+    filteredRecommendations.forEach(rec => addedIds.add(rec.id));
+    allRecommendations = [...allRecommendations, ...filteredRecommendations];
   }
+
   return allRecommendations;
 }
 
@@ -69,7 +78,7 @@ function createPopupStructure() {
   if (!overlay) {
     overlay = document.createElement("div");
     overlay.id = "popup-overlay-wishlist";
-    overlay.style.zIndex = "9998";
+    overlay.style.zIndex = "997";
     overlay.classList.add("popup-overlay-wishlist", "hidden");
     document.body.appendChild(overlay);
   }
@@ -77,7 +86,7 @@ function createPopupStructure() {
   if (!popup) {
     popup = document.createElement("div");
     popup.id = "wishlist-popup";
-    popup.classList.add("fixed", "flex", "items-center", "justify-center", "z-[9999]","inset-0", "hidden");
+    popup.classList.add("fixed", "flex", "items-center", "justify-center", "z-[998]","inset-0", "hidden");
     
     popup.innerHTML = `
       <div class="popup-content">
@@ -201,8 +210,6 @@ document.addEventListener("click", async (event) => {
     if (event.target.classList.contains("disabled")) return;
     
     event.target.classList.add("disabled", "cursor-not-allowed");
-    //console.log("idAccount", getIdAccount());
-    //console.log("Suppression du livre de la wishlist", bookId);
     
     try {
       const response = await fetch(`/wishlist/remove/${bookId}/${getIdAccount()}`, {
@@ -228,13 +235,13 @@ document.addEventListener("click", async (event) => {
 
 document.addEventListener("click", async (event) => {
   if (event.target.classList.contains("plus-button")) {
-    const bookId = event.target.getAttribute("data-book-id");
+    const slideDiv = event.target.closest('[data-book-id]');
+    const bookId = slideDiv.dataset.bookId;
+
 
     if (event.target.classList.contains("disabled")) return;
     
     event.target.classList.add("disabled", "cursor-not-allowed");
-    //console.log("idAccount", getIdAccount());
-    //console.log("Suppression du livre de la wishlist", bookId);
     
     try {
       const response = await fetch(`/wishlist/add/${bookId}/${getIdAccount()}`, {
@@ -245,9 +252,7 @@ document.addEventListener("click", async (event) => {
       });
 
       if (response.ok) {
-        const wishlist = await fetchWishlist();
-        const newRecommendations = await fetchRecommendations(wishlist);
-        addSimilarBooks(newRecommendations);
+        event.target.classList.replace("text-gray-500", "text-red-500"); 
       } else {
         console.error("Erreur lors de l'ajout à la wishlist");
         event.target.classList.remove("disabled", "cursor-not-allowed");
@@ -276,7 +281,6 @@ function closeWishlistPopup() {
 
 document.addEventListener("click", (event) => {
   const overlay = document.getElementById("popup-overlay-wishlist");
-  const popup = document.getElementById("wishlist-popup");
 
   if (event.target === overlay) {
     closeWishlistPopup();

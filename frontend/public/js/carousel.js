@@ -87,11 +87,8 @@ export function initializeCarousel(data, carouselId) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // Vérifie si l'utilisateur est connecté (si l'user_id est dans les cookies)
-  const isUserAuthenticated = document.cookie.includes('user_id=');
 
-  // Si l'utilisateur n'est pas connecté, désactiver les boutons "plus"
-  if (!isUserAuthenticated) {
+  if (!getIdAccount) {
     const plusButtons = document.querySelectorAll(".plus-button");
     plusButtons.forEach(button => {
       button.classList.add("cursor-not-allowed", "disabled");

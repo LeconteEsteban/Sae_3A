@@ -304,11 +304,10 @@
 
 #recommendations-container{
     display: flex;
-    margin: 20px;
     flex-direction: row;
     flex-wrap: wrap;
     overflow-y: auto;
-    height: 20em;
+    height: 50em;
     justify-content: space-around;
 }
 
@@ -317,14 +316,14 @@
     flex-direction: row;
     flex-wrap: wrap;
     overflow-y: auto;
-    height: 20em;
+    height: 40em;
 }
 
 #wishlist-popup {
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     max-width: 90vw;
     width: 1000px;
-    height: 85vh;
+    height: 95vh;
     overflow: hidden;
 }
 
