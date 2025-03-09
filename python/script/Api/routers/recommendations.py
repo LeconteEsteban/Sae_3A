@@ -29,7 +29,7 @@ def get_book_genres(book_id: int) -> List[str]:
     book_genres = bddservice.cmd_sql(query)
     return [genre[0] for genre in book_genres]
 
-@router.get("/user/{id_user}/{nbook}", response_model=List[BookResponse])
+@router.get("/hybrid/{id_user}/{nbook}", response_model=List[BookResponse])
 def get_recommendations(id_user: int, nbook: int):
     """
     Hybride
@@ -106,7 +106,7 @@ def get_recommendations(id_user: int, nbook: int):
     ]
     return books_data
 
-@router.get("/book/{id_book}/{nbook}", response_model=List[BookResponse])
+@router.get("/similar/{id_book}/{nbook}", response_model=List[BookResponse])
 def get_book_recommendations(id_book: int, nbook: int):
     """
     Livre Similaire
@@ -181,7 +181,7 @@ def get_book_recommendations(id_book: int, nbook: int):
     return books_data
 
 
-@router.get("/user/book/{id_user}/{nbook}", response_model=List[BookResponse])
+@router.get("/item/{id_user}/{nbook}", response_model=List[BookResponse])
 def get_book_recommendations_user(id_user: int, nbook: int):
     """
     Item-based

@@ -20,7 +20,7 @@ function getIdAccount() {
 
 async function fetchSimilarBooks(bookId, nBooks = 5) {
   try {
-    const recResponse = await fetch(`/recommandations/book/${bookId}/${nBooks}`);
+    const recResponse = await fetch(`/recommandations/similar/${bookId}/${nBooks}`);
     if (!recResponse.ok) throw new Error(`HTTP ${recResponse.status}`);
     
     const recommendedBooks = await recResponse.json();
