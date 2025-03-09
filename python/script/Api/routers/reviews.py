@@ -62,3 +62,61 @@ def post_review(id_user:int , id_book:int, note:int):
     bddservice.cmd_sql(query)
 
     return {"message": "Review added successfully."}
+
+@router.get("/user/{id_user}/{id_book}")
+def get_review_user_book(id_user:int, id_book:int):
+    """
+    Endpoint pour obtenir la note d'un utilisateur pour un livre.
+
+    Cette fonction prend en paramètre l'identifiant de l'utilisateur (id_user) et l'identifiant
+    du livre (id_book) et renvoie la critique de l'utilisateur pour ce livre. Si aucune critique
+    n'est trouvée, une exception HTTP 404 est levée.
+
+    Args:
+        id_user (int): L'identifiant de l'utilisateur.
+        id_book (int): L'identifiant du livre.
+
+    Returns:
+        dict: La critique de l'utilisateur pour le livre.
+    """
+    query = f"""
+    SELECT note
+    FROM library.User_Book_Notation
+    WHERE read_id = (SELECT read_id FROM library.User_Book_Read WHERE user_id = {id_user} AND book_id = {id_book})
+    """
+    review = bddservice.cmd_sql(query)
+
+    if not review:
+        return {"note": None}
+
+
+    return {
+        "note": review[0][0]
+    }
+
+
+@router.put("/{id_user}/{id_book}/{note}")
+def update_review(id_user:int , id_book:int, note:int):
+    """
+    Endpoint pour mettre à jour la critique d'un utilisateur pour un livre.
+
+    Cette fonction prend en paramètre l'identifiant de l'utilisateur (id_user), l'identifiant
+    du livre (id_book) et le texte de la critique (review). Elle met à jour la critique de
+    l'utilisateur pour ce livre. Si aucune critique n'est trouvée, une exception HTTP 404 est levée.
+
+    Args:
+        id_user (int): L'identifiant de l'utilisateur.
+        id_book (int): L'identifiant du livre.
+        note (int): La note attribuée au livre.
+
+    Returns:
+        dict: Un message de confirmation.
+    """
+    query = f"""
+    UPDATE library.User_Book_Notation
+    SET note = {note}
+    WHERE read_id = (SELECT read_id FROM library.User_Book_Read WHERE user_id = {id_user} AND book_id = {id_book})
+    """
+    bddservice.cmd_sql(query)
+
+    return {"message": "Review updated successfully."}
