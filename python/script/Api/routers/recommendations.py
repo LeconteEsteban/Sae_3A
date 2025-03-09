@@ -48,6 +48,7 @@ def get_recommendations(id_user: int, nbook: int):
     Returns:
         List[RecommendationReponse]: Une liste de recommandations de livres pour l'utilisateur.
     """
+    bddservice.initialize_connection()
     recommandations = recommendation_hybride.recommandation_hybride(id_user, nbook)
     if not recommandations:
         raise HTTPException(status_code=500, detail="No recommendations found for the given user")
@@ -80,7 +81,7 @@ def get_recommendations(id_user: int, nbook: int):
             bv.average_rating;
     """
 
-    bddservice.initialize_connection()
+    
     books = bddservice.cmd_sql(query, (books_ids,))  # Passage sécurisé des IDs
 
     if not books:
@@ -124,6 +125,7 @@ def get_book_recommendations(id_book: int, nbook: int):
     Returns:
         List[RecommendationReponse]: Une liste de livres similaires au livre donné.
     """
+    bddservice.initialize_connection()
     similar_books = recommendation_service.get_similar_books(id_book, nbook)
     if not similar_books:
         raise HTTPException(status_code=404, detail="No similar books found for the given book ID")
@@ -198,6 +200,7 @@ def get_book_recommendations_user(id_user: int, nbook: int):
     Returns:
         List[RecommendationReponse]: Une liste de recommandations de livres pour l'utilisateur.
     """
+    bddservice.initialize_connection()
     recommend_books_for_user = recommendation_service.recommend_books_for_user(id_user, nbook)
     if not recommend_books_for_user:
         raise HTTPException(status_code=500, detail="No recommendations found for the given user")
@@ -231,7 +234,6 @@ def get_book_recommendations_user(id_user: int, nbook: int):
             bv.average_rating;
     """
 
-    bddservice.initialize_connection()
     books = bddservice.cmd_sql(query, (books_ids,))  # Passage sécurisé des IDs
 
     if not books:

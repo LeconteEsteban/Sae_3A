@@ -51,6 +51,10 @@ header {
     color: var(--text-color) !important;
 }
 
+.hover\:bg-gray-100:hover {
+    background-color: var(--bg-grey-200) !important;
+}
+
 .text-black {
     background-color: var(--background-color2) !important;
     color: var(--text-color) !important;
