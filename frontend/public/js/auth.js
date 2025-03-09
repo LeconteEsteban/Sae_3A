@@ -47,7 +47,7 @@ document.getElementById('loginFormElement').addEventListener('submit', async (e)
             swiperWrapper = document.querySelector(`#Newcarousel1`);
             swiperWrapper.innerHTML = "";
             const [topBooks1] = await Promise.all([
-                fetchBooks(`/recommandations/hybrid${data.user.user_id}/30`)
+                fetchBooks(`/recommandations/hybrid/${data.user.user_id}/30`)
                 //fetchBooks(`/recommandations/hybrid2/30`)
               ]);
             initializeCarousel(topBooks1, "Newcarousel");
@@ -77,7 +77,7 @@ export async function reload_hybrid() {
     swiperWrapper.innerHTML = "";
     if (getIdAccount() != -1) {
         const [topBooks1] = await Promise.all([
-            fetchBooks(`/recommandations/hybrid${getIdAccount()}/30`)
+            fetchBooks(`/recommandations/hybrid/${getIdAccount()}/30`)
         ]);
         initializeCarousel(topBooks1, "Newcarousel");
     }else{
