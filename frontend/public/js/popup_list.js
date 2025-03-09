@@ -122,7 +122,7 @@ async function showWishlistPopup() {
 
   const wishlist = await fetchWishlist();
   wishlistContainer.innerHTML = wishlist.length ? wishlist.map(book => `
-    <div data-book-id="${book.id}" class="book group relative">
+    <div data-book-id="${book.id}" class="book group relative mr-4 mb-10">
       <img src="${book.url !== "-1" ? book.url : "/static/notfound.jpg"}" 
            alt="Couverture de ${book.title}" 
            class="w-full h-64 object-cover rounded-lg shadow-md transition-transform duration-300">
@@ -157,7 +157,7 @@ function addSimilarBooks(books) {
   
   books.forEach((book) => {
     const bookCard = document.createElement("div");
-    bookCard.classList.add("similar-book-card", "bg-white", "rounded-lg", "relative", "group", "transition-transform", "duration-300", "zoom-hover", "mr-4", "mb-4");
+    bookCard.classList.add("similar-book-card", "reco-wishlist", "bg-white", "rounded-lg", "relative", "group", "transition-transform", "duration-300", "zoom-hover", "mr-4", "mb-4");
     
     const truncatedDescription = truncateDescription(
       book.description?.replaceAll("#virgule", ",") || "Pas de description",
@@ -165,7 +165,7 @@ function addSimilarBooks(books) {
     );
 
     bookCard.innerHTML = `
-      <div data-book-id="${book.id}" class="book">
+      <div data-book-id="${book.id}" class="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center relative w-50 h-80">
         <img src="${book.url !== "-1" ? book.url : "/static/notfound.jpg"}" 
              alt="Couverture de ${book.title}" 
              class="w-32 h-44 object-cover rounded transition-transform duration-300">

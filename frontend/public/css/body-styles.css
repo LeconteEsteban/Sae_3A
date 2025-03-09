@@ -353,4 +353,8 @@
 
 #similar-books-container {
     padding-bottom: 3em;
-  }
+}
+
+.reco-wishlist {
+    width: 30%;
+}
