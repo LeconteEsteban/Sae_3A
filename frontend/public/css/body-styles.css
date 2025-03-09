@@ -345,3 +345,15 @@
     flex-direction: column;
     gap: 1.5rem;
 }
+
+#book-popup{
+    margin-top: 0;
+}
+
+#popup-inside{
+    margin-top: 6em;
+}
+
+#similar-books-container {
+    padding-bottom: 3em;
+  }
