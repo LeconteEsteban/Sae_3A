@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             const books = await response.json();
-            console.log('Réponse de l\'API:', books);
+            //console.log('Réponse de l\'API:', books);
             
 
             // Afficher les résultats dans la pop-up

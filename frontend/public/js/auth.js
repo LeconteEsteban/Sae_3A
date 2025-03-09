@@ -42,6 +42,10 @@ document.getElementById('loginFormElement').addEventListener('submit', async (e)
             document.getElementById('usernameHeader').classList.remove('hidden');
             document.getElementById('loginButton').classList.add('hidden');
             closeModal();
+            var swiperWrapper = document.querySelector(`#Newcarousel`);
+            swiperWrapper.innerHTML = "";
+            swiperWrapper = document.querySelector(`#Newcarousel1`);
+            swiperWrapper.innerHTML = "";
             const [topBooks1] = await Promise.all([
                 fetchBooks(`/recommandations/user/${data.user.user_id}/30`)
                 //fetchBooks(`/recommandations/user/2/30`)
@@ -62,6 +66,38 @@ document.getElementById('loginFormElement').addEventListener('submit', async (e)
     }
 });
 
+export async function reload_hybrid() {
+    var swiperWrapper = document.querySelector(`#Newcarousel`);
+    swiperWrapper.innerHTML = "";
+    if (getIdAccount() != -1) {
+        const [topBooks1] = await Promise.all([
+            fetchBooks(`/recommandations/user/${getIdAccount()}/30`)
+        ]);
+        initializeCarousel(topBooks1, "Newcarousel");
+    }else{
+    const [topBooks1] = await Promise.all([
+        fetchBooks("/books/topbook/30")
+      ]);
+      initializeCarousel(topBooks1, "Newcarousel");
+    }
+    
+}
+export async function reload_item() {
+    var swiperWrapper = document.querySelector(`#Newcarousel1`);
+    swiperWrapper.innerHTML = "";
+    if (getIdAccount() != -1) {
+        const [topBooks2] = await Promise.all([
+            fetchBooks(`/recommandations/user/book/${getIdAccount()}/30`)
+          ]);
+        initializeCarousel(topBooks2, "Newcarousel1");
+    } else {
+        const [topBooks1] = await Promise.all([
+            fetchBooks("/books/topbook/30")
+          ]);
+          initializeCarousel(topBooks1, "Newcarousel1");
+    }
+    
+}
 // Switcher entre Login/Register
 export function switchToRegister() {
 document.getElementById('loginForm').classList.add('hidden');
@@ -169,6 +205,10 @@ export async function handleLogout() {
     document.getElementById('loginButton').classList.remove('hidden');
     document.getElementById('usernameHeader').classList.add('hidden');
     document.getElementById('menuBurger').classList.add('hidden');
+    var swiperWrapper = document.querySelector(`#Newcarousel`);
+    swiperWrapper.innerHTML = "";
+    swiperWrapper = document.querySelector(`#Newcarousel1`);
+    swiperWrapper.innerHTML = "";
     const [topBooks1] = await Promise.all([
         fetchBooks("/books/topbook/30")
       ]);
@@ -181,7 +221,7 @@ export async function handleLogout() {
 }
 
 // Fonctions utilitaires pour les cookies
-function getCookie(name) {
+export function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) {
@@ -190,15 +230,17 @@ function getCookie(name) {
     return null;
 }
 
-function getIdAccount() {
+export function getIdAccount() {
     const userCookie = getCookie('user');
     if (userCookie) {
         const user = JSON.parse(userCookie);
         return user;
+    }else{
+        return -1;
     }
 }
 
-function getNameAccount() {
+export function getNameAccount() {
     const userCookie = getCookie('username');
     if (userCookie) {
         const user = JSON.parse(userCookie);
@@ -206,11 +248,11 @@ function getNameAccount() {
     }
 }
 
-function deleteCookie(name) {
+export function deleteCookie(name) {
     document.cookie = `${name}=; path=/; max-age=0;`;
 }
 
-function clearAllCookies() {
+export function clearAllCookies() {
     const cookies = document.cookie.split(';');
     for (const cookie of cookies) {
         const name = cookie.split('=')[0].trim();
@@ -228,4 +270,10 @@ window.nextStep = nextStep;
 window.showStep = showStep;
 window.switchToLogin = switchToLogin;
 window.switchToRegister = switchToRegister;
-
+window.clearAllCookies = clearAllCookies;
+window.deleteCookie = deleteCookie;
+window.getNameAccount = getNameAccount;
+window.getIdAccount = getIdAccount;
+window.getCookie = getCookie;
+window.reload_hybrid = reload_hybrid;
+window.reload_item = reload_item;

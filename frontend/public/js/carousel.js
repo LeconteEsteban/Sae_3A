@@ -100,8 +100,8 @@ document.addEventListener("click", async (event) => {
     if (event.target.classList.contains("disabled")) return;
     
     event.target.classList.add("disabled", "cursor-not-allowed");
-    console.log("idAccount", getIdAccount());
-    console.log("Ajout du livre à la wishlist", bookId);
+    //console.log("idAccount", getIdAccount());
+    //console.log("Ajout du livre à la wishlist", bookId);
     try {
       const response = await fetch(`/wishlist/add/${bookId}/${getIdAccount()}`, {
         method: "POST",

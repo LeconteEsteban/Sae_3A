@@ -1,5 +1,5 @@
 import { showPopup } from './popup.js';
-
+import { getCookie } from './auth.js';
 
 function getIdAccount() {
   const userCookie = getCookie('user');
@@ -48,12 +48,12 @@ function closePopup() {
 
 document.addEventListener('click', async (event) => {
   if (event.target.closest('.like-button')) {
-    console.log("like");
+    //console.log("like");
     const slideDiv = event.target.closest('[data-book-id]');
     const bookId = slideDiv.dataset.bookId;
     const userId = getIdAccount();
-    console.log("userId", userId);
-    console.log("bookId", bookId);
+    //console.log("userId", userId);
+    //console.log("bookId", bookId);
     if (!userId) {
       alert("Veuillez vous connecter pour liker un livre");
       return;

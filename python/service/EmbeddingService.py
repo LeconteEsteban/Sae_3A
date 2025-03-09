@@ -30,8 +30,10 @@ class EmbeddingService:
         :return: Vecteur d'embedding.
         """
         if not text or not isinstance(text, str):
-            raise ValueError("Le texte doit être une chaîne de caractères non vide.")
-        embedding_vector = self.model.encode(text, convert_to_tensor=True)
+            embedding_vector = self.model.encode("absolute cinema", convert_to_tensor=True)
+            # raise ValueError("Le texte doit être une chaîne de caractères non vide.")
+        else :
+            embedding_vector = self.model.encode(text, convert_to_tensor=True)
         # print(f"Embedding du texte '{text}': {embedding_vector}")
         return embedding_vector
 

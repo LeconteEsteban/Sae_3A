@@ -146,94 +146,52 @@ class RecomandationHybride:
         
         return full_user_vector.tolist()
 
-    
+    def insert_vect_user(self, user_id):
+        """
+        Créer et insérer le vecteur utilisateur dans la base de données.
 
-    # def gbm(self):
-    #     # Récupérer les interactions utilisateur-livre
-    #     query_interactions = """
-    #         SELECT user_id, book_id, is_read, is_liked, is_favorite 
-    #         FROM library.User_Book_Read;
-    #     """
-    #     interactions = self.bddservice.cmd_sql(query_interactions)
-    #     interactions_df = pd.DataFrame(
-    #         interactions, columns=["user_id", "book_id", "is_read", "is_liked", "is_favorite"]
-    #     )
+        Cette méthode récupère les données utilisateur depuis la base de données,
+        génère les embeddings correspondants à leurs profils, puis insère les vecteurs 
+        dans la table `library.user_vector`.
+        """
+        try:
+            # Récupération des données des utilisateurs
+            users = self.bddservice.cmd_sql("""
+                SELECT 
+                    u.user_id, 
+                    u.age, 
+                    u.child, 
+                    u.familial_situation, 
+                    u.gender, 
+                    u.cat_socio_pro, 
+                    u.lieu_habitation, 
+                    u.frequency, 
+                    u.book_size, 
+                    ARRAY_AGG(DISTINCT ulg.genre_id ORDER BY ulg.genre_id) AS liked_genres,
+                    ARRAY_AGG(DISTINCT ula.author_id ORDER BY ula.author_id) AS liked_authors,
+                    ARRAY_AGG(DISTINCT ulb.book_id ORDER BY ulb.book_id) AS liked_books
+                FROM 
+                    library._Users u
+                LEFT JOIN 
+                    library.user_liked_genre ulg ON u.user_id = ulg.user_id
+                LEFT JOIN 
+                    library.liked_author ula ON u.user_id = ula.user_id
+                LEFT JOIN
+                    library.User_Book_Read ulb ON u.user_id = ulb.user_id
+                WHERE 
+                    u.user_id = %s
+                GROUP BY 
+                    u.user_id;
+            """, (user_id,))
 
-    #     # Vérification des données
-    #     if interactions_df.empty:
-    #         print("Aucune interaction utilisateur-livre trouvée.")
-    #         return
-
-    #     # Récupérer les vecteurs utilisateur et livre
-    #     user_vectors_query = "SELECT * FROM library.user_vector;"
-    #     book_vectors_query = "SELECT * FROM library.book_vector;"
-
-    #     user_vectors = self.bddservice.cmd_sql(user_vectors_query)
-    #     book_vectors = self.bddservice.cmd_sql(book_vectors_query)
-
-    #     user_vectors_df = pd.DataFrame(user_vectors, columns=["user_id", "vector"])
-    #     book_vectors_df = pd.DataFrame(book_vectors, columns=["book_id", "title", "vector"])
-
-    #     # Convertir les vecteurs (de chaînes à listes)
-    #     user_vectors_df["vector"] = user_vectors_df["vector"].apply(lambda x: np.array(ast.literal_eval(x)))
-    #     book_vectors_df["vector"] = book_vectors_df["vector"].apply(lambda x: np.array(ast.literal_eval(x)))
-
-    #     # Fusionner les vecteurs utilisateur et livre avec les interactions
-    #     interactions_df = interactions_df.merge(user_vectors_df, on="user_id", how="left")
-    #     interactions_df = interactions_df.merge(book_vectors_df, on="book_id", how="left")
-
-    #     # Définir les pondérations
-    #     user_weight = 0.1  # Pondération pour les vecteurs utilisateur
-    #     book_weight = 0.9  # Pondération pour les vecteurs livre
-
-    #     # Préparer les données pour LightGBM
-    #     # Combiner les vecteurs utilisateur et livre dans les caractéristiques
-    #     features = interactions_df.apply(
-    #         lambda row: np.concatenate([row["vector_x"] * user_weight, row["vector_y"] * book_weight]), axis=1
-    #     ).tolist()
-    #     features = np.array(features)  # Convertir en tableau NumPy
-    #     labels = interactions_df["is_liked"]  # Exemple de label cible
-
-    #     # Séparer les ensembles d'entraînement et de test
-    #     X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.4, random_state=42)
-
-    #     # Créer les datasets LightGBM
-    #     train_data = lgb.Dataset(X_train, label=y_train)
-    #     test_data = lgb.Dataset(X_test, label=y_test, reference=train_data)
-
-    #     # Définir les paramètres LightGBM
-    #     params = {
-    #     "objective": "binary",
-    #     "metric": "binary_logloss",
-    #     "boosting_type": "gbdt",
-    #     "learning_rate": 0.03,
-    #     "num_leaves": 31,
-    #     "max_depth": 6,
-    #     "feature_fraction": 0.8,
-    #     "bagging_fraction": 0.8,
-    #     "bagging_freq": 5,
-    #     "verbose": -1
-    # }
-
-
-    #     # Entraîner le modèle avec validation
-    #     self.model = lgb.train(
-    #         params,
-    #         train_data,
-    #         valid_sets=[train_data, test_data],  # Ajout des jeux de validation
-    #         valid_names=["train", "valid"],  # Noms des ensembles pour le suivi
-    #         num_boost_round=100 
-            
-    #     )
-
-    #     # Faire des prédictions sur l'ensemble de test
-    #     y_pred = self.model.predict(X_test, num_iteration=self.model.best_iteration)  # Utiliser la meilleure itération
-    #     y_pred_binary = (y_pred > 0.5).astype(int)
-
-    #     # Évaluer le modèle
-    #     accuracy = accuracy_score(y_test, y_pred_binary)
-    #     print(f"Accuracy: {accuracy:.4f}")
-
+            # Parcours des utilisateurs pour générer et insérer les vecteurs
+            for user in users:
+                user_vector = self.get_embeding_user(user)
+                self.bddservice.insert_one_sql_with_id("library.user_vector", [user[0], user_vector], user[0])
+        
+        except Exception as e:
+            print(f"Erreur lors de la création du vecteur utilisateur : {e}")
+            raise
 
     def get_similar_users(self, user_id, n=5):
         """
@@ -344,9 +302,10 @@ class RecomandationHybride:
         """
         Recommande les N livres les plus populaires basés sur les utilisateurs les plus similaires à un utilisateur donné.
         """
+        self.insert_vect_user(user_id)
         # Récupérer les utilisateurs similaires à l'utilisateur donné
         similar_users = self.get_similar_users(user_id, n=5)
-
+        print(similar_users)
         # Récupérer les livres que l'utilisateur a aimés ou consultés
         user_books = self.recommandation_service.get_user_books(user_id)
         # Dictionnaire pour stocker les livres recommandés et leur score de similarité total

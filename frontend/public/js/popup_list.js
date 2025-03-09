@@ -14,7 +14,7 @@ async function fetchSimilarBooks(bookId, nBooks = 5) {
       book?.id && book?.title && book?.url
     );
     
-    console.log("Livres similaires validés:", validBooks);
+    //console.log("Livres similaires validés:", validBooks);
     return validBooks;
 
   } catch (error) {
@@ -29,7 +29,7 @@ async function fetchWishlist() {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     
     const wishlistBooks = await response.json();
-    console.log("Wishlist récupérée:", wishlistBooks);
+    //console.log("Wishlist récupérée:", wishlistBooks);
     return wishlistBooks;
   } catch (error) {
     console.error("Erreur lors de la récupération de la wishlist:", error);
@@ -184,8 +184,8 @@ document.addEventListener("click", async (event) => {
     if (event.target.classList.contains("disabled")) return;
     
     event.target.classList.add("disabled", "cursor-not-allowed");
-    console.log("idAccount", getIdAccount());
-    console.log("Suppression du livre de la wishlist", bookId);
+    //console.log("idAccount", getIdAccount());
+    //console.log("Suppression du livre de la wishlist", bookId);
     
     try {
       const response = await fetch(`/wishlist/remove/${bookId}/${getIdAccount()}`, {
@@ -216,8 +216,8 @@ document.addEventListener("click", async (event) => {
     if (event.target.classList.contains("disabled")) return;
     
     event.target.classList.add("disabled", "cursor-not-allowed");
-    console.log("idAccount", getIdAccount());
-    console.log("Suppression du livre de la wishlist", bookId);
+    //console.log("idAccount", getIdAccount());
+    //console.log("Suppression du livre de la wishlist", bookId);
     
     try {
       const response = await fetch(`/wishlist/add/${bookId}/${getIdAccount()}`, {
