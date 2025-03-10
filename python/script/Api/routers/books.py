@@ -122,18 +122,19 @@ def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10):
             bv.title,
             bv.isbn13,
             bv.description,
-            a.name        
+            a.name
         FROM
             library.book bv
         LEFT JOIN library.wrote w ON bv.book_id = w.book_id 
         LEFT JOIN library.author a ON w.author_id = a.author_id 
         WHERE
-            bv.title ILIKE CONCAT('%%', %s, '%%')  
+            (bv.title ILIKE CONCAT('%%', %s, '%%') OR a.name ILIKE CONCAT('%%', %s, '%%'))
         LIMIT %s OFFSET %s;
+
     """
 
     bddservice.initialize_connection()
-    books = bddservice.cmd_sql(query_sql, (query, limit, skip))
+    books = bddservice.cmd_sql(query_sql, (query, query, limit, skip))
     
     #logging.debug(f"Books found: {books}")
 
