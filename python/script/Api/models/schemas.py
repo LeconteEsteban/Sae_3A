@@ -21,6 +21,9 @@ class RecommendationReponse(BaseModel):
     title: str
     genres: List[str] = []
 
+class GenreResponse(BaseModel):
+    id: int
+    name: str
 
 class AuthorReponse(BaseModel):
     id: int

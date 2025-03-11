@@ -4,6 +4,9 @@ import { showPopup } from './popup.js';
 document.addEventListener("DOMContentLoaded", function () {
     const searchInput = document.getElementById('search-input');
     const resultsPopup = document.getElementById('search-results-popup');
+    const genreDropdownButton = document.getElementById('genreDropdownButton');
+    const genreDropdown = document.getElementById('genreDropdown');
+    let selectedGenres = new Set();
     let searchTimeout;
     let errorTimeout;
 
@@ -52,9 +55,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let currentQuery = '';
     // Fonction pour effectuer la recherche via l'API
     async function performSearch() {
-
-        
-
         const query = searchInput.value.trim();
         currentQuery = query; // Mettre à jour la requête en cours
 
@@ -66,8 +66,15 @@ document.addEventListener("DOMContentLoaded", function () {
         showLoading(); // Afficher l'indicateur de chargement
 
         try {
-            const response = await fetch(`/books/search?query=${encodeURIComponent(query)}&skip=0&limit=20`);
-            
+            // Récupérer les genres sélectionnés sous forme de tableau
+            const selectedGenresArray = Array.from(selectedGenres);
+
+            // Ajouter les genres comme paramètre dans la requête
+            const genresParam = selectedGenresArray.length > 0 ? `&genres=${encodeURIComponent(selectedGenresArray.join(','))}` : '';
+
+            // Effectuer la recherche avec la requête et les genres sélectionnés
+            const response = await fetch(`/books/search?query=${encodeURIComponent(query)}${genresParam}&skip=0&limit=20`);
+
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Erreur HTTP:', response.status, response.statusText, errorText);
@@ -75,13 +82,12 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             const books = await response.json();
-            //console.log('Réponse de l\'API:', books);
             
-
             // Afficher les résultats dans la pop-up
             if (query === searchInput.value.trim() && query === currentQuery) {
                 displayResults(books); // Passer la requête pour le tri
             }
+            console.log(`/books/search?query=${encodeURIComponent(query)}${genresParam}&skip=0&limit=20`)
             
         } catch (error) {
             console.error('Erreur lors de la recherche:', error);
@@ -92,6 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }, 3000); // Délai de 3 secondes avant d'afficher l'erreur
         }
     }
+
 
     // Écouteur d'événement pour la saisie dans la barre de recherche avec debouncing
     searchInput.addEventListener('input', () => {
@@ -115,4 +122,73 @@ document.addEventListener("DOMContentLoaded", function () {
             resultsPopup.classList.add('hidden');
         }
     });
+
+
+    // clic sur le bouton Genre
+    genreDropdownButton.addEventListener('click', async function () {
+        // Si la liste est déjà visible, la cacher
+        if (!genreDropdown.classList.contains('hidden')) {
+            genreDropdown.classList.add('hidden');
+            return;
+        }
+
+        // Récupérer les genres via l'API
+        try {
+            const response = await fetch('/genres/all');
+            if (!response.ok) throw new Error('Erreur lors de la récupération des genres');
+
+            const genres = await response.json();
+            genreDropdown.innerHTML = ''; // Vide la liste avant de la remplir
+
+            genres.forEach(genre => {
+                const listItem = document.createElement('li');
+                listItem.textContent = genre.name;
+                listItem.classList.add('px-4', 'py-2', 'hover:bg-gray-100', 'cursor-pointer', 'list-none', 'pl-0', 'ml-2');
+
+                // Appliquer la sélection si ce genre est déjà sélectionné
+                if (selectedGenres.has(genre.name)) {
+                    listItem.classList.add('bg-gray-300');
+                }
+
+                // Gestion de la sélection/désélection
+                listItem.addEventListener('click', (event) => {
+                    event.stopPropagation(); // Empêche la fermeture instantanée
+
+                    if (selectedGenres.has(genre.name)) {
+                        selectedGenres.delete(genre.name);
+                        listItem.classList.remove('bg-gray-300');
+                    } else {
+                        selectedGenres.add(genre.name);
+                        listItem.classList.add('bg-gray-300');
+                    }
+
+                    console.log("Genres sélectionnés :", Array.from(selectedGenres));
+                    
+                    // Réactualiser la recherche dès qu'un genre est modifié
+                    const query = searchInput.value.trim();
+                    if (query.length >= 2) {
+                        performSearch(); // Effectuer la recherche à chaque modification des genres
+                    }
+                });
+
+                genreDropdown.appendChild(listItem);
+            });
+
+            genreDropdown.classList.remove('hidden'); // Afficher la liste
+            genreDropdown.classList.add('max-h-60', 'overflow-y-auto');
+
+        } catch (error) {
+            console.error("Erreur API :", error);
+            genreDropdown.innerHTML = '<div class="p-2 text-red-500">Erreur lors du chargement</div>';
+            genreDropdown.classList.remove('hidden');
+        }
+    });
+
+    // Fermer la liste si on clique en dehors
+    document.addEventListener('click', function (event) {
+        if (!genreDropdownButton.contains(event.target) && !genreDropdown.contains(event.target)) {
+            genreDropdown.classList.add('hidden');
+        }
+    });
+
 });
