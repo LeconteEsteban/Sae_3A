@@ -55,6 +55,7 @@
     <header
       class="flex items-center justify-between px-6 py-4 bg-white shadow-md"
     >
+      
       <div class="w-12 h-auto ml-10"> 
         <img
           id="bigboss_logo"
@@ -62,24 +63,44 @@
           alt="Logo BigBoss"
         />
       </div>
-    
-      
-      <div class="flex items-center w-1/2 search relative">
-        <!-- Barre de recherche -->
-        <input
-          type="text"
-          id="search-input"
-          placeholder="Recherche"
-          class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none"
-        />
-        <!-- Pop-up des résultats -->
-        <div
-          id="search-results-popup"
-          class="search-results-popup absolute top-full left-0 w-full bg-white border border-gray-300 rounded-b-md shadow-lg mt-1 max-h-80 overflow-y-auto hidden"
-        >
-          <!-- Les résultats seront injectés ici par JavaScript -->
+      <div class="flex justify-center w-full">
+        <!-- Bouton Genre avec liste déroulante -->
+        <div class="relative">
+          <button
+            id="genreDropdownButton"
+            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-l-md hover:bg-gray-300 transition-colors duration-300"
+          >
+            Genre ▼
+          </button>
+          <div
+            id="genreDropdown"
+            class="absolute right-0 mt-1 w-40 bg-white border border-gray-300 rounded-md shadow-lg hidden"
+          >
+            <ul class="py-2">
+            </ul>
+          </div>
+        </div>
+
+        
+        <div class="flex items-center w-1/2 search relative">
+          
+          <!-- Barre de recherche -->
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Recherche"
+            class="w-full h-full px-4 py-2 border border-gray-300 rounded-r focus:outline-none"
+          />
+          <!-- Pop-up des résultats -->
+          <div
+            id="search-results-popup"
+            class="search-results-popup absolute top-full left-0 w-full bg-white border border-gray-300 rounded-b-md shadow-lg mt-1 max-h-80 overflow-y-auto hidden"
+          >
+            <!-- Les résultats seront injectés ici par JavaScript -->
+          </div>
         </div>
       </div>
+      
       <div>
         <input type="checkbox" class="checkbox" id="chk" />
         <label class="label" for="chk">

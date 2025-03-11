@@ -94,28 +94,20 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 @router.get("/search", response_model=List[BookResponse])
-def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10):
+def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10, genres: Optional[str] = Query(None)):
     """
     Endpoint pour rechercher des livres par titre.
-
-    Cette fonction prend en paramètre une chaîne de recherche (query) et exécute une requête SQL
-    pour trouver les livres dont le titre correspond à la recherche. Les résultats peuvent être
-    paginés en utilisant les paramètres `skip` et `limit`. Si aucun livre n'est trouvé, une
-    exception HTTP 404 est levée.
-
-    Args:
-        query (Optional[str]): La chaîne de recherche.
-        skip (int): Le nombre de livres à sauter pour la pagination.
-        limit (int): Le nombre maximum de livres à retourner.
-
-    Returns:
-        List[BookResponse]: Une liste de livres correspondant à la recherche.
     """
     if not query:
         raise HTTPException(status_code=400, detail="Query parameter is required")
 
-    #logging.debug(f"Search query: {query}")
+    # Si des genres sont fournis, les séparer en une liste
+    genre_list = []
+    if genres:
+        genre_list = [genre.strip() for genre in genres.split(",")]
 
+
+    # Construction de la requête SQL de base
     query_sql = """
         SELECT
             bv.book_id,
@@ -123,37 +115,76 @@ def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10):
             bv.isbn13,
             bv.description,
             a.name
+        """
+    if genre_list:
+        query_sql+= """,
+            array_agg(DISTINCT bv.genre_name) FILTER (WHERE bv.genre_name IS NOT NULL) AS genre_name
+            """
+    query_sql+="""
         FROM
-            library.book bv
+            library.book_view bv
         LEFT JOIN library.wrote w ON bv.book_id = w.book_id 
         LEFT JOIN library.author a ON w.author_id = a.author_id 
-        WHERE
-            (bv.title ILIKE CONCAT('%%', %s, '%%') OR a.name ILIKE CONCAT('%%', %s, '%%'))
-        LIMIT %s OFFSET %s;
-
     """
 
-    bddservice.initialize_connection()
-    books = bddservice.cmd_sql(query_sql, (query, query, limit, skip))
+    # Conditions de recherche
+    query_sql += """
+        WHERE
+            (bv.title ILIKE CONCAT('%%', %s, '%%') OR a.name ILIKE CONCAT('%%', %s, '%%'))
+    """
+
+    # Si des genres sont fournis, ajouter un filtre pour les genres
+    if genre_list:
+        genre_conditions = " OR ".join([f"bv.genre_name ILIKE %s" for _ in genre_list])
+        query_sql += f" AND ({genre_conditions}) "
+
+        query_sql += "GROUP BY bv.book_id, bv.title, bv.isbn13, bv.description, a.name"
     
-    #logging.debug(f"Books found: {books}")
+    query_sql+=""" LIMIT %s OFFSET %s;"""
+
+    # Préparer les paramètres pour la requête
+    params = [query, query]
+    if genre_list:
+        params.extend([f"%{genre}%" for genre in genre_list])  
+    params.extend([limit, skip])
+
+    # Exécution de la requête SQL
+    bddservice.initialize_connection()
+    books = bddservice.cmd_sql(query_sql, params)
 
     if not books:
         raise HTTPException(status_code=404, detail="No books found matching the query")
 
-    books_data = [
-        {
-            "id": book[0],
-            "title": book[1],
-            "isbn13": book[2],
-            "description": book[3],
-            "author_name": book[4],
-            "url": bddservice.get_book_cover_url(book[0], book[2])
-        }
-        for book in books
-    ]
+    if genre_list:
+
+        books_data = [
+            {
+                "id": book[0],
+                "title": book[1],
+                "isbn13": book[2],
+                "description": book[3],
+                "author_name": book[4],
+                "genre_names": book[5],
+                "url": bddservice.get_book_cover_url(book[0], book[2])
+            }
+            for book in books
+        ]
+    else:
+        books_data = [
+            {
+                "id": book[0],
+                "title": book[1],
+                "isbn13": book[2],
+                "description": book[3],
+                "author_name": book[4],
+                "url": bddservice.get_book_cover_url(book[0], book[2])
+            }
+            for book in books
+        ]
 
     return books_data
+
+
 
 
 

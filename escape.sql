@@ -9,6 +9,8 @@ CREATE TABLE Genre (
                        name VARCHAR(255) NOT NULL
 );
 
+CREATE INDEX idx_genre_name_fulltext ON Genre USING GIN (to_tsvector('simple', lower(name)));
+
 -- Book
 -- Table Publisher
 CREATE TABLE Publisher (
