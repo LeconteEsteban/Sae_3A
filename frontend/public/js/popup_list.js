@@ -86,7 +86,7 @@ function createPopupStructure() {
   if (!popup) {
     popup = document.createElement("div");
     popup.id = "wishlist-popup";
-    popup.classList.add("fixed", "flex", "items-center", "justify-center", "z-[998]","inset-0", "hidden");
+    popup.classList.add("fixed", "flex", "items-center", "justify-center", "z-[998]","inset-0", "hidden", "bg-white", "mt-10");
     
     popup.innerHTML = `
       <div class="popup-content">
@@ -96,9 +96,9 @@ function createPopupStructure() {
           >
             <i class="fas fa-times"></i>
         </button>
-        <h2>Ma Wishlist</h2>
+        <h2 class="text-gray-800">Ma Wishlist</h2>
         <div id="wishlist-container">Chargement...</div>
-        <h2>Recommandations</h2>
+        <h2 class="text-gray-800"l>Recommandations</h2>
         <div id="recommendations-container">Chargement...</div>
       </div>
     `;
@@ -138,7 +138,7 @@ async function showWishlistPopup() {
            class="w-full h-64 object-cover rounded-lg shadow-md transition-transform duration-300">
       
       <div class="absolute inset-0 bg-white bg-opacity-95 flex flex-col opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg p-4">
-        <h3 class="text-lg font-bold text-gray-800 mb-1">${book.title}</h3>
+        <h3 class="text-lg font-bold text-gray-800 mb-1 line-clamp-2">${book.title}</h3>
         <p class="text-sm text-gray-600 mb-1">${book.author_name || "Auteur inconnu"}</p>
         <p class="text-xs text-gray-700 mb-2">${book.description ? book.description.slice(0, 100) + "..." : "Pas de description disponible."}</p>
         

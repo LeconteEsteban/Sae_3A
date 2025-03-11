@@ -216,7 +216,7 @@ class RecommendationService:
         recommendations = {}
 
         for book in user_books:
-            similar_books = self.get_similar_books(book['book_id'], n=n_recommendations)
+            similar_books = self.get_similar_books(book['book_id'], n=5)
  
             for similar_book in similar_books:
                 book_id = similar_book[0]
@@ -230,7 +230,7 @@ class RecommendationService:
                 # Pondération basée sur la note et date de lecture
                 weight = 0.5
                 if book['note']:
-                    weight += book['note'] / 5.0  # Si la note est sur 5
+                    weight += book['note'] / 5.0 
                 if book['reading_date']:
                     # Calcul de la différence en années
                     reading_year = book['reading_date'].year

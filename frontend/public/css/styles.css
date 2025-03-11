@@ -63,6 +63,9 @@ header {
 .text-gray-800 {
     color: var(--text-color) !important;
 }
+.text-gray-700 {
+    color: var(--gray-600) !important;
+}
 .text-gray-600 {
     color: var(--gray-600) !important;
 }

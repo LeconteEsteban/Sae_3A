@@ -46,17 +46,6 @@ document.getElementById('loginFormElement').addEventListener('submit', async (e)
             swiperWrapper.innerHTML = "";
             swiperWrapper = document.querySelector(`#Newcarousel1`);
             swiperWrapper.innerHTML = "";
-            const [topBooks1] = await Promise.all([
-                fetchBooks(`/recommandations/hybrid/${data.user.user_id}/30`)
-                //fetchBooks(`/recommandations/hybrid2/30`)
-              ]);
-            initializeCarousel(topBooks1, "Newcarousel");
-            
-            const [topBooks2] = await Promise.all([
-                fetchBooks(`/recommandations/item/${data.user.user_id}/30`)
-                //fetchBooks("/recommandations/item/2/30")
-              ]);
-            initializeCarousel(topBooks2, "Newcarousel1");
             fetchBooks(`/recommandations/hybrid/${data.user.user_id}/30`).then(topBooks1 => 
                 initializeCarousel(topBooks1, "Newcarousel")
               ).catch(error => console.error("Error fetching Newcarousel:", error));
@@ -215,15 +204,12 @@ export async function handleLogout() {
     swiperWrapper.innerHTML = "";
     swiperWrapper = document.querySelector(`#Newcarousel1`);
     swiperWrapper.innerHTML = "";
-    const [topBooks1] = await Promise.all([
-        fetchBooks("/books/topbook/30")
-      ]);
-      initializeCarousel(topBooks1, "Newcarousel");
-    
-      const [topBooks2] = await Promise.all([
-        fetchBooks("/books/topbook/30")
-      ]);
-      initializeCarousel(topBooks2, "Newcarousel1");
+    fetchBooks("/books/topbook/30").then(topBooks1 => 
+        initializeCarousel(topBooks1, "Newcarousel")
+      ).catch(error => console.error("Error fetching Newcarousel:", error));
+    fetchBooks("/books/topbook/30").then(topBooks2 => 
+        initializeCarousel(topBooks2, "Newcarousel1")
+      ).catch(error => console.error("Error fetching Newcarousel1:", error));
 }
 
 // Fonctions utilitaires pour les cookies
@@ -265,6 +251,8 @@ export function clearAllCookies() {
         deleteCookie(name);
     }
 }
+
+clearAllCookies()
 
 // Rendre les fonctions accessible globalement
 window.openModal = openModal;

@@ -15,15 +15,12 @@ async function fetchBooks(url) {
 
 //à opti ici
 function init() {
-  console.log("1");
   fetchBooks("/books/topbook/30").then(topBooks => 
     initializeCarousel(topBooks, "Topcarousel")
   ).catch(error => console.error("Error fetching Topcarousel:", error));
-  console.log("2");
   fetchBooks("/books/topbook/30").then(topBooks1 => 
     initializeCarousel(topBooks1, "Newcarousel")
   ).catch(error => console.error("Error fetching Newcarousel:", error));
-  console.log("3");
   fetchBooks("/books/topbook/30").then(topBooks2 => 
     initializeCarousel(topBooks2, "Newcarousel1")
   ).catch(error => console.error("Error fetching Newcarousel1:", error));

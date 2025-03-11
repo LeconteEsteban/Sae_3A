@@ -82,7 +82,7 @@ async function showPopupReview(bookId) {
     if (!bookResponse.ok) throw new Error(`Erreur HTTP! statut: ${bookResponse.status}`);
     const book = await bookResponse.json();
 
-    // Récupération de la note existante de l'utilisateur
+    // Récupération de la note existante
     let existingRating = null;
     const userId = getIdAccount();
     try {
@@ -90,18 +90,24 @@ async function showPopupReview(bookId) {
       if (reviewResponse.ok) {
         const reviewData = await reviewResponse.json();
         existingRating = reviewData.note;
-        console.log("existingRating", reviewData);
-
       }
     } catch (error) {
       console.error("Erreur lors de la récupération de la note:", error);
     }
-
     // Création du popup
     const popup = document.createElement("div");
-    popup.classList.add("popup-review", "fixed", "inset-0", "bg-black/50", "flex", "items-center", "justify-center", "z-[999]", "h-42");
+    popup.classList.add("popup-review", "fixed", "inset-0", "bg-black/50", "flex", "items-center", "justify-center", "z-[999]");
     popup.innerHTML = `
-      <div class="popup-content bg-white rounded-lg p-4 shadow-lg max-w-lg mx-auto flex gap-4 max-h-[400px]">
+      <div class="popup-content bg-white rounded-lg p-4 shadow-lg max-w-lg mx-auto flex gap-4 max-h-[400px] relative">
+      
+        
+        <button
+              id="close-icon"
+              class="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+
         <img src="${book.url !== "-1" ? book.url : "/static/notfound.jpg"}" 
              alt="Couverture de ${book.title}" 
              class="w-32 h-44 object-cover rounded transition-transform duration-300">
@@ -117,9 +123,11 @@ async function showPopupReview(bookId) {
             <button id="validate-review" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded transition-colors text-sm flex-1">
               ${existingRating ? 'Modifier' : 'Valider'}
             </button>
-            <button id="close-popup" class="bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded transition-colors text-sm flex-1">
-              Fermer
-            </button>
+            ${existingRating ? `
+              <button id="delete-review" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition-colors text-sm flex-1">
+                <i class="fas fa-trash mr-1"></i> Supprimer
+              </button>
+            ` : ''}
           </div>
         </div>
       </div>
@@ -127,42 +135,30 @@ async function showPopupReview(bookId) {
     document.body.appendChild(popup);
 
     // Gestion des étoiles
-    const starsContainer = popup.querySelector('.stars');
     const stars = popup.querySelectorAll('.fa-star');
     let selectedRating = existingRating || 0;
 
-    // Survol des étoiles
-    starsContainer.addEventListener('mouseover', (e) => {
-      if (!e.target.classList.contains('fa-star') || selectedRating > 0) return;
-      
-      const hoverValue = parseInt(e.target.dataset.value);
-      stars.forEach(star => {
-        const value = parseInt(star.dataset.value);
-        star.classList.toggle('text-yellow-400', value <= hoverValue);
-        star.classList.toggle('text-gray-300', value > hoverValue);
-      });
-    });
-
-    // Fin du survol
-    starsContainer.addEventListener('mouseleave', () => {
-      if (selectedRating === 0) {
-        stars.forEach(star => star.classList.remove('text-yellow-400', 'text-gray-300'));
-      }
-    });
-
-    // Clic sur une étoile
+    // Interactions avec les étoiles
     stars.forEach(star => {
+      star.addEventListener('mouseover', (e) => {
+        if (selectedRating > 0) return;
+        const hoverValue = parseInt(e.target.dataset.value);
+        stars.forEach(s => s.classList.toggle('text-yellow-400', parseInt(s.dataset.value) <= hoverValue));
+      });
+
+      star.addEventListener('mouseleave', () => {
+        if (selectedRating === 0) {
+          stars.forEach(s => s.classList.remove('text-yellow-400'));
+        }
+      });
+
       star.addEventListener('click', (e) => {
         selectedRating = parseInt(e.target.dataset.value);
-        stars.forEach(s => {
-          const value = parseInt(s.dataset.value);
-          s.classList.toggle('text-yellow-400', value <= selectedRating);
-          s.classList.toggle('text-gray-300', value > selectedRating);
-        });
+        stars.forEach(s => s.classList.toggle('text-yellow-400', parseInt(s.dataset.value) <= selectedRating));
       });
     });
 
-    // Valider/Modifier la note
+    // Validation/modification
     popup.querySelector('#validate-review').addEventListener('click', async () => {
       try {
         const response = await fetch(`/reviews/${userId}/${book.id}/${selectedRating}`, {
@@ -178,12 +174,28 @@ async function showPopupReview(bookId) {
       }
     });
 
-    // Fermer le popup
-    popup.querySelector('#close-popup').addEventListener('click', () => popup.remove());
+    // Suppression
+    if (existingRating) {
+      popup.querySelector('#delete-review').addEventListener('click', async () => {
+        if (confirm("Supprimer définitivement cet avis ?")) {
+          try {
+            const response = await fetch(`/reviews/${userId}/${book.id}`, { method: 'DELETE' });
+            if (!response.ok) throw new Error(`Erreur HTTP! statut: ${response.status}`);
+            popup.remove();
+            alert('Avis supprimé !');
+          } catch (error) {
+            console.error("Erreur:", error);
+            alert("Erreur lors de la suppression");
+          }
+        }
+      });
+    }
+
+    // Fermeture
+    popup.querySelector('#close-icon').addEventListener('click', () => popup.remove());
 
   } catch (error) {
-    console.error("Erreur lors de la récupération du livre:", error);
-    alert("Impossible de récupérer les informations du livre");
+    console.error("Erreur:", error);
+    alert("Erreur lors du chargement");
   }
 }
-

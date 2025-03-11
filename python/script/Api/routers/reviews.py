@@ -67,35 +67,22 @@ def post_review(id_user:int , id_book:int, note:int):
     return {"message": "Review added successfully."}
 
 @router.get("/user/{id_user}/{id_book}")
-def get_review_user_book(id_user:int, id_book:int):
+def get_review_user_book(id_user: int, id_book: int):
     """
     Endpoint pour obtenir la note d'un utilisateur pour un livre.
-
-    Cette fonction prend en paramètre l'identifiant de l'utilisateur (id_user) et l'identifiant
-    du livre (id_book) et renvoie la critique de l'utilisateur pour ce livre. Si aucune critique
-    n'est trouvée, une exception HTTP 404 est levée.
-
-    Args:
-        id_user (int): L'identifiant de l'utilisateur.
-        id_book (int): L'identifiant du livre.
-
-    Returns:
-        dict: La critique de l'utilisateur pour le livre.
     """
     query = f"""
-    SELECT note
-    FROM library.User_Book_Notation
-    WHERE read_id = (SELECT read_id FROM library.User_Book_Read WHERE user_id = {id_user} AND book_id = {id_book})
+    SELECT UBN.note
+    FROM library.User_Book_Read UBR
+    JOIN library.User_Book_Notation UBN ON UBR.read_id = UBN.read_id
+    WHERE UBR.user_id = {id_user} AND UBR.book_id = {id_book}
     """
-    review = bddservice.cmd_sql(query)
+    reviews = bddservice.cmd_sql(query)
 
-    if not review:
+    if not reviews:
         return {"note": None}
-
-
-    return {
-        "note": review[0][0]
-    }
+    
+    return {"note": reviews[0][0]}
 
 
 @router.put("/{id_user}/{id_book}/{note}")
@@ -116,10 +103,44 @@ def update_review(id_user:int , id_book:int, note:int):
         dict: Un message de confirmation.
     """
     query = f"""
-    UPDATE library.User_Book_Notation
+    UPDATE library.User_Book_Notation UBN
     SET note = {note}
-    WHERE read_id = (SELECT read_id FROM library.User_Book_Read WHERE user_id = {id_user} AND book_id = {id_book})
+    FROM library.User_Book_Read UBR
+    WHERE UBR.read_id = UBN.read_id
+    AND UBR.user_id = {id_user}
+    AND UBR.book_id = {id_book}
     """
     bddservice.cmd_sql(query)
 
     return {"message": "Review updated successfully."}
+
+
+@router.delete("/{id_user}/{id_book}")
+def delete_review(id_user:int , id_book:int):
+    """
+    Endpoint pour supprimer la critique d'un utilisateur pour un livre.
+
+    Cette fonction prend en paramètre l'identifiant de l'utilisateur (id_user) et l'identifiant
+    du livre (id_book) et supprime la critique de l'utilisateur pour ce livre. Si aucune critique
+    n'est trouvée, une exception HTTP 404 est levée.
+
+    Args:
+        id_user (int): L'identifiant de l'utilisateur.
+        id_book (int): L'identifiant du livre.
+
+    Returns:
+        dict: Un message de confirmation.
+    """
+    query = """
+    DELETE FROM library.User_Book_Notation 
+    USING library.User_Book_Read 
+    WHERE library.User_Book_Read.read_id = library.User_Book_Notation.read_id
+    AND library.User_Book_Read.user_id = %s
+    AND library.User_Book_Read.book_id = %s
+    """
+    bddservice.cmd_sql(query, (id_user, id_book))
+    delete_reads = "DELETE FROM library.User_Book_Read WHERE User_Book_Read.book_id = %s AND User_Book_Read.user_id = %s"
+    bddservice.cmd_sql(delete_reads, (id_book, id_user)) 
+
+
+    return {"message": "Review deleted successfully."}

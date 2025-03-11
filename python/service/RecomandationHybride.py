@@ -305,7 +305,7 @@ class RecomandationHybride:
         self.insert_vect_user(user_id)
         # Récupérer les utilisateurs similaires à l'utilisateur donné
         similar_users = self.get_similar_users(user_id, n=5)
-        print(similar_users)
+        #print(similar_users)
         # Récupérer les livres que l'utilisateur a aimés ou consultés
         user_books = self.recommandation_service.get_user_books(user_id)
         # Dictionnaire pour stocker les livres recommandés et leur score de similarité total

@@ -153,7 +153,7 @@ def get_book_recommendations(id_book: int, nbook: int):
                 book_id, title, isbn, isbn13, description, 
                 number_of_pages, publisher_name, rating_count, average_rating;
         """
-    
+        bddservice.initialize_connection()
         books = bddservice.cmd_sql(query)
         if not books:
             continue  # Ignore si le livre n'est pas trouvé
