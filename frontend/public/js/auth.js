@@ -142,12 +142,42 @@ document.getElementById('newPassword').addEventListener('input', checkFieldsStep
 // Appeler la fonction au début pour s'assurer que l'état du bouton est correct
 checkFieldsStep1();
 
+// Validation des données utilisateur
+
+function validateUserData(userData) {
+    // Vérification du login (minimum 3 caractères, sans espace)
+    const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/; 
+    if (!userData.username || !usernameRegex.test(userData.username)) {
+        return "L'identifiant doit contenir entre 3 et 20 caractères et ne comporter que des lettres, chiffres, _ ou -.";
+    }
+
+    // Vérification du mot de passe (minimum 8 caractères, 1 lettre et 1 chiffre)
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/; 
+    if (!userData.password || !passwordRegex.test(userData.password)) {
+        return "Le mot de passe doit contenir au moins 8 caractères avec au moins une lettre et un chiffre.";
+    }
+
+    // Vérification de la date de naissance (date passée & bien saisie)
+    const today = new Date();
+    const birthDateObj = new Date(userData.birth_date);
+    
+    if (isNaN(birthDateObj.getTime())) {
+        return "Veuillez entrer une date de naissance valide.";
+    }
+    
+    if (birthDateObj > today) {
+        return "La date de naissance ne peut pas être dans le futur.";
+    }
+
+    return null;
+}
+
 // Gestion de la soumission du formulaire d'inscription
 document.getElementById('registerFormElement').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const userData = {
-        username: document.getElementById('newUsername').value,
+        username: document.getElementById('newUsername').value.trim(),
         password: document.getElementById('newPassword').value,
         age: document.getElementById('age').value,
         gender: document.getElementById('gender').value,
@@ -159,8 +189,16 @@ document.getElementById('registerFormElement').addEventListener('submit', async 
         book_size: document.getElementById('book_size').value,
         birth_date: document.getElementById('birth_date').value,
     };
+
     const childValue = document.querySelector('input[name="child"]:checked');
     userData.child = childValue ? childValue.value === "true" : false;
+
+    // Vérifie la validité des mots de passe, login & date de naissance
+    const validationError = validateUserData(userData);
+    if (validationError) {
+        alert(validationError);
+        return;
+    }
 
     try {
         const response = await fetch('/api/register', {
@@ -174,7 +212,7 @@ document.getElementById('registerFormElement').addEventListener('submit', async 
             switchToLogin();
         } else {
             const errorData = await response.json();
-            if (errorData.detail=="Nom d'utilisateur déjà pris.") {
+            if (errorData.detail === "Nom d'utilisateur déjà pris.") {
                 showStep(1);
             }
             alert(errorData.detail || 'Erreur lors de la création du compte');
@@ -252,7 +290,6 @@ export function clearAllCookies() {
     }
 }
 
-clearAllCookies()
 
 // Rendre les fonctions accessible globalement
 window.openModal = openModal;
