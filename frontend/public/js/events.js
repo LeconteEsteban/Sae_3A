@@ -202,12 +202,13 @@ async function showPopupReview(bookId) {
 
 document.addEventListener("click", async (event) => {
   const target = event.target;
+ 
   if (target.classList.contains("bookmark")) {
     const slideDiv = target.closest("[data-book-id]");
     const bookId = slideDiv.dataset.bookId;
     const userId = getIdAccount();
     if (!userId) return;
-
+    const likeButton = target.parentElement.querySelector(".like-button");
     const isMarked = target.classList.contains("text-blue-500");
     try {
       const response = await fetch(`/read/${userId}/${bookId}`, {
@@ -217,6 +218,7 @@ document.addEventListener("click", async (event) => {
       if (response.ok) {
         target.classList.toggle("text-gray-500");
         target.classList.toggle("text-blue-500");
+        likeButton.style.display = isMarked ? "none" : "block";
       } else {
         console.error("Erreur lors de la mise à jour du statut du livre.");
       }
