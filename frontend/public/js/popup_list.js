@@ -149,7 +149,7 @@ async function showWishlistPopup() {
         </ul>
         
          <div class="flex gap-2 mt-auto justify-between w-full">
-            <i class="fas fa-heart text-gray-500 text-2xl hover:text-red cursor-pointer like-button"></i>
+            <i class="fas fa-bookmark text-gray-500 text-2xl cursor-pointer switch-button"></i>
             <i class="fas fa-minus text-gray-500 text-2xl hover:text-blue-600 cursor-pointer moins-button"></i>
             <i class="fas fa-eye text-gray-500 text-2xl hover:text-green-600 cursor-pointer eye-button"></i>
           </div>
@@ -191,7 +191,8 @@ function addSimilarBooks(books) {
             ).join("")}
           </ul>
           <div class="flex gap-2 mt-auto justify-between w-full">
-            <i class="fas fa-heart text-gray-500 text-2xl cursor-pointer like-button"></i>
+            <i class="fas fa-bookmark text-gray-500 text-2xl cursor-pointer bookmark"></i>
+            <i class="fas fa-heart text-gray-500 text-2xl cursor-pointer like-button hidden"></i>
             <i class="fas fa-plus text-gray-500 text-2xl cursor-pointer plus-button"></i>
             <i class="fas fa-eye text-gray-500 text-2xl cursor-pointer eye-button"></i>
           </div>
@@ -232,7 +233,6 @@ document.addEventListener("click", async (event) => {
   }
 });
 
-
 document.addEventListener("click", async (event) => {
   if (event.target.classList.contains("plus-button")) {
     const slideDiv = event.target.closest('[data-book-id]');
@@ -255,6 +255,58 @@ document.addEventListener("click", async (event) => {
         event.target.classList.replace("text-gray-500", "text-red-500"); 
       } else {
         console.error("Erreur lors de l'ajout à la wishlist");
+        event.target.classList.remove("disabled", "cursor-not-allowed");
+      }
+    } catch (error) {
+      console.error("Erreur réseau :", error);
+      event.target.classList.remove("disabled", "cursor-not-allowed");
+    }
+  }
+});
+
+document.addEventListener("click", async (event) => {
+  if (event.target.classList.contains("switch-button")) {
+    const slideDiv = event.target.closest('[data-book-id]');
+    const bookId = slideDiv.dataset.bookId;
+
+    if (event.target.classList.contains("disabled")) return;
+    
+    event.target.classList.add("disabled", "cursor-not-allowed");
+
+    try {
+      const response = await fetch(`read/${getIdAccount()}/${bookId}`,{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (response.ok) {
+        slideDiv.remove();
+        const wishlist = await fetchWishlist();
+        const newRecommendations = await fetchRecommendations(wishlist);
+        addSimilarBooks(newRecommendations);
+      } else {
+        console.error("Erreur lors de la switch de la wishlist");
+        event.target.classList.remove("disabled", "cursor-not-allowed");
+      }
+    } catch (error) {
+      console.error("Erreur réseau :", error);
+      event.target.classList.remove("disabled", "cursor-not-allowed");
+    }
+    
+    try {
+      const response = await fetch(`/wishlist/remove/${bookId}/${getIdAccount()}`, {
+        method: "DELETE"
+      });
+
+      if (response.ok) {
+        slideDiv.remove();
+        const wishlist = await fetchWishlist();
+        const newRecommendations = await fetchRecommendations(wishlist);
+        addSimilarBooks(newRecommendations);
+      } else {
+        console.error("Erreur lors de la suppression de la wishlist");
         event.target.classList.remove("disabled", "cursor-not-allowed");
       }
     } catch (error) {
