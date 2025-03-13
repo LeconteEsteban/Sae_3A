@@ -140,7 +140,7 @@
         <div
           id="LivreListeButton"
           class="flex items-center px-4 py-3 hover:bg-gray-100 transition-colors duration-300 cursor-pointer"
-          onclick="livreLuListe()"
+          onclick="window.location.href='static/livrelu.html';"
         >
           <i class="fas fa-book-open mr-2 text-blue-500"></i>
           <span class="font-semibold">Livres lus</span>
@@ -235,6 +235,7 @@
                   required
                 />
               </div>
+              <p id="newUsername-error" class="error-message hidden"></p>
               <div class="mb-4">
                 <label class="block text-gray-700">Mot de passe</label>
                 <input
@@ -243,16 +244,13 @@
                   class="w-full p-2 border border-gray-300 rounded-md"
                   required
                 />
+
+                <p id="newPassword-error" class="error-message hidden"></p>
+
               </div>
-              <button
-                type="button"
-                id="nextButton1"
-                class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
-                onclick="nextStep(1)"
-                disabled
-              >
+              <button type="button" id="nextButton1" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600" onclick="nextStep(1)">
                 Suivant
-              </button>
+            </button>
             </div>
 
             <!-- Étape 2 -->
@@ -471,6 +469,8 @@
                   required
                 />
               </div>
+              <div id="birth_date-error" class="error-message"></div>
+
               <button
                 type="button"
                 class="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600"
