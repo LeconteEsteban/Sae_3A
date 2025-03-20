@@ -29,11 +29,11 @@ app.include_router(read.router, prefix="/read")
 app.include_router(wishliste.router)
 app.include_router(users.router)
 # Monter le dossier des fichiers statiques (HTML, CSS, JS, images)
-app.mount("/static", StaticFiles(directory="../../../frontend/public"), name="static")
+app.mount("/static", StaticFiles(directory="../../../frontend2"), name="static")
 
 @app.get("/")
 def home():
-    return FileResponse("../../../frontend/public/index.html")
+    return FileResponse("../../../frontend2/index.html")
 
 @app.get("/install")
 def home():

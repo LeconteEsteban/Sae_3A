@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (bookId) {
         // Demander les informations du livre
-        fetch(`http://127.0.0.1:8000/books/${bookId}`)
+        fetch(`http://127.0.0.1/books/${bookId}`)
             .then(response => response.json())
             .then(bookData => {
                 if (bookData.detail) {

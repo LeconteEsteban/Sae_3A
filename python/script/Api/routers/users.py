@@ -79,3 +79,30 @@ def login(user: UserLogin):
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail="Erreur lors de la connexion")
+
+
+@router.get("/api/user/{user_id}")
+def get_user_info(user_id: int):
+    try:
+        user_data = bddservice.get_user_by_id(user_id)
+
+        if not user_data:
+            raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+
+        return {
+            "user_id": user_data[0],
+            "name": user_data[1],
+            "age": user_data[2],
+            "child": user_data[3],
+            "familial_situation": user_data[4],
+            "gender": user_data[5],
+            "cat_socio_pro": user_data[6],
+            "lieu_habitation": user_data[7],
+            "frequency": user_data[8],
+            "book_size": user_data[9],
+            "birth_date": user_data[10],
+        }
+
+    except Exception as e:
+        print(f"Erreur API get_user_info: {e}")
+        raise HTTPException(status_code=500, detail="Erreur lors de la récupération de l'utilisateur")

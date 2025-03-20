@@ -55,3 +55,16 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     username: str
     password: str
+
+class UserResponse(BaseModel):
+    user_id: int
+    name: str
+    age: str
+    child: bool
+    familial_situation: str
+    gender: str
+    cat_socio_pro: str
+    lieu_habitation: str
+    frequency: str
+    book_size: str
+    birth_date: date

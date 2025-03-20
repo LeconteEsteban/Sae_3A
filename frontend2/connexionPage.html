@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion / Inscription</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="/static/js/auth.js"></script>
+</head>
+<body class="bg-gray-900 text-white glass-background flex items-center justify-center min-h-screen">
+    <div class="bg-gray-800 p-6 rounded-2xl shadow-lg w-96 relative">
+
+        <!-- Formulaire de login  -->
+        <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-400 hover:text-white">&times;</button>
+        
+        
+        
+        <form id="loginFormElement" class="mt-6 space-y-4">
+            <h2 id="form-title" class="text-2xl font-bold text-center text-white mb-4">Connexion</h2>
+            <div>
+                <label for="username" class="block text-sm font-medium text-white">Identifiant</label>
+                <input type="text" id="username" name="username" class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400 text-white" required>
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-white">Mot de passe</label>
+                <input type="password" id="password" name="password" class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400 text-white" required>
+            </div>
+            <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg">Se connecter</button>
+
+            <p class="text-center mt-4 text-white">
+                Pas de compte ? <a href="#" id="toggle-register" class="text-red-400 hover:underline">Créer un compte</a>
+            </p>
+    
+        </form>
+
+        <!-- Formulaire d'inscription  -->
+        <div id="registerForm" class="hidden mt-4">
+            <h2 class="text-2xl font-bold text-center text-white mb-4">Créer un compte</h2>
+            
+            <form id="registerFormElement">
+                <div class="register-step" id="registerStep1">
+                    <div class="mb-4">
+                        <label for="newUsername" class="block text-sm font-medium text-white">Identifiant</label>
+                        <input type="text" id="newUsername" class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400 text-white" required>
+                    </div>
+
+                    <p id="newUsername-error" class="error-message hidden"></p>
+                    
+                    <div class="mb-4">
+                        <label for="newPassword" class="block text-sm font-medium text-white">Mot de passe</label>
+                        <input type="password" id="newPassword" class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400 text-white" required>
+                    </div>
+
+                    <p id="newPassword-error" class="error-message hidden"></p>
+
+
+                    <button type="button" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg" onclick="nextStep(1)">Suivant</button>
+                </div>
+
+
+                <!-- Étape unique pour l'inscription -->
+                <div class="register-step hidden" id="registerStep2">
+                    <div class="mb-4">
+                        <label for="age" class="block text-sm font-medium">Âge</label>
+                        <select id="age" class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400">
+                            <option value="" disabled selected>-- Sélectionner --</option>
+                            <option value="0 - 10 ans">0 - 10 ans</option>
+                            <option value="11 - 20 ans">11 - 20 ans</option>
+                            <option value="21 - 30 ans">21 - 30 ans</option>
+                            <option value="31 - 40 ans">31 - 40 ans</option>
+                            <option value="41 - 50 ans">41 - 50 ans</option>
+                            <option value="51 - 60 ans">51 - 60 ans</option>
+                            <option value="61 - 70 ans">61 - 70 ans</option>
+                            <option value="+ 70 ans">+ 70 ans</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="gender" class="block text-sm font-medium">Genre</label>
+                        <select id="gender" class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400">
+                            <option value="" disabled selected>-- Sélectionner --</option>
+                            <option value="Homme">Homme</option>
+                            <option value="Femme">Femme</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="cat_socio_pro" class="block text-sm font-medium">Catégorie</label>
+                        <select id="cat_socio_pro" class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400">
+                            <option value="" disabled selected>-- Sélectionner --</option>
+                            <option value="Étudiant(e)">Étudiant(e)</option>
+                            <option value="Employés">Employés</option>
+                            <option value="Ouvriers">Ouvriers</option>
+                            <option value="Agriculteurs exploitants">Agriculteurs exploitants</option>
+                            <option value="Artisans. commerçants. chefs entreprise">Artisans, commerçants, chefs entreprise</option>
+                            <option value="Cadres et professions intellectuelles supérieures">Cadres et professions intellectuelles supérieures</option>
+                            <option value="Professions intermédiaires">Professions intermédiaires</option>
+                            <option value="Retraités">Retraités</option>
+                            <option value="Autres personnes sans activité professionnelle">Autres personnes sans activité professionnelle</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="lieu_habitation" class="block text-sm font-medium">Habitation</label>
+                        <select id="lieu_habitation" class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400">
+                            <option value="" disabled selected>-- Sélectionner --</option>
+                            <option value="Grande Ville (+ 50 000 habitants)">Grande Ville (+ 50 000 habitants)</option>
+                            <option value="Moyenne ville (20 000 - 50 000 habitants)">Moyenne ville (20 000 - 50 000 habitants)</option>
+                            <option value="Petite ville (- 20 000 habitants)">Petite ville (- 20 000 habitants)</option>
+                            <option value="Milieu urbain">Milieu urbain</option>
+                            <option value="Campagne">Campagne</option>
+                            <option value="Bord de mer">Bord de mer</option>
+                            <option value="Montagne">Montagne</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="familial_situation" class="block text-sm font-medium">Situation familiale</label>
+                        <select id="familial_situation" class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400">
+                            <option value="" disabled selected>-- Sélectionner --</option>
+                            <option value="Célibataire">Célibataire</option>
+                            <option value="En couple">En couple</option>
+                            <option value="Marié(e)">Marié(e)</option>
+                            <option value="Divorcé(e)">Divorcé(e)</option>
+                            <option value="Veuf/Veuve">Veuf/Veuve</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium">Avez-vous des enfants ?</label>
+                        <div class="flex space-x-4 mt-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="child" value="true" class="mr-2 text-red-500">
+                                <span>Oui</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="child" value="false" class="mr-2 text-red-500" checked>
+                                <span>Non</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="frequency" class="block text-sm font-medium">Fréquence de lecture</label>
+                        <select id="frequency" class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400">
+                            <option value="" disabled selected>-- Sélectionner --</option>
+                            <option value="Tous les jours">Tous les jours</option>
+                            <option value="Plusieurs fois par semaine">Plusieurs fois par semaine</option>
+                            <option value="Une fois par semaine">Une fois par semaine</option>
+                            <option value="Quelques fois par mois">Quelques fois par mois</option>
+                            <option value="Rarement">Rarement</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="book_size" class="block text-sm font-medium">Taille préférée des livres</label>
+                        <select id="book_size" class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400">
+                            <option value="" disabled selected>-- Sélectionner --</option>
+                            <option value="0 - 100 pages">0 - 100 pages</option>
+                            <option value="101 - 200 pages">101 - 200 pages</option>
+                            <option value="201 - 300 pages">201 - 300 pages</option>
+                            <option value="301 - 400 pages">301 - 400 pages</option>
+                            <option value="401 - 500 pages">401 - 500 pages</option>
+                            <option value="+ 500 pages">+ 500 pages</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="birth_date" class="block text-sm font-medium">Date de naissance</label>
+                        <input type="date" id="birth_date" class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400" required>
+                        <p id="birth_date-error" class="text-red-400 text-xs mt-1 hidden"></p>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">Créer mon compte</button>
+                    </div>
+                </div>
+
+
+            <p class="text-center mt-4 text-white">
+                Déjà un compte ? <a href="#" id="toggle-login" class="text-red-400 hover:underline">Se connecter</a>
+            </p>
+            
+        </div>
+    </div>
+</body>
+</html>

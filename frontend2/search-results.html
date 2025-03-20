@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Résultats de recherche</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="container mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold mb-4">Résultats de la recherche</h1>
+        <div id="book-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </div>
+
+    <script>
+        // Récupérer la requête de recherche depuis localStorage
+        const searchQuery = localStorage.getItem('searchQuery');
+
+        // Si la requête est présente, effectuer la recherche
+        if (searchQuery) {
+            searchBooks(searchQuery);
+        }
+
+        // Fonction pour effectuer la recherche des livres
+        async function searchBooks(query) {
+            try {
+                // Envoyer la requête à l'API de recherche
+                const response = await fetch(`/search?query=${query}&limit=10`);
+                if (!response.ok) {
+                    throw new Error('Erreur lors de la récupération des livres.');
+                }
+
+                // Récupérer les livres en réponse JSON
+                const books = await response.json();
+
+                // Afficher les livres sur la page
+                displayBooks(books);
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+
+        // Fonction pour afficher les livres récupérés
+        function displayBooks(books) {
+            const bookContainer = document.getElementById('book-container');
+            bookContainer.innerHTML = ''; // Vider le conteneur avant d'ajouter les nouveaux livres
+
+            // Si aucun livre trouvé
+            if (books.length === 0) {
+                bookContainer.innerHTML = '<p>Aucun résultat trouvé.</p>';
+                return;
+            }
+
+            // Créer et afficher chaque livre
+            books.forEach(book => {
+                const bookElement = document.createElement('div');
+                bookElement.classList.add('book-item', 'bg-gray-800', 'p-4', 'rounded-lg', 'text-center');
+                bookElement.innerHTML = `
+                    <img src="${book.imageUrl}" alt="${book.title}" class="w-1/5 rounded-lg shadow-lg mx-auto">
+                    <h3 class="text-xl font-bold text-white">${book.title}</h3>
+                    <p class="text-sm text-gray-400">${book.description}</p>
+                    <p class="text-sm text-yellow-400">Note: ${book.rating}</p>
+                `;
+                bookContainer.appendChild(bookElement);
+            });
+        }
+    </script>
+</body>
+</html>

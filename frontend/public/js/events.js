@@ -9,6 +9,17 @@ function getIdAccount() {
   }
 }
 
+async function redirectToBookList() {
+  const userId = getIdAccount();
+  if (userId) {
+    window.location.href = `static/livrelu.html?userId=${encodeURIComponent(userId)}`;
+  } else {
+    alert("Utilisateur non connecté !");
+  }
+}
+
+
+
 document.addEventListener('click', async (event) => {
   if (event.target.closest('.eye-button')) {
     const slideDiv = event.target.closest('[data-book-id]');
@@ -59,13 +70,8 @@ document.addEventListener('click', async (event) => {
       return;
     }else{
       try {
-        const response = await fetch(`/reviews/${userId}/${bookId}`, {
-          method: 'POST'
-        });
         event.target.classList.toggle('text-red-500');
         showPopupReview(bookId);
-
-        if (!response.ok) throw new Error(`Erreur HTTP! statut: ${response.status}`);
       } catch (error) {
         console.error("Erreur lors de la requête de like:", error);
         alert("Impossible de liker le livre");
@@ -227,3 +233,6 @@ document.addEventListener("click", async (event) => {
     }
   }
 });
+
+
+window.redirectToBookList = redirectToBookList

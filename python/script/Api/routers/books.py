@@ -3,9 +3,13 @@ from fastapi import Query
 from typing import List
 from typing import Optional
 from models.schemas import BookResponse
+from sqlalchemy.sql import text
 from services.servicebdd import bddservice, recommendation_service, recommendation_hybride, decodeur
+from psycopg2 import DatabaseError
 from datetime import date
 import random
+import logging
+
 
 
 
@@ -88,64 +92,139 @@ SELECT * FROM book_data;
         for book in books
     ]
 
+@router.get("/genre/{genre_name}", response_model=List[BookResponse])
+def get_books_by_genre(genre_name: str, limit: int = Query(30, ge=1, le=100)):
+    """
+    Endpoint pour obtenir un nombre limité de livres d'un genre spécifique.
 
-import logging
+    Cette fonction exécute une requête SQL pour récupérer les livres qui appartiennent
+    à un genre donné, avec une limite sur le nombre de livres retournés.
+
+    Args:
+        genre_name (str): Le nom du genre recherché.
+        limit (int): Le nombre maximum de livres à récupérer (par défaut 30, min 1, max 100).
+
+    Returns:
+        List[BookResponse]: Une liste de livres correspondant au genre.
+    """
+
+    # Vérification de l'entrée utilisateur
+    if not genre_name or genre_name.strip() == "":
+        raise HTTPException(status_code=400, detail="Le nom du genre ne peut pas être vide.")
+
+    query = """
+        WITH book_data AS (
+            SELECT 
+                b.book_id,
+                b.title,
+                b.isbn,
+                b.isbn13,
+                a.name AS author_name,
+                b.description,
+                b.number_of_pages,
+                p.name AS publisher_name,
+                array_agg(DISTINCT g.name) AS genre_names,
+                array_agg(DISTINCT aw.name) AS award_names,
+                rb.rating_count,
+                rb.average_rating
+            FROM library.book b
+            LEFT JOIN library.wrote w ON b.book_id = w.book_id
+            LEFT JOIN library.author a ON w.author_id = a.author_id
+            LEFT JOIN library.publisher p ON b.publisher_id = p.publisher_id
+            LEFT JOIN library.genre_and_vote Gav ON b.book_id = Gav.book_id
+            LEFT JOIN library.genre g ON Gav.genre_id = g.genre_id
+            LEFT JOIN library.Award_of_book ba ON b.book_id = ba.book_id
+            LEFT JOIN library.award aw ON ba.award_id = aw.award_id
+            LEFT JOIN library.rating_book rb ON b.book_id = rb.book_id
+            WHERE g.name ILIKE %s
+            GROUP BY 
+                b.book_id, 
+                b.title, 
+                author_name,
+                b.isbn, 
+                b.isbn13, 
+                b.description,
+                b.number_of_pages, 
+                p.name, 
+                rb.rating_count, 
+                rb.average_rating
+        )
+        SELECT * FROM book_data
+        LIMIT %s;
+    """
+
+    try:
+        books = bddservice.cmd_sql(query, (genre_name, limit))
+        
+        if not books:
+            raise HTTPException(status_code=404, detail=f"Aucun livre trouvé pour le genre : {genre_name}")
+
+        return [
+            {
+                "id": book[0],
+                "title": book[1],
+                "isbn": book[2],
+                "isbn13": book[3],
+                "author_name": book[4],
+                "description": book[5],
+                "number_of_pages": book[6],
+                "publisher_name": book[7],
+                "genre_names": book[8],
+                "award_names": book[9],  
+                "rating_count": book[10],
+                "average_rating": book[11],
+                "url": bddservice.get_book_cover_url(book[0], book[2])
+            }
+            for book in books
+        ]
+    
+    except DatabaseError as e:
+        logging.error(f"Erreur SQL lors de la récupération des livres par genre {genre_name}: {e}")
+        raise HTTPException(status_code=500, detail="Erreur interne du serveur lors de la récupération des livres.")
+
+    except Exception as e:
+        logging.error(f"Erreur inattendue: {e}")
+        raise HTTPException(status_code=500, detail="Une erreur inattendue est survenue.")
+
+
+
 
 logging.basicConfig(level=logging.DEBUG)
 
 @router.get("/search", response_model=List[BookResponse])
 def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10, genres: Optional[str] = Query(None)):
     """
-    Endpoint pour rechercher des livres par titre.
+    Endpoint pour rechercher des livres par titre ou auteur sans doublons et avec filtrage par genres.
     """
     if not query:
         raise HTTPException(status_code=400, detail="Query parameter is required")
 
-    # Si des genres sont fournis, les séparer en une liste
-    genre_list = []
-    if genres:
-        genre_list = [genre.strip() for genre in genres.split(",")]
+    # Traitement des genres si fournis
+    genre_list = genres.split(",") if genres else []
 
-
-    # Construction de la requête SQL de base
+    # Construction de la requête SQL
     query_sql = """
-        SELECT
-            bv.book_id,
-            bv.title,
-            bv.isbn13,
-            bv.description,
-            a.name
-        """
-    if genre_list:
-        query_sql+= """,
-            array_agg(DISTINCT bv.genre_name) FILTER (WHERE bv.genre_name IS NOT NULL) AS genre_name
-            """
-    query_sql+="""
-        FROM
-            library.book_view bv
+        SELECT DISTINCT bv.book_id, bv.title, bv.isbn13, bv.description,
+                        array_agg(DISTINCT a.name) AS authors,
+                        array_agg(DISTINCT bv.genre_name) FILTER (WHERE bv.genre_name IS NOT NULL) AS genre_names
+        FROM library.book_view bv
         LEFT JOIN library.wrote w ON bv.book_id = w.book_id 
-        LEFT JOIN library.author a ON w.author_id = a.author_id 
+        LEFT JOIN library.author a ON w.author_id = a.author_id
+        WHERE (bv.title ILIKE %s OR a.name ILIKE %s)
     """
 
-    # Conditions de recherche
-    query_sql += """
-        WHERE
-            (bv.title ILIKE CONCAT('%%', %s, '%%') OR a.name ILIKE CONCAT('%%', %s, '%%'))
-    """
-
-    # Si des genres sont fournis, ajouter un filtre pour les genres
+    # Ajout des conditions pour le filtrage par genre
+    params = [f"%{query}%", f"%{query}%"]
     if genre_list:
-        genre_conditions = " OR ".join([f"bv.genre_name ILIKE %s" for _ in genre_list])
-        query_sql += f" AND ({genre_conditions}) "
+        genre_conditions = " OR ".join(["bv.genre_name ILIKE %s" for _ in genre_list])
+        query_sql += f" AND ({genre_conditions})"
+        params.extend([f"%{genre}%" for genre in genre_list])
 
-        query_sql += "GROUP BY bv.book_id, bv.title, bv.isbn13, bv.description, a.name"
-    
-    query_sql+=""" LIMIT %s OFFSET %s;"""
+    # Ajout du GROUP BY pour éviter les doublons
+    query_sql += " GROUP BY bv.book_id, bv.title, bv.isbn13, bv.description"
 
-    # Préparer les paramètres pour la requête
-    params = [query, query]
-    if genre_list:
-        params.extend([f"%{genre}%" for genre in genre_list])  
+    # Ajout des limites et pagination
+    query_sql += " LIMIT %s OFFSET %s;"
     params.extend([limit, skip])
 
     # Exécution de la requête SQL
@@ -155,96 +234,101 @@ def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10, ge
     if not books:
         raise HTTPException(status_code=404, detail="No books found matching the query")
 
-    if genre_list:
-
-        books_data = [
-            {
-                "id": book[0],
-                "title": book[1],
-                "isbn13": book[2],
-                "description": book[3],
-                "author_name": book[4],
-                "genre_names": book[5],
-                "url": bddservice.get_book_cover_url(book[0], book[2])
-            }
-            for book in books
-        ]
-    else:
-        books_data = [
-            {
-                "id": book[0],
-                "title": book[1],
-                "isbn13": book[2],
-                "description": book[3],
-                "author_name": book[4],
-                "url": bddservice.get_book_cover_url(book[0], book[2])
-            }
-            for book in books
-        ]
+    # Transformation des résultats
+    books_data = [
+        {
+            "id": book[0],
+            "title": book[1],
+            "isbn13": book[2],
+            "description": book[3],
+            "authors": book[4],  # Liste des auteurs
+            "genre_names": book[5],  # Liste des genres
+            "url": bddservice.get_book_cover_url(book[0], book[2])
+        }
+        for book in books
+    ]
 
     return books_data
 
 
 
-
-
-@router.get('/{id_book}', response_model=BookResponse)
+@router.get("/{id_book}", response_model=BookResponse)
 def get_book(id_book: int):
     """
-    Endpoint pour obtenir un livre par son identifiant.
-
-    Cette fonction prend en paramètre l'identifiant d'un livre (id_book) et exécute une requête SQL
-    pour récupérer les détails du livre correspondant. Si le livre n'est pas trouvé, une exception
-    HTTP 404 est levée.
-
-    Args:
-        id_book (int): L'identifiant du livre.
-
-    Returns:
-        BookResponse: Les détails du livre.
+    Endpoint pour obtenir les détails d'un livre spécifique par son ID.
     """
-   
-    query = f"""SELECT 
-                book_id,
-                title,
-                isbn,
-                isbn13,
-                STRING_AGG(DISTINCT author_name, ', ') FILTER (WHERE author_name IS NOT NULL) AS author_name,
-                description,
-                number_of_pages,
-                publisher_name,
-                array_agg(DISTINCT genre_name) FILTER (WHERE genre_name IS NOT NULL) AS genre_names,
-                array_agg(DISTINCT award_name) FILTER (WHERE award_name IS NOT NULL) AS award_names,
-                rating_count,
-                average_rating
-            FROM library.book_view
-            WHERE book_id = {id_book}
+
+    query = """
+        WITH book_data AS (
+            SELECT 
+                b.book_id,
+                b.title,
+                b.isbn,
+                b.isbn13,
+                a.name AS author_name,
+                b.description,
+                b.number_of_pages,
+                p.name AS publisher_name,
+                array_agg(DISTINCT g.name) AS genre_names,
+                array_agg(DISTINCT aw.name) AS award_names,
+                rb.rating_count,
+                rb.average_rating
+            FROM library.book b
+            LEFT JOIN library.wrote w ON b.book_id = w.book_id
+            LEFT JOIN library.author a ON w.author_id = a.author_id
+            LEFT JOIN library.publisher p ON b.publisher_id = p.publisher_id
+            LEFT JOIN library.genre_and_vote Gav ON b.book_id = Gav.book_id
+            LEFT JOIN library.genre g ON Gav.genre_id = g.genre_id
+            LEFT JOIN library.Award_of_book ba ON b.book_id = ba.book_id
+            LEFT JOIN library.award aw ON ba.award_id = aw.award_id
+            LEFT JOIN library.rating_book rb ON b.book_id = rb.book_id
+            WHERE b.book_id = %s
             GROUP BY 
-                book_id, title, isbn, isbn13, description, 
-                number_of_pages, publisher_name, rating_count, average_rating;
-           """
-    
-    bddservice.initialize_connection()
-    books = bddservice.cmd_sql(query)
-    if not books:
-        raise HTTPException(status_code=500, detail="Livre non trouvé")
+                b.book_id, 
+                b.title, 
+                author_name,
+                b.isbn, 
+                b.isbn13, 
+                b.description,
+                b.number_of_pages, 
+                p.name, 
+                rb.rating_count, 
+                rb.average_rating
+        )
+        SELECT * FROM book_data;
+    """
 
-    book = books[0] 
+    try:
+        books = bddservice.cmd_sql(query, (id_book,))
 
-    return {
-        "id": book[0],
-        "title": decodeur.decode(book[1]),
-        "isbn13": book[3],  
-        "author_name": decodeur.decode(book[4]),
-        "description": decodeur.decode(book[5]),
-        "number_of_pages": book[6],
-        "publisher_name": decodeur.decode(book[7]),
-        "genre_names": book[8],
-        "award_names": decodeur.decode(book[9]),
-        "rating_count": book[10],
-        "average_rating": book[11],  
-        "url": bddservice.get_book_cover_url(book[0], book[3]),
-    }
+        if not books:
+            raise HTTPException(status_code=404, detail=f"Aucun livre trouvé avec l'ID : {id_book}")
+
+        book = books[0]  # Un seul livre retourné
+
+        return {
+            "id": book[0],
+            "title": book[1],
+            "isbn": book[2],
+            "isbn13": book[3],
+            "author_name": book[4],
+            "description": book[5],
+            "number_of_pages": book[6],
+            "publisher_name": book[7],
+            "genre_names": book[8],
+            "award_names": book[9],  
+            "rating_count": book[10],
+            "average_rating": book[11],
+            "url": bddservice.get_book_cover_url(book[0], book[2])
+        }
+
+    except DatabaseError as e:
+        logging.error(f"Erreur SQL lors de la récupération du livre {id_book}: {e}")
+        raise HTTPException(status_code=500, detail="Erreur interne du serveur lors de la récupération du livre.")
+
+    except Exception as e:
+        logging.error(f"Erreur inattendue: {e}")
+        raise HTTPException(status_code=500, detail="Une erreur inattendue est survenue.")
 
 
 @router.get("/topbook/{nbook}", response_model=List[BookResponse])

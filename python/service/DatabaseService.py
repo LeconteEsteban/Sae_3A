@@ -156,23 +156,31 @@ class DatabaseService:
             print(f"Erreur lors de l'insertion dans la table {table} : {e}")
             raise
 
-    def select_sql(self, table):
+    def select_sql(self, query, params=None, as_dataframe=False):
         """
-        Récupère les données d'une table et les retourne sous forme de DataFrame.
+        Exécute une requête SELECT et retourne les résultats.
+
+        Args:
+            query (str): La requête SQL à exécuter.
+            params (tuple, optional): Les paramètres pour la requête SQL.
+            as_dataframe (bool, optional): Retourner un DataFrame si True, sinon une liste.
+
+        Returns:
+            list | pd.DataFrame: Résultats sous forme de liste de tuples ou de DataFrame.
         """
         try:
-            # Exécuter la requête SQL
-            self.cursor.execute(f"SELECT * FROM library.{table}")
+            self.cursor.execute(query, params or ())
             rows = self.cursor.fetchall()
-            columns = [desc[0] for desc in self.cursor.description]
-
-            # Convertir en DataFrame
-            df = pd.DataFrame(rows, columns=columns)
-            #print(f"Données récupérées depuis la table {table}.")
-            return df
+            
+            if as_dataframe:
+                columns = [desc[0] for desc in self.cursor.description]
+                return pd.DataFrame(rows, columns=columns)
+            
+            return rows  # Retourne une liste de tuples si as_dataframe=False
         except Exception as e:
-            print(f"Erreur lors de la récupération des données de la table {table} : {e}")
+            print(f"❌ Erreur lors de l'exécution de la requête : {e}")
             raise
+
 
     def execute_query(self, query, values):
         with self.connection.cursor() as cursor:
@@ -232,6 +240,32 @@ class DatabaseService:
         except Exception as e:
             print(f"Erreur lors de l'exécution de la commande SQL : {e}")
             raise
+        
+    def get_user_by_id(self, user_id: int):
+        """
+        Récupère les informations d'un utilisateur par son ID.
+        """
+        try:
+            if not self.connection:  # Vérifie que la connexion est bien initialisée
+                raise HTTPException(status_code=500, detail="Connexion à la base de données non établie.")
+
+            cursor = self.connection.cursor()  # ✅ Utilise le bon attribut
+            cursor.execute("""
+                SELECT user_id, name, age, child, familial_situation, gender, 
+                    cat_socio_pro, lieu_habitation, frequency, book_size, birth_date 
+                FROM library._Users WHERE user_id = %s
+            """, (user_id,))
+            user = cursor.fetchone()
+            cursor.close()  # ✅ Ferme le curseur après utilisation
+
+            if not user:
+                raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+
+            return user
+        except Exception as e:
+            print(f"Erreur lors de la récupération de l'utilisateur: {e}")
+            return None
+
 
     def create_user(self, user: dict):
         """
