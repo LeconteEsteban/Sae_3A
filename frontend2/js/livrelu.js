@@ -47,6 +47,42 @@ document.addEventListener('alpine:init', () => {
             this.extractGenres();
         },
 
+        async moveToWishlist(book) {
+            const userId = localStorage.getItem("user_id");
+            if (!userId) return;
+        
+            // Met à jour l'affichage immédiatement pour un effet instantané
+            this.books = this.books.filter(b => b.id !== book.id);
+            this.booksLike = this.booksLike.filter(b => b.id !== book.id);
+        
+            try {
+                // Supprime des livres lus
+                const deleteResponse = await fetch(`/read/${userId}/${book.id}`, {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" }
+                });
+        
+                if (!deleteResponse.ok) {
+                    console.warn(`Échec de la suppression du livre ${book.id}, statut: ${deleteResponse.status}`);
+                }
+        
+                // Ajoute à la wishlist (avec la bonne route)
+                const addResponse = await fetch(`/wishlist/add/${book.id}/${userId}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                });
+        
+                if (!addResponse.ok) {
+                    throw new Error(`Erreur HTTP! statut: ${addResponse.status}`);
+                }
+        
+            } catch (error) {
+                console.error(`Erreur lors du déplacement du livre ${book.id} en wishlist:`, error);
+            }
+        },
+        
+        
+
         async loadBooks() {
             const userId = localStorage.getItem("user_id");
             if (!userId) return;
@@ -76,10 +112,8 @@ document.addEventListener('alpine:init', () => {
                     return book;
                 }));
         
-                // Fusionner les livres likés et les livres lus
                 const allBooks = mergeBooksById([...books, ...booksLike]);
         
-                // S'assurer que booksLike contient les livres notés
                 this.books = allBooks;
                 this.booksLike = allBooks.filter(book => book.rating > 0);
         
@@ -87,7 +121,6 @@ document.addEventListener('alpine:init', () => {
                 console.error("Erreur lors du chargement des livres :", error);
             }
         },
-        
 
         extractGenres() {
             this.genres = [...new Set(this.books.flatMap(book => book.genre_names))];
@@ -136,6 +169,27 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
+        async removeBook(book) {
+            const userId = localStorage.getItem("user_id");
+            if (!userId) return;
+        
+            try {
+                const response = await fetch(`/read/${userId}/${book.id}`, {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" }
+                });
+        
+                if (!response.ok) throw new Error(`Erreur HTTP! statut: ${response.status}`);
+        
+                // Supprime le livre de la liste
+                this.books = this.books.filter(b => b.id !== book.id);
+                this.booksLike = this.booksLike.filter(b => b.id !== book.id);
+        
+            } catch (error) {
+                console.error(`Erreur lors de la suppression du livre ${book.id} des livres lus:`, error);
+            }
+        },
+
         get filteredBooks() {
             return this.books.filter(book =>
                 (!this.selectedGenre || book.genre_names.includes(this.selectedGenre)) &&
@@ -155,6 +209,8 @@ document.addEventListener('alpine:init', () => {
         }
     }));
 });
+
+
 
 // Fonctions pour récupérer les livres depuis l'API
 async function getReadBooks(userId) {

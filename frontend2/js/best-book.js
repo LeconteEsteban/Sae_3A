@@ -102,9 +102,11 @@ function processBooks(books, genreBooks = []) {
                     description: book.description ? book.description.split('#virgule')[0] : 'Aucune description disponible.',
                     pages: book.number_of_pages || 'Non spécifié',
                     rating: book.average_rating || 'Non spécifié',
-                    publisher: book.publisher_name || 'Non spécifié'
+                    publisher: book.publisher_name || 'Non spécifié',
+                    id: book.id
                 }))
             });
+            
         }
     });
     
@@ -174,6 +176,8 @@ function showBookInfo(book) {
         bookPublisher.textContent = book.publisher;
         bookid.textContent = book.id;
     }
+    onBookChange(book.id);
 }
+
 
 window.onload = fetchBooks;

@@ -105,3 +105,17 @@ svg {
     --background-color3: #636464;
     --text-color: white;
 }
+
+.error-message {
+    color: #d32f2f;
+    font-size: 14px;
+    margin-top: 4px;
+    background: #ffebee;
+    padding: 6px;
+    border-radius: 4px;
+    display: inline-block;
+    width: fit-content;
+}
+.hidden {
+    display: none;
+}

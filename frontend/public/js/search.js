@@ -17,6 +17,8 @@ document.addEventListener("DOMContentLoaded", function () {
             resultsPopup.innerHTML = '<div class="p-2 text-gray-500">Aucun résultat trouvé.</div>';
         } else {
             const maxResults = 100;
+            const query = searchInput.value.trim(); // Récupère la recherche en cours
+    
             books.slice(0, maxResults).forEach(book => {
                 const resultElement = document.createElement('div');
                 resultElement.classList.add('p-4', 'hover:bg-gray-100', 'cursor-pointer', 'flex', 'items-center', 'gap-4');
@@ -25,16 +27,27 @@ document.addEventListener("DOMContentLoaded", function () {
                 const rawDescription = book.description || "Aucune description disponible.";
                 const description = rawDescription.replace(/#virgule/g, ",");
     
+                // Fonction pour mettre en évidence le texte correspondant
+                const highlightText = (text, query) => {
+                    if (!query) return text;
+                    const regex = new RegExp(`(${query})`, "gi");
+                    return text.replace(regex, '<span class="bg-yellow-200">$1</span>');
+                };
+    
+                // Appliquer la mise en surbrillance au titre et à l'auteur
+                const highlightedTitle = highlightText(book.title, query);
+                const highlightedAuthor = book.author_name ? highlightText(book.author_name, query) : "";
+    
                 resultElement.innerHTML = `
                     <img src="${book.url !== "-1" ? book.url : "/static/notfound.jpg"}" alt="Couverture de ${book.title}" class="w-24 h-32 object-cover rounded transition-transform duration-300">
                     <div>
-                        <h3 class="font-semibold">${book.title}</h3>
-                        <p class="text-sm text-gray-600">${book.author_name || ""}</p>
+                        <h3 class="font-semibold">${highlightedTitle}</h3>
+                        <p class="text-sm text-gray-600">${highlightedAuthor}</p>
                         <p class="text-sm text-gray-500 mt-1 overflow-hidden text-ellipsis line-clamp-2 max-h-[3em] leading-[1.5em]">${description}</p>
                     </div>
                 `;
     
-               
+                // Ajouter un événement de clic pour afficher plus d'infos
                 resultElement.addEventListener("click", () => {
                     showPopup(book);
                 });
@@ -44,6 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         resultsPopup.classList.remove('hidden');
     }
+    
     
 
     function showLoading() {
