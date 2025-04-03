@@ -94,7 +94,8 @@ document.addEventListener('alpine:init', () => {
                 ]);
         
                 const bookIds = readData.map(item => item.book_id || Number(item)).filter(id => !isNaN(id));
-                const bookIdsLike = readDataLike.map(item => item.book_id || item);
+                const bookIdsLike = readDataLike.map(item => Number(item.book_id) || Number(item)).filter(id => !isNaN(id));
+
         
                 const books = await Promise.all(bookIds.map(async (bookId) => {
                     const book = await getBookDetails(bookId);

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESCAPE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="/static/js/auth.js"></script>
+    <script type="module" src="/static/js/infosUtilisateurs.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.14.9/dist/cdn.min.js"></script>
+    <!-- <script src="/static/js/wishlist.js"></script> -->
+    <script src="/static/js/searchBar.js"></script>
+    <script defer src="/static/js/ajoutsLivres.js"></script>
+
+
+    <style>
+        /* Positionner la modale par-dessus le header */
+        .glass {
+            background-color: rgb(255, 255, 255);
+            opacity: 0.1;
+            display: contents;
+        }
+
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #ffffff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Card des livres */
+        .book-card {
+            flex: 0 0 auto;
+            width: 120px;
+            text-align: center;
+        }
+
+        .book-card img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .book-card:hover img {
+            transform: scale(1.1);
+        }
+
+        /* Modale centrée avec un z-index supérieur pour être au-dessus du header */
+        #addBookModal {
+            z-index: 9999;
+        }
+
+        .modal-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        /* Ajustement de la barre de recherche à droite */
+        .search-container {
+            display: flex;
+            justify-content: flex-end;
+            gap: 20px;
+        }
+
+        .search-container .search-bar {
+            width: 50%;
+            max-width: 500px;
+        }
+
+        #userInfoModal .bg-gray-800 {
+    color: white;
+}
+
+#userInfoModal p {
+    color: white;
+}
+
+    </style>
+</head>
+
+<body class="bg-gray-300 glass-background">
+    <div id="content" class="flex flex-col min-h-screen">
+        <div class="glass">
+            
+            <nav class="bg-gray-800/80 backdrop-blur-md py-4 px-10 flex items-center justify-between w-full shadow-md z-10 fixed top-0">
+                <div class="w-[20%]"><a href="/static/adminpage.html"><img src="/static/img/bigboss_logo.png" class="w-10 h-auto" alt="Logo BookFlix"></a></div>
+            
+                
+                <!-- Menu Utilisateur -->
+                <div class="header-acc flex items-center justify-end space-x-4 gap-4 w-[20%]">
+                    <a href="/static/adminpage.html" class="hover:text-red-400 text-white">Livres à acheter</a>
+                    <a href="/static/ajoutsLivres.html" class="hover:text-red-400 text-white">Livres à ajouter</a>
+
+                    <!-- GESTION UTILISATEUR -->
+                    <div class="relative" x-data="{ open: false }" >
+                        <template x-if="localStorage.getItem('user_id')">
+                            <div class="flex items-end">
+                                <button @click="open = !open" @click.outside="open = false" class="focus:outline-none br">
+                                    <img src="/static/img/user_icon.png" class="w-8 h-8 rounded-full">
+                                </button>
+                                <div x-show="open" x-cloak x-transition 
+                                class="fixed right-4 top-16 w-48 bg-gray-700 rounded-lg shadow-lg overflow-hidden z-50">
+                            
+                                    <div class="p-2 text-white">
+                                        <p class="text-center font-bold" x-text="JSON.parse(localStorage.getItem('user_data'))?.name"></p>
+                                        <button class="w-full text-left px-4 py-2 hover:bg-gray-600"
+                                            @click="
+                                                localStorage.removeItem('user_id'); 
+                                                localStorage.removeItem('user_data'); 
+                                                localStorage.removeItem('role'); 
+                                                window.location.href = '/static/connexionPageAdmin.html';
+                                            ">
+                                            🚪 Déconnexion
+                                        </button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <template x-if="!localStorage.getItem('user_id')">
+                            <a href="#" id="monCompte" onclick="stockagePagePrecedente()" class="hover:text-red-400 text-white">Connexion</a>
+                        </template>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <section class="p-6 mt-24 flex justify-center">
+            <div class="bg-white shadow-lg rounded-xl p-10 w-full max-w-3xl min-h-[250px] flex flex-col justify-center">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Gestion des livres et des auteurs</h2>
+                <div class="flex justify-center gap-6">
+                    <button id="openModalButton" class="px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold shadow-md hover:bg-blue-500 transition-all">
+                        + Ajouter un livre
+                    </button>
+                    <button id="openAddAuthorModal" class="px-6 py-3 rounded-lg bg-green-600 text-white font-semibold shadow-md hover:bg-green-500 transition-all">
+                        + Ajouter un auteur
+                    </button>
+                </div>
+            </div>
+        </section>
+
+                    <!-- Modal d'ajout de livre -->
+                    <div id="addBookModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+                        <div class="bg-white p-6 rounded-lg w-4/5 max-w-4xl shadow-xl">
+                            <h2 class="text-2xl font-semibold mb-4 text-center">Ajouter un nouveau livre</h2>
+                            <form id="bookForm" class="space-y-4">
+
+                                <!-- Informations générales du livre -->
+                                <div class="grid grid-cols-2 gap-6">
+                                    <div class="space-y-2">
+                                        <label for="bookTitle" class="block text-sm font-medium">Titre du livre</label>
+                                        <input type="text" id="bookTitle" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500" required>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label for="bookIsbn" class="block text-sm font-medium">ISBN</label>
+                                        <input type="text" id="bookIsbn" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label for="bookIsbn13" class="block text-sm font-medium">ISBN-13</label>
+                                        <input type="text" id="bookIsbn13" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label for="bookNumberOfPages" class="block text-sm font-medium">Nombre de pages</label>
+                                        <input type="number" id="bookNumberOfPages" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-6 mt-4">
+                                    <!-- Rechercher un éditeur -->
+                                    <div class="space-y-2">
+                                        <label for="publisherSearch" class="block text-sm font-medium">Éditeur</label>
+                                        <input type="text" id="publisherSearch" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500" placeholder="Rechercher un éditeur..." autocomplete="off" oninput="searchPublishers()">
+                                        <ul id="publisherResults" class="hidden mt-2 max-h-32 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-md"></ul>
+                                        <!-- Conteneur pour les éditeurs sélectionnés -->
+                                        <div id="selectedPublishers" class="mt-2 flex flex-wrap gap-2"></div>
+                                    </div>
+                                
+                                    <!-- Rechercher un award -->
+                                    <div class="space-y-2">
+                                        <label for="awardSearch" class="block text-sm font-medium">Award</label>
+                                        <input type="text" id="awardSearch" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500" placeholder="Rechercher un award..." autocomplete="off" oninput="searchAwards()">
+                                        <ul id="awardResults" class="hidden mt-2 max-h-32 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-md"></ul>
+                                        <!-- Conteneur pour les awards sélectionnés -->
+                                        <div id="selectedAwards" class="mt-2 flex flex-wrap gap-2"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-6 mt-4">
+                                    <!-- Rechercher un auteur -->
+                                    <div class="space-y-2">
+                                        <label for="bookAuthor" class="block text-sm font-medium">Auteur(s)</label>
+                                        <input type="text" id="bookAuthor" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500" placeholder="Rechercher un auteur" autocomplete="off" oninput="searchAuthors()">
+                                        <ul id="authorsList" class="hidden mt-2 max-h-32 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-md"></ul>
+                                        <!-- Conteneur pour les auteurs sélectionnés -->
+                                        <div id="selectedAuthors" class="mt-2 flex flex-wrap gap-2"></div>
+                                    </div>
+                                
+                                    <!-- Rechercher un genre -->
+                                    <div class="space-y-2">
+                                        <label for="bookGenres" class="block text-sm font-medium">Genre(s)</label>
+                                        <input type="text" id="bookGenres" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500" placeholder="Rechercher un genre" autocomplete="off" oninput="searchGenres()">
+                                        <ul id="genresList" class="hidden mt-2 max-h-32 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-md"></ul>
+                                        <!-- Conteneur pour les genres sélectionnés -->
+                                        <div id="selectedGenres" class="mt-2 flex flex-wrap gap-2"></div>
+                                    </div>
+                                </div>
+                                
+
+                                <div class="space-y-2">
+                                    <label for="bookDescription" class="block text-sm font-medium">Description</label>
+                                    <textarea id="bookDescription" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500"></textarea>
+                                </div>
+
+                                <div class="flex justify-end space-x-4 mt-6">
+                                    <button type="button" id="closeModalButton" class="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg">Annuler</button>
+                                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500">Ajouter le livre</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    
+
+<!-- Modale d'ajout d'auteur -->
+<div id="addAuthorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-lg w-1/3 shadow-xl">
+        <h2 class="text-2xl font-semibold mb-4 text-center">Ajouter un nouvel auteur</h2>
+        <form id="authorForm" class="space-y-4">
+            <div class="space-y-2">
+                <label for="authorName" class="block text-sm font-medium">Nom</label>
+                <input type="text" id="authorName" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <div class="space-y-2">
+                <label for="authorBirthplace" class="block text-sm font-medium">Lieu de naissance</label>
+                <input type="text" id="authorBirthplace" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <div class="flex justify-end space-x-4 mt-6">
+                <button type="button" id="closeAuthorModalButton" class="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg">Annuler</button>
+                <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500">Ajouter l'auteur</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+                    
+
+        </section>
+    </div>
+
+</body>
+</html>

@@ -9,6 +9,7 @@
     <script type="module" src="/static/js/livrelu.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script type="module" src="/static/js/infosUtilisateurs.js"></script>
+    <script src="/static/js/searchBar.js"></script>
 </head>
 <style>
     /* .glass-background {
@@ -127,6 +128,11 @@
     transform: scale(1.1);
 }
 
+.no-hover:hover {
+    transform: none !important;
+}
+
+
 
 </style>
 <body class="bg-gray-900 text-white glass-background">
@@ -138,8 +144,14 @@
                 
                 <!-- Barre de recherche -->
                 <div class="flex-1 flex justify-center w-[60%]">
-                    <input type="text" placeholder="Rechercher..."
+                    <div class="relative w-full max-w-lg">
+                        <input type="text" id="search-input" placeholder="Rechercher par titre ou par auteur"
                         class="w-full max-w-lg px-4 py-2 rounded-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400 bg-gray-700 text-white">
+                    
+                        <button id="search-button" type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white">
+                            🔍
+                        </button>                        
+                    </div>
                 </div>
 
                 <!-- Menu Utilisateur -->
@@ -228,6 +240,13 @@
                 <!-- Liste des livres lus -->
                 <h2 class="text-xl font-bold mb-4">Livres lus</h2>
                 <div id="livreLu" class="hoverBook flex overflow-x-auto space-x-4 p-4 bg-gray-800 rounded-lg h-[450px]">
+                    <template x-if="filteredBooks.length === 0">
+                        <div class="flex justify-center items-center w-full text-center text-white p-4 rounded-lg no-hover">
+                            <span class="text-lg font-medium">Vous n'avez pas encore de livres lus.</span>
+                        </div>
+                    </template>
+                    
+                    
                     <template x-for="book in filteredBooks" :key="book.id">
                         <div class="book-card flex flex-col items-center w-[120px] relative">
                             <img :src="book.url !== '-1' ? book.url : '/static/notfound.jpg'" 
@@ -271,27 +290,35 @@
 
 
 
-            
+
                 <!-- Liste des livres likés -->
                 <h2 class="text-xl font-bold mb-4 mt-6">Livres likés</h2>
                 <div id="livrelike" class="hoverBook flex overflow-x-auto space-x-4 p-4 bg-gray-800 rounded-lg h-[450px]">
+                    <template x-if="filteredBooksLike.length === 0">
+                        <div class="flex justify-center items-center w-full text-center text-white p-4 rounded-lg no-hover">
+                            <span class="text-lg font-medium">Vous n'avez pas encore de livres notés.</span>
+                        </div>
+                    </template>
                     <template x-for="book in filteredBooksLike" :key="book.id">
                         <div class="book-card flex flex-col items-center w-[120px]">
                             <img :src="book.url !== '-1' ? book.url : '/static/notfound.jpg'" 
-                                 alt="Couverture de livre" 
-                                 class="w-[100px] h-[150px] object-cover rounded-lg shadow-md">
+                                alt="Couverture de livre" 
+                                class="w-[100px] h-[150px] object-cover rounded-lg shadow-md">
                             <h3 class="text-sm text-center mt-2 font-medium w-full h-[100px] overflow-hidden text-ellipsis whitespace-normal line-clamp-5"
                                 x-text="book.title"></h3>
 
-                                <button @click="removeRating(book)" class="mt-3 px-3 py-1 rounded-full bg-red-500 hover:bg-red-700 text-white flex items-center space-x-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                    <span>Retirer la note</span>
-                                </button>
+                            <button @click="removeRating(book)" class="mt-3 px-3 py-1 rounded-full bg-red-500 hover:bg-red-700 text-white flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                <span>Retirer la note</span>
+                            </button>
                         </div>
                     </template>
                 </div>
+
+
+
             </section>
             
 

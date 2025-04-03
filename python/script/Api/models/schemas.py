@@ -16,6 +16,20 @@ class BookResponse(BaseModel):
     average_rating: Optional[float] = None
     url: Optional[str] = None
 
+
+class BookRequest(BaseModel):
+    title: str
+    isbn: str
+    isbn13: Optional[str] = None
+    description: Optional[str] = None
+    number_of_pages: Optional[int] = None
+    publisher_ids: Optional[List[int]] = [] 
+    author_ids: Optional[List[int]] = []
+    genre_ids: Optional[List[int]] = []    
+    award_ids: Optional[List[int]] = []    
+
+
+
 class RecommendationReponse(BaseModel):
     id: int
     title: str
@@ -31,7 +45,11 @@ class AuthorReponse(BaseModel):
     birthplace: Optional[str] = None
     authorRating: Optional[float] = None
     BooksWritten: Optional[List[Optional[int]]] = None
-    
+
+class AuthorRequest(BaseModel):
+    name: str
+    birthplace: Optional[str] = None
+
 
 class SeriesReponse(BaseModel):
     id: int
@@ -51,7 +69,6 @@ class UserCreate(BaseModel):
     book_size: str
     birth_date: str
 
-
 class UserLogin(BaseModel):
     username: str
     password: str
@@ -68,3 +85,12 @@ class UserResponse(BaseModel):
     frequency: str
     book_size: str
     birth_date: date
+
+
+class PublisherResponse(BaseModel):
+    id: int
+    name: str
+
+class AwardResponse(BaseModel):
+    id: int
+    name: str

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from routers import recommendations, books, authors, series, users, wishliste, reviews, genres, read
+from routers import recommendations, books, authors, series, users, wishliste, reviews, genres, read, statistique, awards, publishers
 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -26,6 +26,9 @@ app.include_router(series.router, prefix="/series")
 app.include_router(genres.router, prefix="/genres")
 app.include_router(reviews.router, prefix="/reviews")
 app.include_router(read.router, prefix="/read")
+app.include_router(statistique.router, prefix="/statistique")
+app.include_router(awards.router, prefix="/awards")
+app.include_router(publishers.router, prefix="/publishers")
 app.include_router(wishliste.router)
 app.include_router(users.router)
 # Monter le dossier des fichiers statiques (HTML, CSS, JS, images)

@@ -7,7 +7,6 @@ from .connection_bdd import host, port, user, password, database, connectdb
 import requests
 from fastapi import HTTPException
 
-
 class DatabaseService:
     """
     Service pour gérer les interactions avec la base de données.
@@ -215,10 +214,7 @@ class DatabaseService:
     
     def cmd_sql(self, query, params=None):
         """
-        Exécute une commande SQL.
-        - Pour les commandes `SELECT`, retourne les résultats.
-        - Pour les autres commandes (`INSERT`, `UPDATE`, `DELETE`), effectue la commande sans attendre de résultat.
-        - `params` : Un tuple ou une liste de paramètres pour les requêtes paramétrées.
+        Exécute une commande SQL avec un timeout.
         """
         try:
             if params:
@@ -236,7 +232,7 @@ class DatabaseService:
                 return self.cursor.fetchall()
             # Pour les autres requêtes (DELETE, INSERT, etc.)
             self.connection.commit()
-            #print("Commande SQL exécutée avec succès.")
+            print("Commande SQL exécutée avec succès.")
         except Exception as e:
             print(f"Erreur lors de l'exécution de la commande SQL : {e}")
             raise
@@ -249,14 +245,14 @@ class DatabaseService:
             if not self.connection:  # Vérifie que la connexion est bien initialisée
                 raise HTTPException(status_code=500, detail="Connexion à la base de données non établie.")
 
-            cursor = self.connection.cursor()  # ✅ Utilise le bon attribut
+            cursor = self.connection.cursor()  
             cursor.execute("""
                 SELECT user_id, name, age, child, familial_situation, gender, 
                     cat_socio_pro, lieu_habitation, frequency, book_size, birth_date 
                 FROM library._Users WHERE user_id = %s
             """, (user_id,))
             user = cursor.fetchone()
-            cursor.close()  # ✅ Ferme le curseur après utilisation
+            cursor.close() 
 
             if not user:
                 raise HTTPException(status_code=404, detail="Utilisateur introuvable")
@@ -265,6 +261,25 @@ class DatabaseService:
         except Exception as e:
             print(f"Erreur lors de la récupération de l'utilisateur: {e}")
             return None
+
+    def get_all_user_ids(self):
+        """
+        Récupère la liste de tous les ID des utilisateurs.
+        """
+        try:
+            if not self.connection:
+                raise HTTPException(status_code=500, detail="Connexion à la base de données non établie.")
+
+            with self.connection.cursor() as cursor:
+                cursor.execute("SELECT user_id FROM library._Users")
+                users = cursor.fetchall()  # Récupérer tous les utilisateurs sous forme de liste de tuples
+
+            return [user[0] for user in users]  # Extraire uniquement les ID sous forme de liste
+        except Exception as e:
+            print(f"Erreur lors de la récupération des utilisateurs : {e}")
+            return None
+
+
 
 
     def create_user(self, user: dict):
@@ -330,6 +345,53 @@ class DatabaseService:
             # Optionnel: fermer le curseur si nécessaire
             pass
 
+    def add_author(self, author: dict):
+        """
+        Crée un nouvel auteur dans la base de données.
+        """
+        if not self.connection:
+            raise HTTPException(status_code=500, detail="La connexion à la base de données n'est pas établie.")
+        
+        # Vérifier si l'auteur existe déjà
+        check_query = """
+        SELECT author_id
+        FROM library.author
+        WHERE name = %s AND birthplace = %s;
+        """
+        try:
+            self.cursor.execute(check_query, (author["name"], author["birthplace"]))
+            existing_author = self.cursor.fetchone()
+            
+            if existing_author:
+                raise HTTPException(status_code=400, detail="L'auteur existe déjà.")
+
+            # Si l'auteur n'existe pas, insérer un nouvel auteur
+            insert_query = """
+            INSERT INTO library.author (name, birthplace)
+            VALUES (%s, %s)
+            RETURNING author_id;
+            """
+            values = [author["name"], author["birthplace"]]
+            
+            # Exécuter la requête d'insertion
+            self.cursor.execute(insert_query, values)
+            self.connection.commit()
+
+            # Récupérer l'ID de l'auteur inséré
+            result = self.cursor.fetchone()
+            return result[0]  # Retourner l'ID de l'auteur créé
+
+        except HTTPException as http_exc:
+            raise http_exc  
+        
+        except Exception as e:
+            # Annuler la transaction en cas d'erreur
+            self.connection.rollback()
+            print(f"Erreur lors de l'ajout de l'auteur : {e}")
+            raise HTTPException(status_code=500, detail="Erreur lors de l'ajout de l'auteur.")
+
+
+
     def authenticate_user(self, username: str, password: str):
         """
         Authentifie un utilisateur en vérifiant les informations de connexion.
@@ -358,6 +420,111 @@ class DatabaseService:
             # Optionnel, tu pourrais fermer le curseur ici, mais cela dépend de ta gestion des connexions.
             pass
 
+    def add_book(self, book: dict):
+        """
+        Ajoute un livre dans la base de données, ainsi que ses relations avec les auteurs, genres, et prix.
+        """
+        if not self.connection:
+            raise HTTPException(status_code=500, detail="La connexion à la base de données n'est pas établie.")
+        
+        try:
+            print(f"Vérification de l'existence du livre : {book['title']}, {book['isbn']}")
+            # Vérifier si le livre existe déjà
+            check_query = """
+            SELECT book_id FROM library.book WHERE title = %s AND isbn = %s;
+            """
+            self.cursor.execute(check_query, (book["title"], book["isbn"]))
+            existing_book = self.cursor.fetchone()
+            
+            if existing_book:
+                print(f"Le livre existe déjà : {book['title']}, {book['isbn']}")
+                raise HTTPException(status_code=400, detail="Le livre existe déjà.")
+            
+            # Insérer le livre dans la table book
+            print(f"Insérer le livre dans la base de données : {book['title']}, {book['isbn']}")
+            insert_query = """
+            INSERT INTO library.book (title, isbn, isbn13, description, number_of_pages, publisher_name)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING book_id;
+            """
+            values = [
+                book["title"], 
+                book["isbn"], 
+                book["isbn13"], 
+                book["description"], 
+                book["number_of_pages"], 
+                book["publisher_name"]
+            ]
+            
+            self.cursor.execute(insert_query, values)
+            self.connection.commit()
+            
+            # Récupérer l'ID du livre
+            result = self.cursor.fetchone()
+            book_id = result[0]  # ID du livre inséré
+            print(f"Livre inséré avec succès, ID : {book_id}")
+
+            # Ajouter les auteurs, genres et awards
+            if book["author_name"]:
+                print(f"Ajout des auteurs pour le livre ID : {book_id}")
+                self.add_authors_to_book(book_id, book["author_name"])
+            
+            if book["genre_names"]:
+                print(f"Ajout des genres pour le livre ID : {book_id}")
+                self.add_genres_to_book(book_id, book["genre_names"])
+            
+            if book["award_names"]:
+                print(f"Ajout des awards pour le livre ID : {book_id}")
+                self.add_awards_to_book(book_id, book["award_names"])
+
+            return book_id
+
+        except HTTPException as http_exc:
+            print(f"Erreur HTTP : {http_exc.detail}")
+            raise http_exc  
+        
+        except Exception as e:
+            self.connection.rollback()
+            print(f"Erreur lors de l'ajout du livre : {e}")
+            raise HTTPException(status_code=500, detail="Erreur lors de l'ajout du livre.")
+
+        
+    def add_authors_to_book(self, book_id, author_names):
+        """
+        Ajoute les auteurs au livre dans la table `wrote`.
+        """
+        for author_name in author_names:
+            author_query = """
+            INSERT INTO library.wrote (book_id, author_id)
+            SELECT %s, author_id FROM library.author WHERE name = %s
+            """
+            self.cursor.execute(author_query, (book_id, author_name))
+            self.connection.commit()
+
+    def add_genres_to_book(self, book_id, genre_names):
+        """
+        Ajoute les genres au livre dans la table `genre_and_vote`.
+        """
+        for genre_name in genre_names:
+            genre_query = """
+            INSERT INTO library.genre_and_vote (book_id, genre_id)
+            SELECT %s, genre_id FROM library.genre WHERE name = %s
+            """
+            self.cursor.execute(genre_query, (book_id, genre_name))
+            self.connection.commit()
+
+    def add_awards_to_book(self, book_id, award_names):
+        """
+        Ajoute les awards au livre dans la table `Award_of_book`.
+        """
+        for award_name in award_names:
+            award_query = """
+            INSERT INTO library.Award_of_book (book_id, award_id)
+            SELECT %s, award_id FROM library.award WHERE name = %s
+            """
+            self.cursor.execute(award_query, (book_id, award_name))
+            self.connection.commit()
+       
     def get_book_cover_url(self, book_id: int, isbn: str):
         try:
             if isbn is None or isbn.strip() == "":

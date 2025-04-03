@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const searchButton = document.getElementById("search-button");
 
     function saveSearch() {
+        if (!searchInput) return;
+
         const query = searchInput.value.trim();
         if (query !== "") {
             localStorage.setItem("searchQuery", query);
@@ -11,11 +13,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    searchButton.addEventListener("click", saveSearch);
+    if (searchButton) {
+        searchButton.addEventListener("click", saveSearch);
+    }
 
-    searchInput.addEventListener("keypress", function (event) {
-        if (event.key === "Enter") {
-            saveSearch();
-        }
-    });
+    if (searchInput) {
+        searchInput.addEventListener("keypress", function (event) {
+            if (event.key === "Enter") {
+                saveSearch();
+            }
+        });
+    }
 });

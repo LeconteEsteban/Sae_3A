@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESCAPE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="/static/js/infosUtilisateurs.js"></script>
+    <script type="module" src="/static/js/auth.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="/static/js/wishlist.js"></script>
+    <script src="/static/js/searchBar.js"></script>
+    <script src="/static/js/prediVente.js"></script>
+
+    <style>
+        /* .glass-background {
+            background-image: url("static/img/bc.jpeg");
+            background-repeat: no-repeat;
+            background-size: cover;
+            backdrop-filter: blur(5px);
+        }
+        .glass-background::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+        .glass-background * {
+            z-index: 2;
+        } */
+        .glass {
+            background-color: rgb(255, 255, 255);
+            opacity: 0.1;
+            display: contents;
+        }
+    
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #ffffff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hoverBook {
+            height: 282px;
+            align-items: center;
+            overflow-y: auto;
+            scrollbar-width: thin; 
+            scrollbar-color: white transparent; 
+            scrollbar-width: initial;
+        }
+    
+    
+        .hoverBook div:hover {
+            transform: scale(1.1);
+        }
+    
+        .hoverBook::-webkit-scrollbar {
+            width: 30px;
+        }
+    
+        .hoverBook::-webkit-scrollbar-track {
+            background: white; 
+            border-radius: 10px;
+        }
+    
+        .hoverBook::-webkit-scrollbar-thumb {
+            background: #2a2a2a; 
+            border-radius: 10px;
+            transition: background 0.3s;
+        }
+    
+        .hoverBook::-webkit-scrollbar-thumb:hover {
+            background: #2a2a2a; 
+        }
+        
+    
+        .hoverBook {
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        padding-bottom: 10px;
+    }
+    
+    /* Personnalisation de la scrollbar */
+    .hoverBook::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .hoverBook::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .hoverBook::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+    
+    .hoverBook::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+    
+    .book-card {
+        flex: 0 0 auto;
+        width: 120px;
+        text-align: center;
+    }
+    
+    .book-card img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 8px;
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    .book-card:hover img {
+        transform: scale(1.1);
+    }
+    
+    
+    </style>
+</head>
+<body class="bg-gray-300 glass-background">
+
+    <div id="content" class="min-h-screen">
+        <div class="glass">
+            <nav class="bg-gray-800/80 backdrop-blur-md py-4 px-10 flex items-center justify-between w-full shadow-md z-10 fixed top-0">
+                <div class="w-[20%]"><a href="/static/adminpage.html"><img src="/static/img/bigboss_logo.png" class="w-10 h-auto" alt="Logo BookFlix"></a></div>
+            
+                
+                <!-- Menu Utilisateur -->
+                <div class="header-acc flex items-center justify-end space-x-4 gap-4 w-[20%]">
+                    <a href="/static/adminpage.html" class="hover:text-red-400 text-white">Livres à acheter</a>
+                    <a href="/static/ajoutsLivres.html" class="hover:text-red-400 text-white">Livres à ajouter</a>
+
+                    <!-- GESTION UTILISATEUR -->
+                    <div class="relative" x-data="{ open: false }" >
+                        <template x-if="localStorage.getItem('user_id')">
+                            <div class="flex items-end">
+                                <button @click="open = !open" @click.outside="open = false" class="focus:outline-none br">
+                                    <img src="/static/img/user_icon.png" class="w-8 h-8 rounded-full">
+                                </button>
+                                <div x-show="open" x-cloak x-transition 
+                                class="fixed right-4 top-16 w-48 bg-gray-700 rounded-lg shadow-lg overflow-hidden z-50">
+                            
+                                    <div class="p-2 text-white">
+                                        <p class="text-center font-bold" x-text="JSON.parse(localStorage.getItem('user_data'))?.name"></p>
+                                        <button class="w-full text-left px-4 py-2 hover:bg-gray-300"
+                                            @click="
+                                                localStorage.removeItem('user_id'); 
+                                                localStorage.removeItem('user_data'); 
+                                                localStorage.removeItem('role'); 
+                                                window.location.href = '/static/connexionPageAdmin.html';
+                                            ">
+                                            🚪 Déconnexion
+                                        </button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <template x-if="!localStorage.getItem('user_id')">
+                            <a href="#" id="monCompte" onclick="stockagePagePrecedente()" class="hover:text-red-400 text-white">Connexion</a>
+                        </template>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <section class="p-6 mt-20" x-data="{
+            totalBooksToBuy: 10000, 
+            books: [], 
+            filteredBooks: [],
+            genres: [],
+            selectedGenre: '',
+            selectedRating: 1,
+            sortOrder: 'asc', // 'asc' pour croissant, 'desc' pour décroissant
+            loading: false, // Ajout de la variable 'loading'
+            async fetchBooks() {
+                this.loading = true; // Activation du chargement
+                try {
+                    // Appel de la fonction calculateBookPurchases avec le nombre de livres à acheter
+                    const bookPurchases = await calculateBookPurchases(this.totalBooksToBuy);
+                    this.books = bookPurchases;
+                    this.filteredBooks = this.books; // Initialisation des livres filtrés
+        
+                    // Récupération des genres uniques à partir des livres
+                    this.genres = [...new Set(this.books.flatMap(book => {
+                        // Vérification si 'book.genre' est une chaîne de caractères avant de le découper
+                        if (typeof book.genre === 'string') {
+                            return book.genre.split(',').map(g => g ? g.trim() : '').filter(g => g); // Séparation et nettoyage des genres
+                        } else if (Array.isArray(book.genre)) {
+                            return book.genre.map(g => g ? g.trim() : '').filter(g => g); // Si c'est un tableau, on garde chaque genre
+                        }
+                        return []; // Si genre n'est pas une chaîne ou un tableau, on renvoie un tableau vide
+                    }))];
+                } catch (error) {
+                    console.error('Erreur lors du calcul des livres à acheter :', error);
+                } finally {
+                    this.loading = false; // Désactivation du chargement
+                }
+            },
+            filterBooks() {
+                this.filteredBooks = this.books
+                    .filter(book => {
+                        // Vérification du genre
+                        const matchesGenre = this.selectedGenre ? 
+                        (book.genre && 
+                        (Array.isArray(book.genre) 
+                            ? book.genre.filter(g => g && typeof g === 'string').map(g => g.trim()).includes(this.selectedGenre) // Filtrer les genres invalides avant de les trim()
+                            : typeof book.genre === 'string' && book.genre.split(',').map(g => g.trim()).includes(this.selectedGenre)
+                        )) 
+                        : true;
+                    
+                        // Vérification de la note
+                        const matchesRating = book.rating && parseFloat(book.rating) >= this.selectedRating;
+        
+                        return matchesGenre && matchesRating;
+                    })
+                    .sort((a, b) => {
+                        if (this.sortOrder === 'asc') {
+                            return a.title.localeCompare(b.title); // Trie par titre alphabétique ascendant
+                        } else {
+                            return b.title.localeCompare(a.title); // Trie par titre alphabétique descendant
+                        }
+                    });
+            }
+        }">
+            <!-- Conteneur pour l'input et le bouton, alignés horizontalement -->
+            <div class="flex items-center space-x-4 mb-4">
+                <button 
+                    @click="fetchBooks" 
+                    class="px-4 py-2 rounded bg-gray-700 border border-gray-600 text-white hover:bg-gray-600">
+                    Charger les livres
+                </button>
+                <div class="flex items-center space-x-4">
+                    <input 
+                        type="number" 
+                        id="totalBooks" 
+                        min="10" 
+                        x-model="totalBooksToBuy" 
+                        class="px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400"
+                    />
+                </div>
+            </div>
+        
+            <!-- Filtrage et tri visible après avoir chargé les livres -->
+            <div x-show="books.length > 0" x-transition class="flex flex-col space-y-4 mb-4">
+                <!-- Alignement horizontal des filtres -->
+                <div class="flex space-x-4">
+                    <!-- Filtrer par genre -->
+                    <select 
+                        x-model="selectedGenre" 
+                        @change="filterBooks"
+                        class="px-4 py-2 rounded bg-gray-700 text-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400">
+                        <option value="">Tous les genres</option>
+                        <template x-for="genre in genres" :key="genre">
+                            <option :value="genre" x-text="genre"></option>
+                        </template>
+                    </select>
+        
+                    <!-- Filtrer par note -->
+                    <select 
+                        x-model="selectedRating" 
+                        @change="filterBooks"
+                        class="px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400">
+                        <option value="1">Note 1</option>
+                        <option value="2">Note 2</option>
+                        <option value="3">Note 3</option>
+                        <option value="4">Note 4</option>
+                        <option value="5">Note 5</option>
+                    </select>
+        
+                    <!-- Trier par ordre -->
+                    <div>
+                        <button 
+                            @click="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'; filterBooks"
+                            class="px-4 py-2 rounded bg-gray-700 border border-gray-600 text-white hover:bg-gray-300">
+                            Trier par titre (<span x-text="sortOrder === 'asc' ? 'Ascendant' : 'Descendant'"></span>)
+                        </button>
+                    </div>
+                </div>
+        
+            </div>
+        
+            <!-- Affichage des livres -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 mt-4">
+                <template x-for="(book, index) in filteredBooks" :key="index">
+                    <div class="book-card flex flex-col items-center w-full p-2 bg-gray-700 rounded-lg shadow-md">
+                        <img :src="book.url" alt="Couverture du livre" class="w-full h-40 object-cover rounded-md">
+                        <h3 class="text-sm text-center mt-2 font-medium" x-text="book.title"></h3>
+                        <p class="text-xs text-yellow-400" x-text="'Note: ' + book.rating"></p>
+                        <p class="text-xs text-red-400" x-text="'À acheter: ' + book.count"></p>
+                    </div>
+                </template>                
+            </div>
+        </section>
+        
+        
+    </div>
+</body>
+
+
+
+
+</html>

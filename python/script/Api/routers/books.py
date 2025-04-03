@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi import Query
 from typing import List
 from typing import Optional
-from models.schemas import BookResponse
+from models.schemas import BookResponse, BookRequest
 from sqlalchemy.sql import text
 from services.servicebdd import bddservice, recommendation_service, recommendation_hybride, decodeur
 from psycopg2 import DatabaseError
@@ -108,7 +108,6 @@ def get_books_by_genre(genre_name: str, limit: int = Query(30, ge=1, le=100)):
         List[BookResponse]: Une liste de livres correspondant au genre.
     """
 
-    # Vérification de l'entrée utilisateur
     if not genre_name or genre_name.strip() == "":
         raise HTTPException(status_code=400, detail="Le nom du genre ne peut pas être vide.")
 
@@ -191,66 +190,189 @@ def get_books_by_genre(genre_name: str, limit: int = Query(30, ge=1, le=100)):
 
 logging.basicConfig(level=logging.DEBUG)
 
-@router.get("/search", response_model=List[BookResponse])
-def search_books(query: Optional[str] = None, skip: int = 0, limit: int = 10, genres: Optional[str] = Query(None)):
+
+@router.post("/add")
+def add_book(book: BookRequest):
     """
-    Endpoint pour rechercher des livres par titre ou auteur sans doublons et avec filtrage par genres.
+    Endpoint pour ajouter un livre dans la base de données.
     """
-    if not query:
-        raise HTTPException(status_code=400, detail="Query parameter is required")
+    try:
+        print(f"Initialisation de la connexion à la base de données")
+        bddservice.initialize_connection()
 
-    # Traitement des genres si fournis
-    genre_list = genres.split(",") if genres else []
+        # Vérifier si le livre existe déjà
+        check_query = """
+        SELECT book_id FROM library.book WHERE title = %s AND isbn = %s
+        """
+        print(f"Vérification de l'existence du livre : {book.title}, {book.isbn}")
+        existing_book = bddservice.cmd_sql(check_query, (book.title, book.isbn))
+        if existing_book:
+            print(f"Le livre existe déjà : {book.title}, {book.isbn}")
+            raise HTTPException(status_code=400, detail="Le livre existe déjà.")
 
-    # Construction de la requête SQL
-    query_sql = """
-        SELECT DISTINCT bv.book_id, bv.title, bv.isbn13, bv.description,
-                        array_agg(DISTINCT a.name) AS authors,
-                        array_agg(DISTINCT bv.genre_name) FILTER (WHERE bv.genre_name IS NOT NULL) AS genre_names
-        FROM library.book_view bv
-        LEFT JOIN library.wrote w ON bv.book_id = w.book_id 
-        LEFT JOIN library.author a ON w.author_id = a.author_id
-        WHERE (bv.title ILIKE %s OR a.name ILIKE %s)
-    """
+        # Insérer le livre dans la base de données
+        insert_book_query = """
+            INSERT INTO library.book (title, isbn, isbn13, description, number_of_pages, publisher_id)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        print(f"Exécution de l'insertion du livre : {book.title}, {book.isbn}")
+        # Insère aussi publisher_id si disponible
+        bddservice.cmd_sql(insert_book_query, (book.title, book.isbn, book.isbn13, book.description, book.number_of_pages, book.publisher_ids[0] if book.publisher_ids else None))
 
-    # Ajout des conditions pour le filtrage par genre
-    params = [f"%{query}%", f"%{query}%"]
-    if genre_list:
-        genre_conditions = " OR ".join(["bv.genre_name ILIKE %s" for _ in genre_list])
-        query_sql += f" AND ({genre_conditions})"
-        params.extend([f"%{genre}%" for genre in genre_list])
 
-    # Ajout du GROUP BY pour éviter les doublons
-    query_sql += " GROUP BY bv.book_id, bv.title, bv.isbn13, bv.description"
+        # Récupérer l'ID du livre inséré
+        select_book_id_query = """
+        SELECT book_id FROM library.book WHERE isbn = %s AND title = %s
+        """
+        print(f"Récupération de l'ID du livre après insertion : {book.title}, {book.isbn}")
+        book_id_result = bddservice.cmd_sql(select_book_id_query, (book.isbn, book.title))
+        print(book_id_result)
 
-    # Ajout des limites et pagination
-    query_sql += " LIMIT %s OFFSET %s;"
-    params.extend([limit, skip])
+        if not book_id_result or not book_id_result[0]:
+            print(f"Erreur lors de la récupération de l'ID du livre : {book.title}")
+            raise HTTPException(status_code=500, detail="Erreur lors de la récupération de l'ID du livre.")
 
-    # Exécution de la requête SQL
-    bddservice.initialize_connection()
-    books = bddservice.cmd_sql(query_sql, params)
+        book_id = book_id_result[0][0]
+        print(f"Livre inséré avec succès, ID : {book_id}")
 
-    if not books:
-        raise HTTPException(status_code=404, detail="No books found matching the query")
 
-    # Transformation des résultats
-    books_data = [
-        {
-            "id": book[0],
-            "title": book[1],
-            "isbn13": book[2],
-            "description": book[3],
-            "authors": book[4],  # Liste des auteurs
-            "genre_names": book[5],  # Liste des genres
-            "url": bddservice.get_book_cover_url(book[0], book[2])
+        # Ajouter les auteurs
+        if book.author_ids:
+            print(f"Ajout des auteurs pour le livre ID : {book_id}")
+            for author_id in book.author_ids:
+                # Vérification de l'existence de l'auteur pour éviter l'ajout de doublons
+                check_author_query = """
+                SELECT 1 FROM library.wrote WHERE book_id = %s AND author_id = %s
+                """
+                existing_author = bddservice.cmd_sql(check_author_query, (book_id, author_id))
+                if not existing_author:  # Si l'auteur n'est pas déjà lié au livre
+                    author_query = """
+                    INSERT INTO library.wrote (book_id, author_id)
+                    VALUES (%s, %s)
+                    """
+                    bddservice.cmd_sql(author_query, (book_id, author_id))
+                else:
+                    print(f"L'auteur ID {author_id} est déjà associé au livre {book_id}")
+
+
+        # Ajouter les genres
+        if book.genre_ids:
+            print(f"Ajout des genres pour le livre ID : {book_id}")
+            for genre_id in book.genre_ids:
+                genre_query = """
+                INSERT INTO library.genre_and_vote (book_id, genre_id)
+                SELECT %s, genre_id FROM library.genre WHERE genre_id = %s
+                """
+                bddservice.cmd_sql(genre_query, (book_id, genre_id))
+
+        # Vérification des awards
+        if isinstance(book.award_ids, str):
+            award_ids = [int(book.award_ids)]  # Convertir en liste d'entiers
+        else:
+            award_ids = [int(award_id) for award_id in book.award_ids]
+
+        if award_ids:
+            print(f"Ajout des awards pour le livre ID : {book_id}")
+            for award_id in award_ids:
+                award_query = """
+                INSERT INTO library.Award_of_book (book_id, award_id)
+                SELECT %s, award_id FROM library.award WHERE award_id = %s
+                """
+                bddservice.cmd_sql(award_query, (book_id, award_id))
+
+        print(f"Livre ajouté avec succès : {book.title}")
+        return {
+            "book_id": book_id,
+            "title": book.title,
+            "isbn": book.isbn,
+            "message": "Livre ajouté avec succès"
         }
-        for book in books
-    ]
 
-    return books_data
+    except Exception as e:
+        print(f"Erreur lors de l'ajout du livre: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur interne du serveur: {str(e)}")
 
 
+
+
+
+
+@router.get("/search/{search_term}", response_model=List[BookResponse])
+def search_books(search_term: str, limit: int = Query(30, ge=1, le=100)):
+    """
+    Endpoint pour rechercher des livres en fonction d'un terme dans le titre ou le nom de l'auteur.
+    """
+    query = """
+        SELECT 
+            b.book_id,
+            b.title,
+            b.isbn,
+            b.isbn13,
+            a.name AS author_name,
+            b.description,
+            b.number_of_pages,
+            p.name AS publisher_name,
+            array_agg(DISTINCT g.name) AS genre_names,
+            array_agg(DISTINCT aw.name) AS award_names,
+            rb.rating_count,
+            rb.average_rating
+        FROM library.book b
+        LEFT JOIN library.wrote w ON b.book_id = w.book_id
+        LEFT JOIN library.author a ON w.author_id = a.author_id
+        LEFT JOIN library.publisher p ON b.publisher_id = p.publisher_id
+        LEFT JOIN library.genre_and_vote Gav ON b.book_id = Gav.book_id
+        LEFT JOIN library.genre g ON Gav.genre_id = g.genre_id
+        LEFT JOIN library.Award_of_book ba ON b.book_id = ba.book_id
+        LEFT JOIN library.award aw ON ba.award_id = aw.award_id
+        LEFT JOIN library.rating_book rb ON b.book_id = rb.book_id
+        WHERE b.title ILIKE %s OR a.name ILIKE %s
+        GROUP BY 
+            b.book_id, 
+            b.title, 
+            author_name,
+            b.isbn, 
+            b.isbn13, 
+            b.description,
+            b.number_of_pages, 
+            p.name, 
+            rb.rating_count, 
+            rb.average_rating
+        LIMIT %s;
+    """
+    search_pattern = f"%{search_term}%"
+    
+    try:
+        books = bddservice.cmd_sql(query, (search_pattern, search_pattern, limit))
+        
+        if not books:
+            raise HTTPException(status_code=404, detail=f"Aucun livre trouvé pour le terme : {search_term}")
+
+        return [
+            {
+                "id": book[0],
+                "title": book[1],
+                "isbn": book[2],
+                "isbn13": book[3],
+                "author_name": book[4],
+                "description": book[5],
+                "number_of_pages": book[6],
+                "publisher_name": book[7],
+                "genre_names": book[8],
+                "award_names": book[9],  
+                "rating_count": book[10],
+                "average_rating": book[11],
+                "url": bddservice.get_book_cover_url(book[0], book[2])
+            }
+            for book in books
+        ]
+
+    except DatabaseError as e:
+        logging.error(f"Erreur SQL lors de la recherche de livres pour le terme {search_term}: {e}")
+        raise HTTPException(status_code=500, detail="Erreur interne du serveur lors de la recherche des livres.")
+
+    except Exception as e:
+        logging.error(f"Erreur inattendue: {e}")
+        raise HTTPException(status_code=500, detail="Une erreur inattendue est survenue.")
 
 @router.get("/{id_book}", response_model=BookResponse)
 def get_book(id_book: int):

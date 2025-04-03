@@ -66,12 +66,13 @@ def login(user: UserLogin):
     try:
         bddservice.initialize_connection()
         authenticated_user = bddservice.authenticate_user(user.username, user.password)
-        if authenticated_user:
+        if authenticated_user and authenticated_user[12] == "user": 
             return {
                 "message": "Connexion réussie",
                 "user": {
                     "user_id": authenticated_user[0],
-                    "name": authenticated_user[1]
+                    "name": authenticated_user[1],
+                    "role": authenticated_user[12],
                 }
             }
         else:
@@ -79,6 +80,41 @@ def login(user: UserLogin):
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail="Erreur lors de la connexion")
+
+@router.post("/api/admin/login")
+def admin_login(user: UserLogin):
+    """
+    Endpoint pour authentifier un administrateur.
+
+    Args:
+        user (UserLogin): Les informations de connexion de l'administrateur.
+
+    Returns:
+        dict: Un message de succès avec les informations de l'administrateur authentifié.
+
+    Raises:
+        HTTPException: Si l'utilisateur n'est pas admin ou si les identifiants sont incorrects.
+    """
+    try:
+        bddservice.initialize_connection()
+        authenticated_user = bddservice.authenticate_user(user.username, user.password)
+
+        if authenticated_user and authenticated_user[12] == "admin": 
+            return {
+                "message": "Connexion admin réussie",
+                "user": {
+                    "user_id": authenticated_user[0],
+                    "name": authenticated_user[1],
+                    "role": authenticated_user[12],
+                }
+            }
+        else:
+            raise HTTPException(status_code=403, detail="Accès refusé : droits administrateur requis")
+
+    except Exception as e:
+        print(f"Erreur lors de la connexion admin: {e}")
+        raise HTTPException(status_code=500, detail="Erreur lors de la connexion admin")
+
 
 
 @router.get("/api/user/{user_id}")
@@ -106,3 +142,17 @@ def get_user_info(user_id: int):
     except Exception as e:
         print(f"Erreur API get_user_info: {e}")
         raise HTTPException(status_code=500, detail="Erreur lors de la récupération de l'utilisateur")
+    
+@router.get("/api/users")
+def get_user_ids():
+    try:
+        user_ids = bddservice.get_all_user_ids()
+
+        if not user_ids:
+            raise HTTPException(status_code=404, detail="Aucun utilisateur trouvé")
+
+        return {"user_ids": user_ids}
+
+    except Exception as e:
+        print(f"Erreur API get_user_ids: {e}")
+        raise HTTPException(status_code=500, detail="Erreur lors de la récupération des IDs utilisateurs")

@@ -6,6 +6,8 @@ async function fetchBooks() {
     const storageTimestampKey = 'booksDataTimestamp';
     const storageTimestampKeyG = 'booksDataTimestampG';
 
+    const userId = localStorage.getItem("user_id");
+
     const storedData = localStorage.getItem(storageKey);
     const storedTimestamp = localStorage.getItem(storageTimestampKey);
     const storedDataG = localStorage.getItem(storageKeyG);
@@ -17,6 +19,7 @@ async function fetchBooks() {
 
     let books = [];
     let genreBooks = [];
+    let reco = [];
 
     if (storedData && storedDataG && storedTimestampG && storedTimestamp && now - parseInt(storedTimestamp) < 30000 && now - parseInt(storedTimestampG) < 30000) { 
         console.log('Données chargées depuis localStorage');
@@ -24,24 +27,25 @@ async function fetchBooks() {
         genreBooks = JSON.parse(storedDataG);
     } else {
         try {
-            // Récupération des livres
+            // Récupération des 30 meilleurs livres
             const response = await fetch('/books/topbook/30');
             books = await response.json();
 
-            // Récupération des genres
             const response_genre = await fetch('/genres/all');
             const genres = await response_genre.json();
-            console.log("Genres disponibles :", genres);
 
-            // Stockage des données dans localStorage
+            if (userId) {
+                const response_reco = await fetch(`/recommandations/item/${userId}/30`);
+                reco = await response_reco.json();
+            }
+
             localStorage.setItem(storageKey, JSON.stringify(books));
             localStorage.setItem(storageTimestampKey, now.toString());
 
             console.log('Données récupérées depuis l’API');
 
-            // Sélectionner 5 genres aléatoirement
             if (genres.length > 0) {
-                const randomGenres = genres.sort(() => 0.5 - Math.random()).slice(0, 5);
+                const randomGenres = genres.sort(() => 0.5 - Math.random()).slice(0, 3);
                 
                 // Effectuer les requêtes pour chaque genre sélectionné
                 const genreFetches = randomGenres.map(async (genre) => {
@@ -69,55 +73,87 @@ async function fetchBooks() {
         }
     }
 
-    processBooks(books, genreBooks);
+    processBooks(books, genreBooks, reco);
 
     document.getElementById("loading").style.display = "none"; 
     document.getElementById("content").style.display = "block";
 }
+function processBooks(books, genreBooks = [], reco = []) {
+    const seenBookIds = new Set(); 
 
+    function filterUniqueBooks(bookList) {
+        return bookList.filter(book => {
+            if (!seenBookIds.has(book.id)) {
+                seenBookIds.add(book.id);
+                return true;
+            }
+            return false;
+        });
+    }
 
-function processBooks(books, genreBooks = []) {
     const categories = [
         {
             name: 'Meilleurs Livres',
-            books: books.map(book => ({
+            books: filterUniqueBooks(books.map(book => ({
                 title: book.title || 'Titre inconnu',
-                image: (book.url === "-1") ? 'static/notfound.jpg' : book.url,  
+                image: (book.url === "-1") ? '/static/notfound.jpg' : book.url,  
                 description: book.description ? book.description.split('#virgule')[0] : 'Aucune description disponible.',
                 pages: book.number_of_pages || 'Non spécifié',
                 rating: book.average_rating || 'Non spécifié',
                 publisher: book.publisher_name || 'Non spécifié',
+                author: book.author_name || 'Auteur inconnu',
+                genres: Array.isArray(book.genre_names) ? book.genre_names.join(', ') : 'Non spécifié',
                 id: book.id
-            }))
+            })))
         }
     ];
-    
+
+    const recoCategory = {
+        name: 'Recommandations',
+        books: filterUniqueBooks(reco.map(book => ({
+            title: book.title || 'Titre inconnu',
+            image: (book.url === "-1") ? '/static/notfound.jpg' : book.url,  
+            description: book.description ? book.description.split('#virgule')[0] : 'Aucune description disponible.',
+            pages: book.number_of_pages || 'Non spécifié',
+            rating: book.average_rating || 'Non spécifié',
+            publisher: book.publisher_name || 'Non spécifié',
+            author: book.author_name || 'Auteur inconnu',
+            genres: Array.isArray(book.genre_names) ? book.genre_names.join(', ') : 'Non spécifié',
+            id: book.id
+        })))
+    };
+
+    const allCategories = [recoCategory, ...categories];
+
     genreBooks.forEach(genreData => {
         if (genreData && genreData.books.length > 0) {
-            categories.push({
+            allCategories.push({
                 name: genreData.genre,
-                books: genreData.books.map(book => ({
+                books: filterUniqueBooks(genreData.books.map(book => ({
                     title: book.title || 'Titre inconnu',
-                    image: (book.url === "-1") ? 'static/notfound.jpg' : book.url,  
+                    image: (book.url === "-1") ? '/static/notfound.jpg' : book.url,  
                     description: book.description ? book.description.split('#virgule')[0] : 'Aucune description disponible.',
                     pages: book.number_of_pages || 'Non spécifié',
                     rating: book.average_rating || 'Non spécifié',
                     publisher: book.publisher_name || 'Non spécifié',
                     id: book.id
-                }))
+                })))
             });
-            
         }
     });
-    
-    displayBooks(categories);
 
-    if (categories.length > 0 && categories[0].books.length > 0) {
-        const randomIndex = Math.floor(Math.random() * categories[0].books.length);
-        const selectedBook = categories[0].books[randomIndex]; 
+    displayBooks(allCategories);
+
+
+    const firstNonEmptyCategory = allCategories.find(category => category.books.length > 0);
+    if (firstNonEmptyCategory) {
+        const randomIndex = Math.floor(Math.random() * firstNonEmptyCategory.books.length);
+        const selectedBook = firstNonEmptyCategory.books[randomIndex]; 
         showBookInfo(selectedBook);
     }
 }
+
+
 
 
 
@@ -126,6 +162,8 @@ function displayBooks(categories) {
     bookContainer.innerHTML = ''; 
     
     categories.forEach(category => {
+        console.log(`Affichage de la catégorie : ${category.name}, Nombre de livres : ${category.books.length}`);
+        
         const categoryDiv = document.createElement('div');
         const categoryTitle = document.createElement('h2');
         categoryTitle.textContent = category.name;
@@ -146,7 +184,7 @@ function displayBooks(categories) {
             bookDiv.addEventListener('click', () => {
                 showBookInfo(book);
                 selectedBook = book; 
-                scrollTo({ top: 0 })
+                scrollTo({ top: 0 });
             });
             
             bookDiv.appendChild(bookImage);
@@ -158,6 +196,7 @@ function displayBooks(categories) {
     });
 }
 
+
 function showBookInfo(book) {
     const headerImage = document.getElementById('header-image');
     const bookTitle = document.getElementById('book-title');
@@ -165,19 +204,23 @@ function showBookInfo(book) {
     const bookPages = document.getElementById('book-pages-num');
     const bookRating = document.getElementById('book-rating-num');
     const bookPublisher = document.getElementById('book-publisher-num');
+    const bookAuthors = document.getElementById('book-authors-num');
+    const bookGenres = document.getElementById('book-genres-num');
     const bookid = document.getElementById('book-id-num');
 
     if (headerImage && bookTitle && bookDescription && bookPages && bookRating) {
         headerImage.src = book.image;
         bookTitle.textContent = book.title;
-        bookDescription.textContent = book.description;
-        bookPages.textContent = book.pages;
-        bookRating.textContent = book.rating;
-        bookPublisher.textContent = book.publisher;
+        bookDescription.textContent = book.description || 'Aucune description disponible.';
+        bookPages.textContent = book.pages || 'Non spécifié';
+        bookRating.textContent = book.rating || 'Non spécifié';
+        bookPublisher.textContent = book.publisher || 'Non spécifié';
+        bookAuthors.textContent = book.author || 'Non spécifié'; 
+        bookGenres.textContent = book.genres || 'Non spécifié';   
         bookid.textContent = book.id;
     }
-    onBookChange(book.id);
-}
 
+    onBookChange(book.id); 
+}
 
 window.onload = fetchBooks;

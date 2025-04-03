@@ -234,7 +234,7 @@ def get_book_recommendations_user(id_user: int, nbook: int):
             bv.average_rating;
     """
 
-    books = bddservice.cmd_sql(query, (books_ids,))  # Passage sécurisé des IDs
+    books = bddservice.cmd_sql(query, (books_ids,))  
 
     if not books:
         raise HTTPException(status_code=500, detail="No books found for the given recommendations")
@@ -258,3 +258,4 @@ def get_book_recommendations_user(id_user: int, nbook: int):
     ]
     return books_data
 
+    

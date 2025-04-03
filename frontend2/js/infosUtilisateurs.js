@@ -1,4 +1,3 @@
-
 // Choper les infos du sessionStorage
 document.addEventListener("DOMContentLoaded", async () => {
     const userId = localStorage.getItem("user_id");
@@ -26,7 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
-
+// Affiche les infos de l'utilisateurs depuis une modale
 async function showUserInfo() {
     const userId = localStorage.getItem("user_id");
     if (!userId) {
@@ -45,7 +44,6 @@ async function showUserInfo() {
 
         localStorage.setItem("user_data", JSON.stringify(userData));
 
-        // ✅ Ajoute ce log ici, avant d'appeler la fonction
         console.log("Données passées à updateUserModal :", userData);
 
         document.body.style.overflow = "hidden"

@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESCAPE</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="/static/js/auth.js"></script>
     <script type="module" src="/static/js/infosUtilisateurs.js"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.14.9/dist/cdn.min.js"></script>
+
     <script src="/static/js/wishlist.js"></script>
+    <script src="/static/js/searchBar.js"></script>
 
     <style>
         /* .glass-background {
@@ -92,7 +93,6 @@
         padding-bottom: 10px;
     }
     
-    /* Personnalisation de la scrollbar */
     .hoverBook::-webkit-scrollbar {
         height: 8px;
     }
@@ -132,8 +132,6 @@
     </style>
 </head>
 <body class="bg-gray-900 text-white glass-background">
-
-    <!-- Contenu de la page -->
     <div id="content" class="min-h-screen">
         <div class="glass">
             <!-- HEADER -->
@@ -142,8 +140,14 @@
                 
                 <!-- Barre de recherche -->
                 <div class="flex-1 flex justify-center w-[60%]">
-                    <input type="text" placeholder="Rechercher..."
+                    <div class="relative w-full max-w-lg">
+                        <input type="text" id="search-input" placeholder="Rechercher par titre ou par auteur"
                         class="w-full max-w-lg px-4 py-2 rounded-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400 bg-gray-700 text-white">
+                    
+                        <button id="search-button" type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white">
+                            🔍
+                        </button>                        
+                    </div>
                 </div>
 
                 <!-- Menu Utilisateur -->
@@ -195,24 +199,42 @@
                 <input type="text" x-model="$store.bookList.searchTitle" placeholder="Rechercher un titre..." class="px-4 py-2 rounded bg-gray-700 border border-gray-600 text-white">
             </div>
         
-            <!-- Liste des livres lus -->
+            <!-- Liste des livres à lire -->
             <h2 class="text-xl font-bold mb-4">Livres à lire</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">
+                <!-- Affichage du message d'erreur s'il y en a un -->
+                <template x-if="$store.bookList.errorMessage">
+                    <div class="w-full col-span-8 p-6 text-center text-gray-500">
+                        <p class="text-xl" x-text="$store.bookList.errorMessage"></p>
+                    </div>
+                </template>
+                
+                
+                
+                <!-- Affichage des livres si aucun message d'erreur -->
                 <template x-for="book in $store.bookList.filteredBooks" :key="book.id">
-                    <div class="book-card flex flex-col items-center w-full p-2">
+                    <div class="book-card flex flex-col items-center w-full p-2 bg-gray-700 rounded-lg shadow-md">
+                        <!-- Image du livre -->
                         <img :src="book.url !== '-1' ? book.url : '/static/notfound.jpg'" 
                             alt="Couverture de livre" 
-                            class="w-[150px] h-[225px] object-cover rounded-lg shadow-md"> 
+                            class="w-[150px] h-[225px] object-cover rounded-lg">
+                        
+                        <!-- Titre du livre -->
                         <h3 class="text-sm text-center mt-2 font-medium w-full h-[100px] overflow-hidden text-ellipsis whitespace-normal line-clamp-5"
                             x-text="book.title"></h3>
-                        <button @click="$store.bookList.bookread(book.id)" class="mt-3 px-3 py-1 rounded-full bg-green-500 hover:bg-green-700 text-white flex items-center space-x-2">
+                        
+                        <!-- Bouton pour marquer comme livre lu -->
+                        <button @click="$store.bookList.bookread(book.id)" 
+                            class="mt-3 px-3 py-1 rounded-full bg-green-500 hover:bg-green-700 text-white flex items-center space-x-2">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                             <span>Livre lu</span>
                         </button>
-                                        
-                        <button @click="$store.bookList.removeWishlist(book.id)" class="mt-3 px-3 py-1 rounded-full bg-red-500 hover:bg-red-700 text-white flex items-center space-x-2">
+                        
+                        <!-- Bouton pour retirer de la wishlist -->
+                        <button @click="$store.bookList.removeWishlist(book.id)" 
+                            class="mt-3 px-3 py-1 rounded-full bg-red-500 hover:bg-red-700 text-white flex items-center space-x-2">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -221,6 +243,8 @@
                     </div>
                 </template>
             </div>
+
+            
         </section>
         
         

@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi import Query
 from typing import List
 from typing import Optional
-from models.schemas import  AuthorReponse
+from models.schemas import AuthorReponse, AuthorRequest
 from services.servicebdd import bddservice
 
 
@@ -27,12 +27,12 @@ def get_all_authors():
     """
     
     # Requête SQL
-    query = """SELECT
-                Author.author_id,
-                Author.name,
-                Author.birthplace,
-                Rating_author.average_author_rating,
-                ARRAY_AGG(DISTINCT wrote.book_id) AS BooksWritten
+    query = """SELECT DISTINCT ON (Author.name)
+            Author.author_id,
+            Author.name,
+            Author.birthplace,
+            Rating_author.average_author_rating,
+            ARRAY_AGG(DISTINCT wrote.book_id) AS BooksWritten
             FROM
                 library.Author
             LEFT JOIN library.wrote ON wrote.author_id = Author.author_id
@@ -60,6 +60,28 @@ def get_all_authors():
     ]
 
     return authors_data
+
+
+@router.post("/add")
+def add_author(author: AuthorRequest):
+    """
+    Endpoint pour ajouter un auteur dans la base de données.
+    """
+    try:
+        bddservice.initialize_connection()
+        
+        author_id = bddservice.add_author(author.model_dump())
+        
+        return {"message": "Auteur ajouté avec succès", "authorId": author_id}
+    
+    except HTTPException as http_exc:
+        raise http_exc  
+    
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de l'ajout de l'auteur: {str(e)}")
+
+
 
 
 @router.get("/{id_author}", response_model=AuthorReponse)
@@ -112,3 +134,5 @@ def get_author(id_author: int):
     }
 
     return author_data
+
+    

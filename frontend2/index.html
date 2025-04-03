@@ -88,9 +88,8 @@
     #like-button {
     display: none;
 }
-
-
 </style>
+
 <body class="bg-gray-900 text-white glass-background">
     <div id="loading" class="flex items-center justify-center h-screen">
         <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-red-400"></div>
@@ -104,12 +103,12 @@
                 <!-- Barre de recherche -->
                 <div class="flex-1 flex justify-center w-[60%]">
                     <div class="relative w-full max-w-lg">
-                        <input type="text" id="search-input" placeholder="Rechercher..."
+                        <input type="text" id="search-input" placeholder="Rechercher par titre ou par auteur"
                         class="w-full max-w-lg px-4 py-2 rounded-full border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-400 bg-gray-700 text-white">
                     
-                        <button id="search-button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white">
+                        <button id="search-button" type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white">
                             🔍
-                        </button>
+                        </button>                        
                     </div>
                 </div>
                 
@@ -179,6 +178,9 @@
                             <p id="book-pages" class="text-sm text-gray-400 mt-2">Pages : <span id="book-pages-num"></span></p>
                             <p id="book-rating" class="text-sm text-yellow-400 mt-1">Note : <span id="book-rating-num"></span></p>
                             <p id="book-publisher" class="text-sm text-gray-400 mt-2">Publication : <span id="book-publisher-num"></span></p>
+                            <p id="book-authors" class="text-sm text-gray-400 mt-2">Auteur(s) : <span id="book-authors-num"></span></p>
+                            <p id="book-genres" class="text-sm text-gray-400 mt-2">Genres : <span id="book-genres-num"></span></p>
+
                             <p id="book-id" class="text-sm text-gray-400 mt-2" style="display: none;"><span id="book-id-num"></span></p>
 
                             <div id="rating-stars" class="hidden flex justify-center space-x-1 mb-2">
@@ -190,7 +192,6 @@
                             </div>
 
                             <div class="mt-4 flex space-x-4">
-
                                 <div x-data="{ read: false, liked: false, wishlisted: false }" x-init="onBookChange(bookId)">
                                     <button 
                                         id="read-button"
@@ -206,12 +207,10 @@
                                 
                                     <button 
                                         id="wishlist-button"
-                                        @click="wishlisted = !wishlisted; addToWishlist($el, 'text-yellow-500')"
-                                        :class="{ 'text-yellow-500': wishlisted }">
+                                        @click="addToWishlist($el)">
                                         ⭐ Wishlist
                                     </button>
                                 </div>
-                                
                             </div>
                         </div>
                     </div>

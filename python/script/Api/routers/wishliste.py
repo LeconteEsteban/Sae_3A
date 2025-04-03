@@ -24,37 +24,27 @@ def add_to_wishlist(book_id: int, user_id: int):
 
     return {"message": "Livre ajouté à la wishlist"}
 
-@router.get("/wishlist/{user_id}", response_model=List[BookResponse])
+@router.get("/wishlist/{user_id}")
 def get_wishlist(user_id: int):
     """
-    Récupère la wishlist d'un utilisateur avec une seule entrée par livre.
-    """
-    query = """
-        SELECT DISTINCT ON (b.book_id) 
-               b.book_id, b.title, b.isbn13, a.name AS author_name, b.description
-        FROM library.WishListe w
-        JOIN library.Book b ON w.book_id = b.book_id
-        LEFT JOIN library.Wrote wr ON b.book_id = wr.book_id
-        LEFT JOIN library.Author a ON wr.author_id = a.author_id
-        WHERE w.user_id = %s;
+    Récupère la liste des livres présents dans la wishlist d'un utilisateur.
+    Renvoie uniquement les ID des livres.
     """
     bddservice.initialize_connection()
-    books = bddservice.cmd_sql(query, (user_id,))
-    
-    if not books:
+    query = f"""
+        SELECT book_id
+        FROM library.WishListe
+        WHERE user_id = {user_id};
+    """
+
+    books = bddservice.cmd_sql(query)
+
+
+    if books is None or len(books) == 0:
         raise HTTPException(status_code=404, detail="Aucun livre trouvé dans la wishlist")
-    
-    return [
-        {
-            "id": book[0],
-            "title": book[1],
-            "isbn13": book[2],
-            "author_name": book[3] if book[3] else "Auteur inconnu",
-            "description": book[4] if book[4] else "Pas de description",
-            "url": bddservice.get_book_cover_url(book[0], book[2])  # Récupération de l'URL de l'image
-        }
-        for book in books
-    ]
+
+    return [book[0] for book in books]
+
 
 @router.delete("/wishlist/remove/{book_id}/{user_id}")
 def remove_from_wishlist(book_id: int, user_id: int):

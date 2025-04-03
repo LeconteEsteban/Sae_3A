@@ -247,7 +247,7 @@ class RecommendationService:
                     weight *= 1 + rank_score[0][0]/9000000
                     
                 # Calcul du score final
-                final_score = similarity_score * weight
+                final_score = (similarity_score or 0) * (weight or 1)
 
                 # Ajout au dictionnaire des recommandations
                 if book_id not in recommendations:

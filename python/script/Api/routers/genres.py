@@ -39,3 +39,5 @@ def get_all_genres():
         }
         for genre in genres
     ]
+
+

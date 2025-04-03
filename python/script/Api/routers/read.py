@@ -5,9 +5,8 @@ from services.servicebdd import bddservice
 
 router = APIRouter()
 
-
 @router.get("/{id_user}")
-def book_read(id_user:int):
+def book_read(id_user: int):
     """
     Endpoint pour récupérer les livres lus par un utilisateur.
 
@@ -25,7 +24,15 @@ def book_read(id_user:int):
     SELECT book_id FROM library.User_Book_Read WHERE user_id = {id_user} AND is_read = TRUE
     """
     result = bddservice.cmd_sql(query)
-    return result
+
+    # Vérification que result contient des données valides
+    if not result:
+        raise HTTPException(status_code=404, detail="Aucun livre trouvé pour cet utilisateur.")
+    
+    # Extraction des book_id
+    books = [book[0] for book in result]
+    return books
+
 
 @router.post("/{id_user}/{id_book}")
 def add_book_read(id_user:int , id_book:int):

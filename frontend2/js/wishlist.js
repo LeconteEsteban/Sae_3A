@@ -25,10 +25,13 @@ document.addEventListener('alpine:init', () => {
         selectedGenre: "",
         searchAuthor: "",
         searchTitle: "",
+        errorMessage: "", 
 
         async loadBooks() {
             const userId = localStorage.getItem("user_id");
             if (!userId) return;
+
+            this.errorMessage = '';
 
             try {
                 const readData = await getReadBooks(userId);
@@ -40,10 +43,15 @@ document.addEventListener('alpine:init', () => {
                 const books = await Promise.all(bookIds.map(getBookDetails));
 
                 this.books = mergeBooksById(books.filter(book => book !== null));
-                this.extractGenres(); // Mets à jour les genres après le chargement
+                this.extractGenres();
+
+                if (this.books.length === 0) {
+                    this.errorMessage = "Aucun livre trouvé pour cet utilisateur."; 
+                }
 
             } catch (error) {
                 console.error("Erreur lors du chargement des livres :", error);
+                this.errorMessage = "Une erreur s'est produite lors du chargement des livres.";
             }
         },
 
@@ -68,10 +76,10 @@ document.addEventListener('alpine:init', () => {
 
                 if (!responseR.ok) throw new Error(`Erreur HTTP! statut: ${responseR.status}`);
 
-                // Mise à jour instantanée
+                // Gestion des filtres sur les livres
+
                 this.books = this.books.filter(b => b.id !== book);
 
-                // Recharge les livres pour s'assurer de la mise à jour
                 await this.loadBooks();
 
                 return await responseR.json();
